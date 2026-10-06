@@ -1,0 +1,85 @@
+{
+  "review_date": "2026-10-06",
+  "files": [
+    {
+      "file": "max/devices/GloveRecevier.amxd",
+      "sha256": "e328e9b1743bace10a69d2e2a3fe1caa7da7bba8630e3409bd89f3ea7e42dac8",
+      "bytes": 28059,
+      "source": "max/source/GloveRecevier.maxpat",
+      "saved_max_version": {
+        "major": 9,
+        "minor": 1,
+        "revision": 5,
+        "architecture": "x64",
+        "modernui": 1
+      },
+      "device_type": "Audio effect",
+      "status": "Original binary copied without modification"
+    },
+    {
+      "file": "max/devices/Glove_Direct_Map.amxd",
+      "sha256": "6bbdf718dbdb59a0f6640a23f2680fa074441d5828265408254d84e0baf58c4a",
+      "bytes": 14261,
+      "source": "max/source/Glove_Direct_Map.maxpat",
+      "saved_max_version": {
+        "major": 9,
+        "minor": 1,
+        "revision": 5,
+        "architecture": "x64",
+        "modernui": 1
+      },
+      "device_type": "Audio effect",
+      "status": "Original binary copied without modification"
+    },
+    {
+      "file": "max/devices/Glovebang.amxd",
+      "sha256": "be1e54c352210e37ae095fb2090cb589472bc2357b02a1a7c286e1a9b400f819",
+      "bytes": 203966,
+      "source": "max/source/Glovebang.maxpat",
+      "saved_max_version": {
+        "major": 9,
+        "minor": 1,
+        "revision": 3,
+        "architecture": "x64",
+        "modernui": 1
+      },
+      "device_type": "MIDI effect",
+      "status": "Original binary copied without modification"
+    },
+    {
+      "file": "max/devices/reressorMapping2.amxd",
+      "sha256": "01b8b74e01aa1bdb070c7f0343871bd6d86793a2a8f26be09e6b4029da159fbe",
+      "bytes": 32709,
+      "source": "max/source/reressorMapping2.maxpat",
+      "saved_max_version": {
+        "major": 9,
+        "minor": 1,
+        "revision": 3,
+        "architecture": "x64",
+        "modernui": 1
+      },
+      "device_type": "Audio effect",
+      "status": "Original binary copied without modification"
+    },
+    {
+      "file": "max/devices/gloveRegressor10.json",
+      "bytes": 7794,
+      "sha256": "afcd6ae1bd4605fdfbbb8573e3a973a52941f3a2dc8fc7ef7e5a8c7fae2a03e0",
+      "status": "Original supporting file copied without modification",
+      "origin": "Provided model"
+    },
+    {
+      "file": "max/devices/unitPart.maxpat",
+      "bytes": 53095,
+      "sha256": "128105469c90ed2b35191eb4889199d854a5643dd78d65311c70d30b085edaa9",
+      "status": "Original supporting file copied without modification",
+      "origin": "Recovered from local brainMapper Project; authorship/license not declared in file"
+    }
+  ],
+  "firmware": {
+    "file": "arduino/glove/glove.ino",
+    "processing_sha256": "c43b40c3f3667e03376467bffedb843ec150b930621232754f0135889977fd2d",
+    "normalization": "Remove line comments and whitespace; replace ssid/password/outIp string values with CONFIGURATION",
+    "status": "Processing logic unchanged; network strings replaced and comments translated"
+  }
+}
