@@ -2,6 +2,8 @@
 
 Review date: **2026-10-06**.
 
+The project owner identified the glove hardware as the **ElastremeSense Manu-5D e-skin data glove kit**. This identification has been added to the documentation; it does not change the firmware or constitute a hardware compatibility test.
+
 ## Checks completed
 
 - Read the complete supplied Arduino sketch and inspected the JSON patch payloads inside all four `.amxd` containers, including nested subpatches and patch cords.
@@ -40,7 +42,7 @@ The audit checks file integrity, matching extracted patch sources, patch-cord re
 
 | Area | Remaining check |
 | --- | --- |
-| Glove input | Confirm actual sensors, external Bluetooth/UART source, channel order, cadence, and voltage levels. |
+| Glove input | Confirm the Manu-5D kit's acquisition/transmission setup, external Bluetooth/UART source, channel order, cadence, and voltage levels. |
 | Servo control | Confirm power, mechanical range, direction, initialization pose, and behavior when input stops. |
 | OSC | Capture live `/servos` packets and localhost forwarded packets; measure update rate and delivery under load. |
 | Ableton Live | Load each device, verify dependencies and parameter assignment, and save/reopen a set. |

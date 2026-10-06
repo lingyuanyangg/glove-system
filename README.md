@@ -1,12 +1,13 @@
 # Glove System — Arduino, OSC & Max for Live
 
-A five-channel glove interface for musical performance in Ableton Live. The system combines Arduino servo control, OSC over Wi-Fi, continuous parameter mapping, gesture-triggered MIDI notes, and a learned mapping from five glove values to ten control outputs.
+A five-channel glove interface for musical performance in Ableton Live, based on the **ElastremeSense Manu-5D e-skin data glove kit**. The system combines Arduino servo control, OSC over Wi-Fi, continuous parameter mapping, gesture-triggered MIDI notes, and a learned mapping from five glove values to ten control outputs.
 
 This repository contains the Arduino bridge firmware, four Max for Live devices, readable Max patch sources, and an example regression model. The firmware receives glove data from an **external serial source**; the glove sensor acquisition firmware and Bluetooth transmitter are outside this release.
 
 ```mermaid
 flowchart LR
-    G[Glove / external data source] -->|UART: five integers| A[Arduino UNO R4 WiFi]
+    G[ElastremeSense Manu-5D e-skin data glove kit] --> I[External acquisition / serial source]
+    I -->|UART: five integers| A[Arduino UNO R4 WiFi]
     A --> S[Five servo outputs]
     A -->|OSC /servos · UDP 7000| R[GloveRecevier]
     R -->|Normalized five-value list · GLeft| D[Direct parameter mapping]
@@ -31,6 +32,7 @@ Original device filenames, including `Recevier` and `reressor`, are retained for
 
 ## Requirements
 
+- **ElastremeSense Manu-5D e-skin data glove kit** — the glove hardware used as the basis of this project. Its acquisition and transmission setup supplies the external data source for the Arduino bridge; that source must output the serial frame format documented below.
 - **Arduino UNO R4 WiFi**, with the Arduino UNO R4 Boards package. The sketch uses `WiFiS3`, `WiFiUdp`, **Servo**, and the **CNMAT OSC** library.
 - An external UART source producing the documented frame format at **115200 baud**. A Bluetooth-to-UART receiver is one possible source; this sketch does not use onboard Bluetooth APIs.
 - Five servos, a suitable servo power supply, and the mechanical glove assembly. Servo specifications, sensor wiring, and mechanical drawings are not included.
@@ -88,6 +90,7 @@ Hardware movement, network delivery, MIDI output, Live parameter assignment, and
 
 ## Dependencies and credits
 
+- **ElastremeSense Manu-5D e-skin data glove kit** — glove hardware platform used in this project.
 - [Arduino UNO R4 WiFi documentation](https://docs.arduino.cc/tutorials/uno-r4-wifi/cheat-sheet/) — board, UART, and Wi-Fi APIs.
 - [CNMAT OSC](https://github.com/CNMAT/OSC) — Arduino OSC encoding.
 - [Cycling '74 UDP receive documentation](https://docs.cycling74.com/reference/udpreceive/) and [UDP send documentation](https://docs.cycling74.com/reference/udpsend/) — Max network transport and OSC conversion.

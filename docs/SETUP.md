@@ -1,5 +1,11 @@
 # Installation, calibration, and troubleshooting
 
+## Glove hardware
+
+This project uses the **ElastremeSense Manu-5D e-skin data glove kit** as its glove hardware platform. Set up the kit's sensing and acquisition components using the documentation supplied with your kit, then configure the external serial source for the Arduino interface described here: five comma-separated integers, a semicolon terminator, and 115200 baud.
+
+The repository starts at the Arduino's `Serial1` input. Check the acquisition output format and adapt it if needed; the kit's acquisition firmware and Bluetooth transmitter configuration are not included in this release.
+
 ## Arduino
 
 Install **Arduino UNO R4 Boards**, **Servo**, and **OSC** by CNMAT using the Arduino IDE board/library managers. `WiFiS3` and `WiFiUdp` come with the UNO R4 board package; do not substitute a generic Wi-Fi library intended for a different board.

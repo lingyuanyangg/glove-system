@@ -2,6 +2,12 @@
 
 This specification describes the supplied Arduino sketch, four Max for Live patch payloads, and regression JSON inspected on **2026-10-06**. Statements about wiring and algorithms follow the files; end-to-end performance has not been measured.
 
+## Glove hardware platform
+
+The glove hardware in this project is based on the **ElastremeSense Manu-5D e-skin data glove kit**, as identified by the project owner. The kit forms the glove sensing side of the system; the published software implements the downstream Arduino servo/OSC bridge and Max for Live processing.
+
+The external acquisition and transmission setup must present five integer values to the Arduino in the serial format specified below. This format is the interface required by the supplied sketch; it is not a claim about the kit's unmodified factory protocol. Kit acquisition firmware, transmitter configuration, sensor wiring, and product specifications are outside the supplied files.
+
 ## 1. Arduino bridge
 
 The UNO R4 WiFi sketch is a serial-to-servo and serial-to-OSC bridge. It does not sample glove sensors directly. `Serial` provides USB diagnostics at 115200 baud; `Serial1` receives external data at 115200 baud on D0/RX and D1/TX. The external Bluetooth hardware and its pairing protocol are not specified in the provided files.
