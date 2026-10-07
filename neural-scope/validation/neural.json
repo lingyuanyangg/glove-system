@@ -1,0 +1,47 @@
+{
+  "kind": "Executed shipped pure ES5 neural core in Node",
+  "checks": [
+    {
+      "name": "Original model imports all layers and ten paired examples",
+      "pass": true
+    },
+    {
+      "name": "Original neural output agrees with independently accumulated tanh/linear layers",
+      "pass": true
+    },
+    {
+      "name": "Five-input legacy model cannot silently receive ten inputs or different outputs",
+      "pass": true
+    },
+    {
+      "name": "Input validation rejects incomplete, string and non-finite values and clips range",
+      "pass": true
+    },
+    {
+      "name": "Invalid weight dimensions and unsupported activations are rejected",
+      "pass": true
+    },
+    {
+      "name": "Original data training RMSE",
+      "value": 0.02960636848296187,
+      "pass": true
+    },
+    {
+      "name": "Adam backprop learns the supplied ten-example regression dataset",
+      "pass": true
+    },
+    {
+      "name": "Two-hand data training RMSE",
+      "value": 0.007541203877510837,
+      "pass": true
+    },
+    {
+      "name": "Ten-input model learns a nonlinear two-hand mapping",
+      "pass": true
+    },
+    {
+      "name": "Training needs two examples; serialized weights predict identically",
+      "pass": true
+    }
+  ]
+}

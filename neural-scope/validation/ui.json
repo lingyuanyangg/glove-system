@@ -1,0 +1,9 @@
+{
+  "kind": "Actual HTML packet receiver and theme function, executed in Node; no browser rendering",
+  "checks": [
+    "302-row out-of-order packet assembly and duplicate/stale rejection",
+    "Malformed complete packet reports an error",
+    "Light-theme CSS colors and accent contrast",
+    "Dark-theme CSS colors and accent contrast"
+  ]
+}

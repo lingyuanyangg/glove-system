@@ -1,0 +1,89 @@
+{
+  "kind": "Shipped Max adapter executed against a simulated Live Object Model",
+  "checks": [
+    {
+      "name": "Portable UI load, track discovery, self exclusion and selected-device follow",
+      "pass": true
+    },
+    {
+      "name": "Left/Right/Both route 5/5/10 dimensions in original finger order",
+      "pass": true
+    },
+    {
+      "name": "Both mode waits for both hands and rejects malformed replacement frames",
+      "pass": true
+    },
+    {
+      "name": "Capture normalizes real Live ranges and ignores custom clamp scaling",
+      "pass": true
+    },
+    {
+      "name": "Actual adapter training completes; Run drives native units and Stop releases",
+      "pass": true
+    },
+    {
+      "name": "Output clamps and quantized targets respect chosen valid bounds",
+      "pass": true
+    },
+    {
+      "name": "Input modes retain separate training banks, and switching mode releases mappings",
+      "pass": true
+    },
+    {
+      "name": "Changing scope keeps the previous model bank and prevents stale row events",
+      "pass": true
+    },
+    {
+      "name": "Following a new device stops control; clicking the utility itself retains the target",
+      "pass": true
+    },
+    {
+      "name": "Manual target selection pins a same-track device and rejects another track",
+      "pass": true
+    },
+    {
+      "name": "Selected track context follows current Live track and reuses cached API objects",
+      "pass": true
+    },
+    {
+      "name": "Deleted or moved targets release all remotes before another prediction",
+      "pass": true
+    },
+    {
+      "name": "Deleted device is rejected by commands; changed parameter list refreshes safely",
+      "pass": true
+    },
+    {
+      "name": "Unavailable parameters cannot be scoped or captured",
+      "pass": true
+    },
+    {
+      "name": "Failure on a later output releases any earlier remote assignments",
+      "pass": true
+    },
+    {
+      "name": "Samples and neural weights restore after ID changes, with Run always off",
+      "pass": true
+    },
+    {
+      "name": "Legacy 10-output import uses original weights and requires exact scope count",
+      "pass": true
+    },
+    {
+      "name": "Adding an example invalidates the current model; undo and clear affect only that bank",
+      "pass": true
+    },
+    {
+      "name": "Deletion cancels scheduled work and releases remote channels",
+      "pass": true
+    },
+    {
+      "name": "Large parameter tables and saved samples use bounded fragments and restore intact",
+      "pass": true
+    },
+    {
+      "name": "Live theme bridge accepts native colors and rejects unknown or malformed messages",
+      "pass": true
+    }
+  ]
+}

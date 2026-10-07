@@ -1,0 +1,11 @@
+const fs=require('fs'),vm=require('vm'),path=require('path'),assert=require('assert');
+const html=fs.readFileSync(path.join(__dirname,'../Glove_Neural_Scope/neural_scope_ui.html'),'utf8');
+const received=[],status={},props={},c={receive:s=>received.push(s),$:()=>status,document:{documentElement:{style:{setProperty:(k,v)=>{props[k]=v;}}}}};vm.createContext(c);
+const packets=html.slice(html.indexOf('let statePacket='),html.indexOf('if(bridge){window.max.bindInlet'));vm.runInContext(packets,c);
+const value={rows:Array.from({length:302},(_,i)=>({id:String(i),name:'参数 '+i+' "quoted"'}))},encoded=encodeURIComponent(JSON.stringify(value)),parts=encoded.match(/.{1,4096}/g);
+for(let i=parts.length-1;i>0;i--)c.receivePacket(3,i,parts.length,parts[i]);assert.equal(received.length,0);c.receivePacket(2,0,1,'bad');c.receivePacket(3,0,parts.length,parts[0]);assert.deepEqual(JSON.parse(JSON.stringify(received[0])),value);c.receivePacket(3,0,parts.length,parts[0]);assert.equal(received.length,1);
+c.receivePacket(4,0,1,'invalid');assert.match(status.textContent,/UI transfer/);
+vm.runInContext(html.slice(html.indexOf('function applyTheme('),html.indexOf('function receive(next)')),c);
+vm.runInContext("applyTheme({live_lcd_bg:[.9,.9,.9,1],live_control_fg:[.1,.1,.1,1],live_lcd_control_fg:[1,.6,.2,1]})",c);assert.equal(props['--bg'],'rgba(229.5,229.5,229.5,1)');assert.equal(props['--accent-ink'],'#202020');assert(props['--line'].startsWith('rgb('));
+vm.runInContext("applyTheme({live_lcd_bg:[.1,.1,.1,1],live_control_fg:[.9,.9,.9,1],live_lcd_control_fg:[.2,.2,.2,1]})",c);assert.equal(props['--accent-ink'],'#eeeeee');
+fs.writeFileSync(path.join(__dirname,'../validation/ui.json'),JSON.stringify({kind:'Actual HTML packet receiver and theme function, executed in Node; no browser rendering',checks:['302-row out-of-order packet assembly and duplicate/stale rejection','Malformed complete packet reports an error','Light-theme CSS colors and accent contrast','Dark-theme CSS colors and accent contrast']},null,2));console.log('4 UI transport/theme checks passed');
