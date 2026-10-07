@@ -2,6 +2,8 @@
 
 This specification describes the supplied Arduino sketch, four Max for Live patch payloads, and regression JSON inspected on **2026-10-06**. Statements about wiring and algorithms follow the files; end-to-end performance has not been measured.
 
+The rebuilt dual-hand receiver is described separately in the [Receiver v2 specification and guide](../receiver-v2/README.md), including right-hand UDP input, ten normalized native mappings, deadband/time filtering, atomic Max frames and configurable OSC forwarding.
+
 ## Glove hardware platform
 
 The glove hardware in this project is based on the **ElastremeSense Manu-5D e-skin data glove kit**, as identified by the project owner. The kit forms the glove sensing side of the system; the published software implements the downstream Arduino servo/OSC bridge and Max for Live processing.

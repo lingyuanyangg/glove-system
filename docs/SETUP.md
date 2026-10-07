@@ -1,5 +1,7 @@
 # Installation, calibration, and troubleshooting
 
+For the rebuilt dual-hand receiver, follow the [Receiver v2 guide](../receiver-v2/README.md). It receives left-hand input on 7000 and right-hand input on 6000, includes native Live mapping and jitter suppression, and passes stereo audio through. The receiver sections below describe the original supplied devices.
+
 ## Glove hardware
 
 This project uses the **ElastremeSense Manu-5D e-skin data glove kit** as its glove hardware platform. Set up the kit's sensing and acquisition components using the documentation supplied with your kit, then configure the external serial source for the Arduino interface described here: five comma-separated integers, a semicolon terminator, and 115200 baud.

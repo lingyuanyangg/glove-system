@@ -1,0 +1,39 @@
+// Export the actual jsui vectors + patch presentation rectangles for layout review.
+// This is a layout preview, not a screenshot of native Max/Live widgets.
+const fs=require('fs'),path=require('path'),vm=require('vm');
+const root=path.resolve(__dirname,'..');let svg=[],d='',color='',width=1;
+const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');
+const g={init(){},redraw(){},save(){svg.push('<g>');},restore(){svg.push('</g>');},
+ translate(x,y){svg.push(`<g transform="translate(${x} ${y})">`);},
+ scale(x,y){svg.push(`<g transform="scale(${x} ${y})">`);},
+ set_source_rgba(r,g,b,a){color=`rgba(${r*255},${g*255},${b*255},${a})`;},
+ set_line_width(w){width=w;},move_to(x,y){d+=` M${x} ${y}`;},
+ line_to(x,y){d+=` L${x} ${y}`;},curve_to(...a){d+=' C'+a.join(' ');},
+ stroke(){svg.push(`<path d="${d}" fill="none" stroke="${color}" stroke-width="${width}" stroke-linecap="round"/>`);d='';}};
+// save/restore must also close the nested transforms emitted in each state scope.
+const stack=[];let nested=0;
+g.save=()=>stack.push(nested);g.translate=(x,y)=>{svg.push(`<g transform="translate(${x} ${y})">`);nested++;};
+g.scale=(x,y)=>{svg.push(`<g transform="scale(${x} ${y})">`);nested++;};
+g.restore=()=>{const target=stack.pop();while(nested>target){svg.push('</g>');nested--;}};
+const c={mgraphics:g,arrayfromargs:a=>Array.from(a)};vm.createContext(c);
+vm.runInContext(fs.readFileSync(path.join(root,'glove_hands.js'),'utf8'),c);c.paint();
+let vectors=svg.join('');
+fs.writeFileSync(path.join(root,'hands.svg'),`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 808 149">${vectors}</svg>`);
+svg=[`<rect width="808" height="169" fill="#383838"/>`,vectors];
+const p=JSON.parse(fs.readFileSync(path.join(root,'Glove_Receiver_Dual.maxpat'))).patcher;
+function rect(x,y,w,h,fill='#292929'){svg.push(`<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="${fill}" stroke="#727272" stroke-width=".45"/>`);}
+function text(x,y,s,size=9,col='#d4d4d4'){svg.push(`<text x="${x}" y="${y}" font-family="Arial, sans-serif" font-size="${size}" fill="${col}">${esc(s)}</text>`);}
+for(const o of p.boxes){const b=o.box;if(!b.presentation||b.maxclass==='jsui')continue;
+ const [x,y,w,h]=b.presentation_rect;
+ if(b.maxclass==='live.comment'){text(x,y+h*.74,b.text,b.fontsize);continue;}
+ if(b.maxclass==='bpatcher'){rect(x,y,46,h);text(x+12,y+10,'Map',9,'#ffc15a');continue;}
+ rect(x,y,w,h,b.id==='filter_enabled'?'#a99a67':'#292929');
+ let s=b.text||'';
+ if(b.maxclass==='live.numbox'){
+  const v=b.saved_attribute_attributes.valueof;const a=v.parameter_initial[0];
+  s=v.parameter_units==='%0.3f'?a.toFixed(3):String(a)+(b.id==='smooth_ms'?' ms':'');
+ }
+ text(x+4,y+h*.76,s,b.fontsize||10,b.id==='filter_enabled'?'#161616':'#d4d4d4');
+}
+fs.writeFileSync(path.join(root,'layout-preview.svg'),`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 808 169" width="1616" height="338">${svg.join('')}</svg>`);
+console.log('Exported hands.svg and layout-preview.svg from shipped code.');

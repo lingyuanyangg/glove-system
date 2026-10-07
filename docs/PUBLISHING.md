@@ -22,7 +22,7 @@ In a standalone copy of this directory, outside any existing repository:
 
 ```sh
 git init -b main
-git add README.md .gitignore .gitattributes arduino max docs tools
+git add README.md .gitignore .gitattributes arduino max receiver-v2 docs tools
 git commit -m "Add glove firmware, Max for Live devices, and English documentation"
 git remote add origin https://github.com/YOUR_USERNAME/glove-system.git
 git push -u origin main
