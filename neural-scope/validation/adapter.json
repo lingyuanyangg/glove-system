@@ -66,10 +66,6 @@
       "pass": true
     },
     {
-      "name": "Legacy 10-output import uses original weights and requires exact scope count",
-      "pass": true
-    },
-    {
       "name": "Adding an example invalidates the current model; undo and clear affect only that bank",
       "pass": true
     },
@@ -83,6 +79,54 @@
     },
     {
       "name": "Live theme bridge accepts native colors and rejects unknown or malformed messages",
+      "pass": true
+    },
+    {
+      "name": "Named snapshots restore saved scope and bounds and release Run before loading",
+      "pass": true
+    },
+    {
+      "name": "Saved models are immutable and duplicate names receive independent identities",
+      "pass": true
+    },
+    {
+      "name": "Selector rejects wrong hand and target structure; unavailable outputs do not partially change scope",
+      "pass": true
+    },
+    {
+      "name": "Named model library survives Set restore and new runtime parameter IDs",
+      "pass": true
+    },
+    {
+      "name": "Export and Import preserve weights, samples, Unicode name, scope and bounds across Sets",
+      "pass": true
+    },
+    {
+      "name": "Import stores an incompatible saved model for later selection without replacing the working bank",
+      "pass": true
+    },
+    {
+      "name": "Import rejects malformed models and invalid samples without altering the library",
+      "pass": true
+    },
+    {
+      "name": "Dialog cancellation and target changes reject stale file callbacks",
+      "pass": true
+    },
+    {
+      "name": "Deleting a named snapshot leaves the active bank; exporting works without a target",
+      "pass": true
+    },
+    {
+      "name": "Version-one Set state migrates without a preset or a model library",
+      "pass": true
+    },
+    {
+      "name": "User-selected Data Knot JSON imports only with a single hand and ten scoped outputs",
+      "pass": true
+    },
+    {
+      "name": "Large named model snapshot uses bounded Blob/UI chunks and round-trips through JSON",
       "pass": true
     }
   ]

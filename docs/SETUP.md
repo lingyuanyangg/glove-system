@@ -27,7 +27,7 @@ Servo signal pins, in input order, are **D6, D5, D4, D3, D2**. Use a power suppl
 
 ## Max for Live
 
-Keep `max/devices/` intact: the `.amxd` devices need `unitPart.maxpat`, and the regression device reads `gloveRegressor10.json` by filename. Add this directory to Max's File Preferences search path if a helper or model fails to resolve. The extracted patches in `max/source/` contain the same dependencies; add `max/devices/` to the path when editing them.
+Keep `max/devices/` intact: the `.amxd` devices need `unitPart.maxpat`, the former default regression JSON has been removed. The original `reressorMapping2` still contains its historical read message; load a user-trained model explicitly or use the new [Glove Neural Scope](../neural-scope/README.md) model selector. Add this directory to Max's File Preferences search path if a helper or model fails to resolve. The extracted patches in `max/source/` contain the same dependencies; add `max/devices/` to the path when editing them.
 
 Install these external packages:
 
@@ -58,7 +58,7 @@ For software-only inspection, values `0,18,18,18,70` represent the lower endpoin
 
 These examples also command the servos. Inspect software with actuators disconnected or linkages removed until the mechanical ranges are established.
 
-Calibrate before using the supplied regression model. Changes to channel order, normalization, or gesture poses change the model's input distribution; capture a new training set if those change materially.
+Calibrate before training or importing a regression model. Changes to channel order, normalization, or gesture poses change the model's input distribution; capture a new training set if those change materially.
 
 ## Training a new mapping
 
@@ -70,7 +70,7 @@ Calibrate before using the supplied regression model. Changes to channel order, 
 6. Use `write` to export a new JSON. Then explicitly send `read <filename>` to `dk.regressor`; training does not automatically replace the active inference model.
 7. Check unseen poses, output saturation, and Live parameter behavior before performance use.
 
-Keep the original model as a reference and update the file-loading message if your new model uses another filename.
+No default model is included. Update the original device's file-loading message to your own exported model, or use Save/Load/Import/Export in Glove Neural Scope.
 
 ## Troubleshooting
 

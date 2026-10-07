@@ -103,17 +103,17 @@ var GloveNeural = (function () {
         }
         return this.done;
     };
-    function legacy(doc,nin,nout) {
-        if(nin!==5||nout!==10)throw Error('Legacy model requires Left/Right input and exactly 10 scoped parameters');
+    function fromDataKnot(doc,nin,nout) {
+        if(nin!==5||nout!==10)throw Error('Data Knot import requires Left/Right input and exactly 10 scoped parameters');
         if(!doc||!doc.fits||!doc.fits.input_regressor)throw Error('Not a Data Knot regression file');
         var model=copy(validate(doc.fits.input_regressor,nin,nout)),samples=[],datasets=doc.data&&doc.data.datasets;
         if(datasets&&datasets.input&&datasets.output){
             var xs=datasets.input.data,ys=datasets.output.data;
             for(var key in xs)if(ys[key])samples.push({x:vector(xs[key],5),y:vector(ys[key],10)});
         }
-        return {model:model,samples:samples,loss:null,origin:'gloveRegressor10 · imported'};
+        return {model:model,samples:samples,loss:null,origin:'Data Knot · imported by user'};
     }
     return {copy:copy,number:number,clamp:clamp,vector:vector,validate:validate,
-        forward:forward,predict:predict,Trainer:Trainer,legacy:legacy};
+        forward:forward,predict:predict,Trainer:Trainer,fromDataKnot:fromDataKnot};
 }());
 if(typeof module!=='undefined')module.exports=GloveNeural;

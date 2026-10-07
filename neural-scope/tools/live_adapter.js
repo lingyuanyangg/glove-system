@@ -1,6 +1,6 @@
 autowatch=0;
 inlets=1;
-outlets=3;
+outlets=4;
 var ownerPatcher=this.patcher,ready=false,uiReady=false,selfID=0,trackID=0;
 var apiCache={},songView=null,devices=[],sessions={},savedSessions={},selected=null,sequence=0,revision=0;
 var mode='left',trackMode='this',follow=true,running=false,smoothing=30,epochs=800;
@@ -8,6 +8,7 @@ var inputLeft=null,inputRight=null,inputRevision=0,lastPredicted=-1;
 var remotes={},remotePool=null,pollTask=null,runTask=null,trainingTask=null,trainer=null,trainingBank=null;
 var ticks=0,note='Choose a target device',storedPayload='',visibleIDs=[],deviceSignature='',lastUi=0;
 var themeColors={};
+var modelLibrary=[],modelSelection='',pendingExport=null,pendingImport=null;
 function theme(name,r,g,b,a){
     if(['live_lcd_bg','live_control_text_bg','live_control_fg','live_lcd_control_fg','live_lcd_control_fg_zombie'].indexOf(String(name))<0)return;
     var values=[r,g,b,a];for(var i=0;i<4;i++)if(!GloveNeural.number(values[i]))return;
@@ -175,13 +176,111 @@ function trainChunk(){
         if(trainer.done){var t=trainer,b=trainingBank;b.model=GloveNeural.copy(t.model);b.loss=t.loss;b.origin='MLP · tanh / linear · Adam';cancelTraining();say('Trained · normalized RMSE '+t.loss.toFixed(5)+' · enable Run');persist();revision++;emit();}
     }catch(e){cancelTraining();say('Training failed: '+e.message);emit();}
 }
-function legacy(){
-    if(running)throw Error('Turn Run off before loading the legacy model');
-    var rows=scoped(),path=directory()+'gloveRegressor10.json',file=new File(path,'read');
-    if(!file.isopen)throw Error('Keep gloveRegressor10.json beside the device');
-    var data='';while(file.position<file.eof)data+=file.readstring(4096);file.close();
-    var b=GloveNeural.legacy(JSON.parse(data),nin(),rows.length);current().banks[bankKey()]=b;
-    say('Original 5 → 3 → 3 → 10 model loaded · outputs follow scoped row order');persist();
+function modelID(){return 'model-'+new Date().getTime()+'-'+Math.floor(Math.random()*1000000000);}
+function validateRecord(record){
+    if(!record||record.format!=='glove-neural-scope-model'||record.version!==1)throw Error('Not a Glove Neural Scope model file');
+    if(['left','right','both'].indexOf(record.mode)<0||record.inputDimensions!==(record.mode==='both'?10:5))throw Error('Invalid saved hand mode');
+    if(typeof record.id!=='string'||!record.id||typeof record.name!=='string'||!record.name.trim()||record.name.length>80||typeof record.deviceSignature!=='string'||typeof record.savedAt!=='string'||!isFinite(Date.parse(record.savedAt)))throw Error('Invalid saved model identity');
+    var configs=record.configs;if(!(configs instanceof Array)||configs.length<1||configs.length>256)throw Error('Invalid saved parameter scope');
+    var previous=-1;
+    for(var i=0;i<configs.length;i++){
+        var p=configs[i];
+        if(!p||p.index!==Math.floor(p.index)||p.index<=previous||typeof p.name!=='string'||typeof p.quantized!=='boolean'||
+            !GloveNeural.number(p.lo)||!GloveNeural.number(p.hi)||p.hi<=p.lo||!GloveNeural.number(p.min)||!GloveNeural.number(p.max)||p.min<p.lo||p.max>p.hi||p.min>p.max||
+            p.quantized&&Math.ceil(p.min)>Math.floor(p.max))throw Error('Invalid saved parameter range');previous=p.index;
+    }
+    var b=record.bank;GloveNeural.validate(b&&b.model,record.inputDimensions,configs.length);
+    if(!(b.samples instanceof Array)||b.samples.length>512)throw Error('Invalid saved examples');
+    for(i=0;i<b.samples.length;i++){
+        var sample=b.samples[i];if(!sample)throw Error('Invalid saved example');
+        GloveNeural.vector(sample.x,record.inputDimensions);GloveNeural.vector(sample.y,configs.length);
+        var xy=sample.x.concat(sample.y);for(var j=0;j<xy.length;j++)if(xy[j]<0||xy[j]>1)throw Error('Saved examples must be normalized');
+    }
+    if(b.loss!==null&&(!GloveNeural.number(b.loss)||b.loss<0))throw Error('Invalid saved model error');
+    if(typeof b.origin!=='string')throw Error('Invalid saved model origin');return record;
+}
+function findModel(id){for(var i=0;i<modelLibrary.length;i++)if(modelLibrary[i].id===String(id))return modelLibrary[i];throw Error('Choose a saved model');}
+function compatibility(record){
+    if(record.mode!==mode)return 'Choose '+record.mode+' input first';
+    if(!selected||!sessions[selected])return 'Choose a target device';
+    var s=current();if(record.deviceSignature!==s.signature)return 'Target parameter structure differs';
+    for(var i=0;i<record.configs.length;i++){
+        var p=record.configs[i],row=s.rows[p.index];
+        if(!row||schema([row])!==schema([p]))return 'Saved output parameter differs';
+    }return '';
+}
+function recordCurrent(name){
+    name=String(name||'').trim();if(!name||name.length>80)throw Error('Enter a model name (1–80 characters)');
+    var s=current(),rows=scoped(),b=bank();GloveNeural.validate(b.model,nin(),rows.length);
+    return validateRecord({format:'glove-neural-scope-model',version:1,id:modelID(),name:name,savedAt:new Date().toISOString(),
+        mode:mode,inputDimensions:nin(),deviceSignature:s.signature,
+        configs:rows.map(function(p){return {index:p.index,name:p.name,lo:p.lo,hi:p.hi,quantized:p.quantized,min:p.min,max:p.max};}),
+        bank:GloveNeural.copy({model:b.model,samples:b.samples,loss:b.loss,origin:b.origin})});
+}
+function saveModel(name){
+    if(modelLibrary.length>=128)throw Error('128 saved models reached; export a model before removing it');
+    var record=recordCurrent(name);modelLibrary.push(record);modelSelection=record.id;
+    say('Saved '+record.name+' · save the Live Set, or Export a JSON file');persist();
+}
+function loadModel(id){
+    var record=validateRecord(findModel(id)),reason=compatibility(record);if(reason)throw Error(reason);
+    stopRun();cancelTraining();validateTarget();reason=compatibility(record);if(reason)throw Error(reason);
+    var rows=current().rows,configs=record.configs;
+    for(var i=0;i<configs.length;i++)if(!enabled(rows[configs[i].index].id))throw Error(configs[i].name+' is controlled elsewhere');
+    for(i=0;i<rows.length;i++)rows[i].scope=false;
+    for(i=0;i<configs.length;i++){var row=rows[configs[i].index];row.scope=true;row.min=configs[i].min;row.max=configs[i].max;}
+    current().banks[bankKey()]=GloveNeural.copy(record.bank);modelSelection=record.id;revision++;
+    say('Loaded '+record.name+' · scope and bounds restored · Run off');persist();
+}
+function deleteModel(id){
+    findModel(id);modelLibrary=modelLibrary.filter(function(r){return r.id!==String(id);});
+    if(modelSelection===String(id))modelSelection='';say('Saved model removed; active training bank retained');persist();
+}
+function beginImport(){
+    stopRun();cancelTraining();pendingImport={device:selected,revision:revision,mode:mode};outlet(3,'import','bang');say('Choose a saved model JSON file');
+}
+function beginExport(id){
+    pendingExport=GloveNeural.copy(validateRecord(findModel(id)));outlet(3,'export','bang');say('Choose where to export '+pendingExport.name);
+}
+function dialogcancel(kind){
+    if(kind==='export')pendingExport=null;else pendingImport=null;say('Model '+kind+' cancelled');emit();
+}
+function readmodel(){
+    var path=Array.prototype.slice.call(arguments).join(' '),file=null;
+    try{
+        var request=pendingImport;pendingImport=null;if(!request)throw Error('Use Import to choose a model file');
+        if(request.device!==selected||request.revision!==revision||request.mode!==mode)throw Error('Target or input changed during file selection; Import again');
+        file=new File(path,'read');if(!file.isopen)throw Error('Could not open model file');
+        if(file.eof>33554432)throw Error('Model file exceeds 32 MB');var raw='';
+        while(file.position<file.eof){var part=file.readstring(4096);if(!part.length)throw Error('Incomplete model file');raw+=part;}file.close();file=null;
+        var document=JSON.parse(raw),record;
+        if(document.format==='glove-neural-scope-model')record=validateRecord(document);
+        else if(document.fits&&document.fits.input_regressor){
+            validateTarget();var b=GloveNeural.fromDataKnot(document,nin(),scoped().length);
+            record=recordCurrentFromImported(b,path);say('Imported Data Knot outputs in current scoped table order');
+        }else throw Error('Not a supported neural model JSON');
+        record=GloveNeural.copy(record);record.id=modelID();if(modelLibrary.length>=128)throw Error('128 saved models reached');
+        modelLibrary.push(record);modelSelection=record.id;persist();
+        var reason=compatibility(record);
+        if(reason)say('Imported '+record.name+' · '+reason);else loadModel(record.id);
+    }catch(e){say('Import failed: '+e.message);}finally{if(file)file.close();}emit();
+}
+function recordCurrentFromImported(b,path){
+    var rows=scoped(),name=path.substring(path.lastIndexOf('/')+1).replace(/\.json$/i,'').substring(0,80)||'Imported model';
+    return validateRecord({format:'glove-neural-scope-model',version:1,id:modelID(),name:name,savedAt:new Date().toISOString(),mode:mode,inputDimensions:nin(),deviceSignature:current().signature,
+        configs:rows.map(function(p){return {index:p.index,name:p.name,lo:p.lo,hi:p.hi,quantized:p.quantized,min:p.min,max:p.max};}),bank:b});
+}
+function writemodel(){
+    var path=Array.prototype.slice.call(arguments).join(' '),file=null;
+    try{
+        var record=pendingExport;pendingExport=null;if(!record)throw Error('Use Export to choose a saved model');
+        if(!/\.json$/i.test(path))path+='.json';
+        // ASCII JSON preserves Unicode names with Max's legacy File encoding.
+        var raw=JSON.stringify(validateRecord(record),null,2).replace(/[\u007f-\uffff]/g,function(c){return '\\u'+('0000'+c.charCodeAt(0).toString(16)).slice(-4);});
+        file=new File(path,'write');if(!file.isopen)throw Error('Could not write model file');file.eof=0;
+        for(var i=0;i<raw.length;i+=4096)file.writestring(raw.substring(i,i+4096));file.eof=file.position;file.close();file=null;
+        say('Exported '+record.name+' · '+path);
+    }catch(e){say('Export failed: '+e.message);}finally{if(file)file.close();}emit();
 }
 function setScope(action,id,value){
     stopRun();cancelTraining();var rows=current().rows,i;
@@ -224,15 +323,18 @@ function chunks(s){var out=[];for(var i=0;i<s.length;i+=4096)out.push(s.substrin
 function snapshotSession(s){return {signature:s.signature,configs:s.rows.map(function(p){return {scope:p.scope,min:p.min,max:p.max};}),banks:s.banks};}
 function persist(){
     for(var id in sessions){var s=sessions[id];savedSessions[s.key]=snapshotSession(s);}
-    storedPayload=encodeURIComponent(JSON.stringify({version:1,mode:mode,trackMode:trackMode,follow:follow,smoothing:smoothing,epochs:epochs,sessions:savedSessions}));
+    storedPayload=encodeURIComponent(JSON.stringify({version:2,mode:mode,trackMode:trackMode,follow:follow,smoothing:smoothing,epochs:epochs,sessions:savedSessions,models:modelLibrary,modelSelection:modelSelection}));
     var a=chunks(storedPayload);if(a.length===1)outlet(2,a[0]);else outlet.apply(this,[2,'list'].concat(a));
 }
 function restore(){
     var encoded=Array.prototype.slice.call(arguments).join('');if(!encoded||encoded===storedPayload)return;
     try{
-        var d=JSON.parse(decodeURIComponent(encoded));if(d.version!==1)throw Error('Unknown saved state version');
+        var d=JSON.parse(decodeURIComponent(encoded));if(d.version!==1&&d.version!==2)throw Error('Unknown saved state version');
         if(['left','right','both'].indexOf(d.mode)<0||['this','selected'].indexOf(d.trackMode)<0)throw Error('Invalid saved input mode');
+        var models=d.version===2?d.models:[];if(!(models instanceof Array)||models.length>128)throw Error('Invalid saved model library');
+        var seen={};for(var k=0;k<models.length;k++){validateRecord(models[k]);if(seen[models[k].id])throw Error('Duplicate saved model identity');seen[models[k].id]=true;}
         stopRun();cancelTraining();storedPayload=encoded;savedSessions=d.sessions||{};sessions={};selected=null;
+        modelLibrary=GloveNeural.copy(models);modelSelection=seen[d.modelSelection]?d.modelSelection:'';
         mode=d.mode;trackMode=d.trackMode;follow=!!d.follow;smoothing=GloveNeural.clamp(Number(d.smoothing)||0,0,500);epochs=GloveNeural.clamp(Number(d.epochs)||800,50,5000);
         if(ready){refresh();followSelection();}say('Training banks restored · Run remains off');revision++;emit();
     }catch(e){say('Saved state error: '+e.message);}
@@ -263,7 +365,13 @@ function command(encoded){
         else if(m.op==='epochs'){var e=Number(m.value);if(!isFinite(e)||e<50||e>5000)throw Error('Epochs must be 50–5000');epochs=Math.floor(e);persist();}
         else {
             if(!ready)throw Error('Load the AMXD in Ableton Live');
-            if(m.op==='select'){refresh();follow=false;choose(m.id);persist();}
+            if(['pickModel','deleteModel','importModel','exportModel'].indexOf(m.op)>=0){
+                if(String(m.device)!==String(selected)||Number(m.revision)!==revision)throw Error('Target changed; use the refreshed interface');
+                if(m.op==='pickModel'){findModel(m.id);modelSelection=String(m.id);persist();}
+                else if(m.op==='deleteModel')deleteModel(m.id);
+                else if(m.op==='importModel')beginImport();
+                else beginExport(m.id);
+            }else if(m.op==='select'){refresh();follow=false;choose(m.id);persist();}
             else if(m.op==='refresh'){refresh();followSelection();}
             else{
                 if(String(m.device)!==selected||Number(m.revision)!==revision)throw Error('Target/scope changed; use the refreshed interface');
@@ -277,7 +385,9 @@ function command(encoded){
                 else if(m.op==='run'){if(running){stopRun();say('Run off · targets released');}else startRun();}
                 else if(m.op==='undoSample'){stopRun();var b=bank();b.samples.pop();b.model=null;b.loss=null;say('Last example removed; re-train');persist();}
                 else if(m.op==='clear'){stopRun();current().banks[bankKey()]={samples:[],model:null,loss:null,origin:'New training'};say('Current training bank cleared');persist();}
-                else if(m.op==='legacy')legacy();else throw Error('Unknown command');
+                else if(m.op==='saveModel')saveModel(m.name);
+                else if(m.op==='loadModel')loadModel(m.id);
+                else throw Error('Unknown command');
             }
         }
     }catch(e){say(e.message);}
@@ -289,7 +399,8 @@ function emit(){
     var state={ready:ready,revision:revision,selected:selected,devices:devices,mode:mode,trackMode:trackMode,follow:follow,
         running:running,smoothing:smoothing,epochs:epochs,training:!!trainer,epoch:trainer?trainer.epoch:0,
         note:note,left:inputLeft,right:inputRight,rows:rows,samples:b?b.samples.length:0,trained:!!(b&&b.model),
-        loss:b?b.loss:null,origin:b?b.origin:'No model',outputs:order,trackName:trackName(),colors:themeColors};
+        loss:b?b.loss:null,origin:b?b.origin:'No model',outputs:order,trackName:trackName(),colors:themeColors,
+        modelSelection:modelSelection,models:modelLibrary.map(function(r){var reason=compatibility(r);return {id:r.id,name:r.name,mode:r.mode,outputs:r.configs.length,savedAt:r.savedAt,compatible:!reason,reason:reason};})};
     var a=chunks(encodeURIComponent(JSON.stringify(state))),seq=++sequence;
     for(i=0;i<a.length;i++)outlet(0,'statepacket',seq,i,a.length,a[i]);
 }

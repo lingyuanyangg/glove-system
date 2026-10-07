@@ -1,12 +1,8 @@
 from pathlib import Path
-import json,struct,shutil,zipfile
+import json,struct,zipfile
 ROOT=Path(__file__).resolve().parents[1]
 D=ROOT/'Glove_Neural_Scope';D.mkdir(exist_ok=True)
 (D/'neural_scope_control.js').write_text((ROOT/'tools/neural_core.js').read_text()+'\n'+(ROOT/'tools/live_adapter.js').read_text())
-model_candidates=[ROOT.parent/'Glove_System/max/devices/gloveRegressor10.json',ROOT.parent/'max/devices/gloveRegressor10.json',D/'gloveRegressor10.json']
-model=next((f for f in model_candidates if f.exists()),None)
-if model is None:raise FileNotFoundError('Keep the supplied gloveRegressor10.json in the runtime folder')
-if model.resolve()!=(D/'gloveRegressor10.json').resolve():shutil.copyfile(model,D/'gloveRegressor10.json')
 APP=dict(major=9,minor=1,revision=5,architecture='arm64',modernui=1)
 p=dict(fileversion=1,appversion=APP,classnamespace='box',rect=[70,70,1060,750],openinpresentation=1,
        openrect=[0,0,1060,169],devicewidth=1060,bgcolor=[.09,.11,.115,1],default_fontname='Arial',default_fontsize=11,boxes=[],lines=[])
@@ -16,7 +12,15 @@ def box(id,text=None,cls='newobj',rect=None,**attrs):
     b.update(attrs);p['boxes'].append({'box':b});return b
 def link(a,b,o=0,i=0):p['lines'].append({'patchline':dict(source=[a,o],destination=[b,i])})
 box('web',cls='jweb',rect=[0,0,1060,169],presentation=1,presentation_rect=[0,0,1060,169],numinlets=1,numoutlets=1,rendermode=1)
-box('controller','js neural_scope_control.js',numinlets=1,numoutlets=3,outlettype=['','',''])
+box('controller','js neural_scope_control.js',numinlets=1,numoutlets=4,outlettype=['','','',''])
+box('route-dialog','route import export');link('controller','route-dialog',3)
+for kind,object_name,prefix in [('import','opendialog .json','readmodel'),('export','savedialog','writemodel')]:
+    box(kind+'-dialog',object_name,numinlets=1,numoutlets=2)
+    box(kind+'-path','prepend '+prefix);box(kind+'-defer','deferlow')
+    box(kind+'-cancel','dialogcancel '+kind,cls='message');box(kind+'-cancel-defer','deferlow')
+    link('route-dialog',kind+'-dialog',0 if kind=='import' else 1)
+    link(kind+'-dialog',kind+'-path');link(kind+'-path',kind+'-defer');link(kind+'-defer','controller')
+    link(kind+'-dialog',kind+'-cancel',1);link(kind+'-cancel',kind+'-cancel-defer');link(kind+'-cancel-defer','controller')
 box('bank','pattr neural_bank',numinlets=1,numoutlets=3,restore=[''],
     saved_object_attributes={'parameter_enable':1},saved_attribute_attributes={'valueof':dict(
         parameter_longname='Glove Neural Training Bank',parameter_shortname='Training Bank',parameter_type=3,
@@ -49,13 +53,13 @@ for n in range(256):
 box('remote-pool','p remote_pool',patcher=pool)
 box('audio-in','plugin~',numinlets=1,numoutlets=2,outlettype=['signal','signal']);box('audio-out','plugout~',numinlets=2,numoutlets=0);link('audio-in','audio-out');link('audio-in','audio-out',1,1)
 p['parameters']={'bank':['Glove Neural Training Bank','Training Bank',0],'parameterbanks':{},'inherited_shortname':1}
-p['dependency_cache']=[dict(name=f,type='TEXT',implicit=1) for f in ['neural_scope_control.js','neural_scope_ui.html','gloveRegressor10.json']]
+p['dependency_cache']=[dict(name=f,type='TEXT',implicit=1) for f in ['neural_scope_control.js','neural_scope_ui.html']]
 raw=json.dumps({'patcher':p},indent=2,ensure_ascii=False).encode();(D/'Glove Neural Scope.maxpat').write_bytes(raw)
 payload=json.dumps({'patcher':p},separators=(',',':'),ensure_ascii=False).encode()+b'\0'
 (D/'Glove Neural Scope.amxd').write_bytes(b'ampf'+struct.pack('<I',4)+b'aaaa'+b'meta'+struct.pack('<II',4,0)+b'ptch'+struct.pack('<I',len(payload))+payload)
 with zipfile.ZipFile(ROOT/'Glove Neural Scope.zip','w',zipfile.ZIP_DEFLATED) as z:
-    for f in sorted(D.iterdir()):
-        if f.is_file():z.write(f,'Glove Neural Scope/'+f.name)
+    for name in ['Glove Neural Scope.amxd','Glove Neural Scope.maxpat','neural_scope_control.js','neural_scope_ui.html']:
+        z.write(D/name,'Glove Neural Scope/'+name)
     for name in ['README_中文.md','README.md','VALIDATION.md']:
         if(ROOT/name).exists():z.write(ROOT/name,'Glove Neural Scope/'+name)
 print('Built Glove Neural Scope with 256 fixed Live remote channels.')

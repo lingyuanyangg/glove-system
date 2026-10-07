@@ -165,9 +165,9 @@ r GLeft → dk.regressor @outputmode rawlist
     → multislider (10, 0–1) → unpack 10 floats → ten unitPart rows
 ```
 
-On load, `loadbang → button → read gloveRegressor10.json` loads the model. Data Knot provides the regression abstractions and uses FluCoMa's `fluid.mlpregressor~` internally. Its `rawlist` output mode returns values without parameter-name/value pairs. See [Data Knot](https://rodrigoconstanzo.com/data-knot/) and the [FluCoMa MLPRegressor overview](https://learn.flucoma.org/reference/mlpregressor/).
+The original patch retains `loadbang → button → read gloveRegressor10.json`. That default model has been removed at the project owner's request; this is a historical message, not a shipped model dependency. Load your own Data Knot model or use the new [Glove Neural Scope](../neural-scope/README.md) saved-model selector. Data Knot provides the regression abstractions and uses FluCoMa's `fluid.mlpregressor~` internally. Its `rawlist` output mode returns values without parameter-name/value pairs. See [Data Knot](https://rodrigoconstanzo.com/data-knot/) and the [FluCoMa MLPRegressor overview](https://learn.flucoma.org/reference/mlpregressor/).
 
-The JSON contains:
+The removed model was inspected before removal and contained:
 
 | Property | Stored value |
 | --- | --- |
@@ -182,7 +182,7 @@ The JSON contains:
 | Metadata Python-trained flag | `0` |
 | Stored creation string | `2026-07-06 / 18:53:43` |
 
-The linear output layer can predict values outside 0–1. The device's output multislider constrains the values passed to the ten mapping rows. The JSON also contains an `input_normalization` object with `cols = 10`; this does not replace the verified five-column input dataset or the five-row first-layer matrix. It should be interpreted through the package that reads the model, rather than guessed as an additional preprocessing step.
+The linear output layer can predict values outside 0–1. The device's output multislider constrains the values passed to the ten mapping rows. The removed JSON also contained an `input_normalization` object with `cols = 10`; this does not replace the verified five-column input dataset or the five-row first-layer matrix. It should be interpreted through the package that reads the model, rather than guessed as an additional preprocessing step.
 
 ### Training controls
 
@@ -192,4 +192,4 @@ Training and inference are separate objects. There is no direct connection that 
 
 An editor-only branch uses `uzi 10 → random 2. → - 1. → zl.group 10` to create target lists. No initiating trigger is wired to `uzi` in the supplied patch. This branch produces values nominally between -1 and 1 before the 0–1 multislider; it is not an automatic training data generator.
 
-This is supervised continuous regression over example poses and control values. Ten examples and a stored fit do not establish prediction accuracy, generalization, or suitability for another user's calibration. No evaluation dataset or benchmark is provided.
+This is supervised continuous regression over example poses and control values. The historical ten examples and stored fit did not establish prediction accuracy, generalization, or suitability for another user's calibration. No evaluation dataset or benchmark is provided.

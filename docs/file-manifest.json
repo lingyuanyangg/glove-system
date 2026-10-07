@@ -62,13 +62,6 @@
       "status": "Original binary copied without modification"
     },
     {
-      "file": "max/devices/gloveRegressor10.json",
-      "bytes": 7794,
-      "sha256": "afcd6ae1bd4605fdfbbb8573e3a973a52941f3a2dc8fc7ef7e5a8c7fae2a03e0",
-      "status": "Original supporting file copied without modification",
-      "origin": "Provided model"
-    },
-    {
       "file": "max/devices/unitPart.maxpat",
       "bytes": 53095,
       "sha256": "128105469c90ed2b35191eb4889199d854a5643dd78d65311c70d30b085edaa9",
@@ -81,5 +74,14 @@
     "processing_sha256": "c43b40c3f3667e03376467bffedb843ec150b930621232754f0135889977fd2d",
     "normalization": "Remove line comments and whitespace; replace ssid/password/outIp string values with CONFIGURATION",
     "status": "Processing logic unchanged; network strings replaced and comments translated"
-  }
+  },
+  "removed_files": [
+    {
+      "file": "max/devices/gloveRegressor10.json",
+      "bytes": 7794,
+      "sha256": "afcd6ae1bd4605fdfbbb8573e3a973a52941f3a2dc8fc7ef7e5a8c7fae2a03e0",
+      "status": "Removed at project owner request on 2026-10-07; no default model is distributed",
+      "origin": "Provided model"
+    }
+  ]
 }

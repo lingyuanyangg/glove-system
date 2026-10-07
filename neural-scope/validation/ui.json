@@ -4,6 +4,11 @@
     "302-row out-of-order packet assembly and duplicate/stale rejection",
     "Malformed complete packet reports an error",
     "Light-theme CSS colors and accent contrast",
-    "Dark-theme CSS colors and accent contrast"
+    "Dark-theme CSS colors and accent contrast",
+    "Empty library and model selector controls",
+    "Named model selection and save/load/export availability",
+    "Incompatible model load rejection while export remains available",
+    "Training state disables model selection and load",
+    "Unique UI IDs and complete selector controls without a legacy preset button"
   ]
 }

@@ -24,7 +24,10 @@ b=(D/'Glove Neural Scope.amxd').read_bytes();assert b[:4]==b'ampf' and b[8:12]==
 assert len(b)-32==struct.unpack('<I',b[28:32])[0];assert json.loads(b[32:].rstrip(b'\0'))=={'patcher':p}
 assert (D/'neural_scope_control.js').read_text()==(ROOT/'tools/neural_core.js').read_text()+'\n'+(ROOT/'tools/live_adapter.js').read_text()
 for dep in p['dependency_cache']:assert '/' not in dep['name'] and (D/dep['name']).exists()
-original=next((f for f in [ROOT.parent/'Glove_System/max/devices/gloveRegressor10.json',ROOT.parent/'max/devices/gloveRegressor10.json'] if f.exists()),None)
-if original:assert (D/'gloveRegressor10.json').read_bytes()==original.read_bytes()
+assert not (D/'gloveRegressor10.json').exists()
+assert ids['controller']['numoutlets']==4
+assert ids['import-dialog']['text']=='opendialog .json'
+assert ids['export-dialog']['text']=='savedialog'
+assert (('controller',3),('route-dialog',0)) in lines
 print('PASS recursive patch links, 256 fixed remotes, stereo, dual bus inputs, Live theme and Blob bridges,')
-print('     compact dimensions, portable assets, unchanged legacy JSON and exact AMXD/source equality')
+print('     compact dimensions, portable assets, no bundled preset, native import/export dialogs and exact AMXD/source equality')

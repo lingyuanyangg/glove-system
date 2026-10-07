@@ -55,7 +55,7 @@ def main():
             check_patch(patch["patcher"])
         elif path.suffix == ".maxpat":
             check_patch(json.loads(data)["patcher"])
-    print("PASS: Original device/model/helper hashes and extracted source integrity")
+    print("PASS: Original device/helper hashes and extracted source integrity")
 
     devices = ROOT / "max/devices"
     for name, rows in (("Glove_Direct_Map", 5), ("reressorMapping2", 10)):
@@ -70,26 +70,9 @@ def main():
         assert all((devices / box["name"]).is_file() for box in helpers)
     print("PASS: Five direct mapping rows and ten regression mapping rows")
 
-    model = json.loads((devices / "gloveRegressor10.json").read_text())
-    info = model["meta"]["info"]
-    assert info["num_entries"] == 10
-    assert info["input_dimensions"] == 5 and info["output_dimensions"] == 10
-    datasets = model["data"]["datasets"]
-    assert set(datasets["input"]["data"]) == set(datasets["output"]["data"])
-    for name, dimensions in (("input", 5), ("output", 10)):
-        dataset = datasets[name]
-        assert dataset["cols"] == dimensions and len(dataset["data"]) == 10
-        assert all(len(row) == dimensions for row in dataset["data"].values())
-    layers = model["fits"]["input_regressor"]["layers"]
-    assert [(layer["rows"], layer["cols"]) for layer in layers] == [
-        (5, 3), (3, 3), (3, 10)
-    ]
-    assert [layer["activation"] for layer in layers] == [3, 3, 0]
-    for layer in layers:
-        assert len(layer["weights"]) == layer["rows"]
-        assert all(len(row) == layer["cols"] for row in layer["weights"])
-        assert len(layer["biases"]) == layer["cols"]
-    print("PASS: Ten paired examples and 5 → 3 → 3 → 10 model structure")
+    for removed in manifest.get("removed_files", []):
+        assert not (ROOT / removed["file"]).exists(), "Removed default model reintroduced"
+    print("PASS: Removed default model is absent")
 
     firmware = (ROOT / "arduino/glove/glove.ino").read_text()
     for key, value in (

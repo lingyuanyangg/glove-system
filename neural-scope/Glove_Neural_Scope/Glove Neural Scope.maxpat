@@ -68,8 +68,9 @@
           ],
           "text": "js neural_scope_control.js",
           "numinlets": 1,
-          "numoutlets": 3,
+          "numoutlets": 4,
           "outlettype": [
+            "",
             "",
             "",
             ""
@@ -78,12 +79,170 @@
       },
       {
         "box": {
-          "id": "bank",
-          "varname": "bank",
+          "id": "route-dialog",
+          "varname": "route-dialog",
           "maxclass": "newobj",
           "patching_rect": [
             350,
             220,
+            155,
+            22
+          ],
+          "text": "route import export"
+        }
+      },
+      {
+        "box": {
+          "id": "import-dialog",
+          "varname": "import-dialog",
+          "maxclass": "newobj",
+          "patching_rect": [
+            515,
+            220,
+            155,
+            22
+          ],
+          "text": "opendialog .json",
+          "numinlets": 1,
+          "numoutlets": 2
+        }
+      },
+      {
+        "box": {
+          "id": "import-path",
+          "varname": "import-path",
+          "maxclass": "newobj",
+          "patching_rect": [
+            680,
+            220,
+            155,
+            22
+          ],
+          "text": "prepend readmodel"
+        }
+      },
+      {
+        "box": {
+          "id": "import-defer",
+          "varname": "import-defer",
+          "maxclass": "newobj",
+          "patching_rect": [
+            845,
+            220,
+            155,
+            22
+          ],
+          "text": "deferlow"
+        }
+      },
+      {
+        "box": {
+          "id": "import-cancel",
+          "varname": "import-cancel",
+          "maxclass": "message",
+          "patching_rect": [
+            20,
+            264,
+            155,
+            22
+          ],
+          "text": "dialogcancel import"
+        }
+      },
+      {
+        "box": {
+          "id": "import-cancel-defer",
+          "varname": "import-cancel-defer",
+          "maxclass": "newobj",
+          "patching_rect": [
+            185,
+            264,
+            155,
+            22
+          ],
+          "text": "deferlow"
+        }
+      },
+      {
+        "box": {
+          "id": "export-dialog",
+          "varname": "export-dialog",
+          "maxclass": "newobj",
+          "patching_rect": [
+            350,
+            264,
+            155,
+            22
+          ],
+          "text": "savedialog",
+          "numinlets": 1,
+          "numoutlets": 2
+        }
+      },
+      {
+        "box": {
+          "id": "export-path",
+          "varname": "export-path",
+          "maxclass": "newobj",
+          "patching_rect": [
+            515,
+            264,
+            155,
+            22
+          ],
+          "text": "prepend writemodel"
+        }
+      },
+      {
+        "box": {
+          "id": "export-defer",
+          "varname": "export-defer",
+          "maxclass": "newobj",
+          "patching_rect": [
+            680,
+            264,
+            155,
+            22
+          ],
+          "text": "deferlow"
+        }
+      },
+      {
+        "box": {
+          "id": "export-cancel",
+          "varname": "export-cancel",
+          "maxclass": "message",
+          "patching_rect": [
+            845,
+            264,
+            155,
+            22
+          ],
+          "text": "dialogcancel export"
+        }
+      },
+      {
+        "box": {
+          "id": "export-cancel-defer",
+          "varname": "export-cancel-defer",
+          "maxclass": "newobj",
+          "patching_rect": [
+            20,
+            308,
+            155,
+            22
+          ],
+          "text": "deferlow"
+        }
+      },
+      {
+        "box": {
+          "id": "bank",
+          "varname": "bank",
+          "maxclass": "newobj",
+          "patching_rect": [
+            185,
+            308,
             155,
             22
           ],
@@ -115,8 +274,8 @@
           "varname": "restore-prefix",
           "maxclass": "newobj",
           "patching_rect": [
-            515,
-            220,
+            350,
+            308,
             155,
             22
           ],
@@ -129,8 +288,8 @@
           "varname": "defer-restore",
           "maxclass": "newobj",
           "patching_rect": [
-            680,
-            220,
+            515,
+            308,
             155,
             22
           ],
@@ -143,8 +302,8 @@
           "varname": "host",
           "maxclass": "newobj",
           "patching_rect": [
-            845,
-            220,
+            680,
+            308,
             155,
             22
           ],
@@ -157,8 +316,8 @@
           "varname": "defer-host",
           "maxclass": "newobj",
           "patching_rect": [
-            20,
-            264,
+            845,
+            308,
             155,
             22
           ],
@@ -171,8 +330,8 @@
           "varname": "colors",
           "maxclass": "newobj",
           "patching_rect": [
-            185,
-            264,
+            20,
+            352,
             155,
             22
           ],
@@ -187,8 +346,8 @@
           "varname": "query-colors",
           "maxclass": "message",
           "patching_rect": [
-            350,
-            264,
+            185,
+            352,
             155,
             22
           ],
@@ -201,8 +360,8 @@
           "varname": "theme-prefix",
           "maxclass": "newobj",
           "patching_rect": [
-            515,
-            264,
+            350,
+            352,
             155,
             22
           ],
@@ -215,8 +374,8 @@
           "varname": "defer-theme",
           "maxclass": "newobj",
           "patching_rect": [
-            680,
-            264,
+            515,
+            352,
             155,
             22
           ],
@@ -229,8 +388,8 @@
           "varname": "load",
           "maxclass": "newobj",
           "patching_rect": [
-            845,
-            264,
+            680,
+            352,
             155,
             22
           ],
@@ -243,8 +402,8 @@
           "varname": "defer-load",
           "maxclass": "newobj",
           "patching_rect": [
-            20,
-            308,
+            845,
+            352,
             155,
             22
           ],
@@ -257,8 +416,8 @@
           "varname": "load-ui",
           "maxclass": "message",
           "patching_rect": [
-            185,
-            308,
+            20,
+            396,
             155,
             22
           ],
@@ -271,8 +430,8 @@
           "varname": "route-ui",
           "maxclass": "newobj",
           "patching_rect": [
-            350,
-            308,
+            185,
+            396,
             155,
             22
           ],
@@ -285,8 +444,8 @@
           "varname": "command-prefix",
           "maxclass": "newobj",
           "patching_rect": [
-            515,
-            308,
+            350,
+            396,
             155,
             22
           ],
@@ -299,8 +458,8 @@
           "varname": "defer-ui",
           "maxclass": "newobj",
           "patching_rect": [
-            680,
-            308,
+            515,
+            396,
             155,
             22
           ],
@@ -313,8 +472,8 @@
           "varname": "receive-left",
           "maxclass": "newobj",
           "patching_rect": [
-            845,
-            308,
+            680,
+            396,
             155,
             22
           ],
@@ -327,8 +486,8 @@
           "varname": "prefix-left",
           "maxclass": "newobj",
           "patching_rect": [
-            20,
-            352,
+            845,
+            396,
             155,
             22
           ],
@@ -341,8 +500,8 @@
           "varname": "defer-left",
           "maxclass": "newobj",
           "patching_rect": [
-            185,
-            352,
+            20,
+            440,
             155,
             22
           ],
@@ -355,8 +514,8 @@
           "varname": "receive-right",
           "maxclass": "newobj",
           "patching_rect": [
-            350,
-            352,
+            185,
+            440,
             155,
             22
           ],
@@ -369,8 +528,8 @@
           "varname": "prefix-right",
           "maxclass": "newobj",
           "patching_rect": [
-            515,
-            352,
+            350,
+            440,
             155,
             22
           ],
@@ -383,8 +542,8 @@
           "varname": "defer-right",
           "maxclass": "newobj",
           "patching_rect": [
-            680,
-            352,
+            515,
+            440,
             155,
             22
           ],
@@ -397,8 +556,8 @@
           "varname": "to-editor",
           "maxclass": "newobj",
           "patching_rect": [
-            845,
-            352,
+            680,
+            440,
             155,
             22
           ],
@@ -411,8 +570,8 @@
           "varname": "from-editor",
           "maxclass": "newobj",
           "patching_rect": [
-            20,
-            396,
+            845,
+            440,
             155,
             22
           ],
@@ -425,8 +584,8 @@
           "varname": "editor",
           "maxclass": "newobj",
           "patching_rect": [
-            185,
-            396,
+            20,
+            484,
             155,
             22
           ],
@@ -552,8 +711,8 @@
           "varname": "editor-control",
           "maxclass": "newobj",
           "patching_rect": [
-            350,
-            396,
+            185,
+            484,
             155,
             22
           ],
@@ -566,8 +725,8 @@
           "varname": "remote-pool",
           "maxclass": "newobj",
           "patching_rect": [
-            515,
-            396,
+            350,
+            484,
             155,
             22
           ],
@@ -11865,8 +12024,8 @@
           "varname": "audio-in",
           "maxclass": "newobj",
           "patching_rect": [
-            680,
-            396,
+            515,
+            484,
             155,
             22
           ],
@@ -11885,8 +12044,8 @@
           "varname": "audio-out",
           "maxclass": "newobj",
           "patching_rect": [
-            845,
-            396,
+            680,
+            484,
             155,
             22
           ],
@@ -11897,6 +12056,186 @@
       }
     ],
     "lines": [
+      {
+        "patchline": {
+          "source": [
+            "controller",
+            3
+          ],
+          "destination": [
+            "route-dialog",
+            0
+          ]
+        }
+      },
+      {
+        "patchline": {
+          "source": [
+            "route-dialog",
+            0
+          ],
+          "destination": [
+            "import-dialog",
+            0
+          ]
+        }
+      },
+      {
+        "patchline": {
+          "source": [
+            "import-dialog",
+            0
+          ],
+          "destination": [
+            "import-path",
+            0
+          ]
+        }
+      },
+      {
+        "patchline": {
+          "source": [
+            "import-path",
+            0
+          ],
+          "destination": [
+            "import-defer",
+            0
+          ]
+        }
+      },
+      {
+        "patchline": {
+          "source": [
+            "import-defer",
+            0
+          ],
+          "destination": [
+            "controller",
+            0
+          ]
+        }
+      },
+      {
+        "patchline": {
+          "source": [
+            "import-dialog",
+            1
+          ],
+          "destination": [
+            "import-cancel",
+            0
+          ]
+        }
+      },
+      {
+        "patchline": {
+          "source": [
+            "import-cancel",
+            0
+          ],
+          "destination": [
+            "import-cancel-defer",
+            0
+          ]
+        }
+      },
+      {
+        "patchline": {
+          "source": [
+            "import-cancel-defer",
+            0
+          ],
+          "destination": [
+            "controller",
+            0
+          ]
+        }
+      },
+      {
+        "patchline": {
+          "source": [
+            "route-dialog",
+            1
+          ],
+          "destination": [
+            "export-dialog",
+            0
+          ]
+        }
+      },
+      {
+        "patchline": {
+          "source": [
+            "export-dialog",
+            0
+          ],
+          "destination": [
+            "export-path",
+            0
+          ]
+        }
+      },
+      {
+        "patchline": {
+          "source": [
+            "export-path",
+            0
+          ],
+          "destination": [
+            "export-defer",
+            0
+          ]
+        }
+      },
+      {
+        "patchline": {
+          "source": [
+            "export-defer",
+            0
+          ],
+          "destination": [
+            "controller",
+            0
+          ]
+        }
+      },
+      {
+        "patchline": {
+          "source": [
+            "export-dialog",
+            1
+          ],
+          "destination": [
+            "export-cancel",
+            0
+          ]
+        }
+      },
+      {
+        "patchline": {
+          "source": [
+            "export-cancel",
+            0
+          ],
+          "destination": [
+            "export-cancel-defer",
+            0
+          ]
+        }
+      },
+      {
+        "patchline": {
+          "source": [
+            "export-cancel-defer",
+            0
+          ],
+          "destination": [
+            "controller",
+            0
+          ]
+        }
+      },
       {
         "patchline": {
           "source": [
@@ -12299,11 +12638,6 @@
       },
       {
         "name": "neural_scope_ui.html",
-        "type": "TEXT",
-        "implicit": 1
-      },
-      {
-        "name": "gloveRegressor10.json",
         "type": "TEXT",
         "implicit": 1
       }

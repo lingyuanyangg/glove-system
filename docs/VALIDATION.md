@@ -2,7 +2,7 @@
 
 Review date: **2026-10-06**.
 
-The new dual-hand receiver's **2026-10-07** algorithm, patch structure and layout checks are recorded in [Receiver v2 validation](../receiver-v2/VALIDATION.md). The record below applies to the original release.
+The new dual-hand receiver's **2026-10-07** algorithm, patch structure and layout checks are recorded in [Receiver v2 validation](../receiver-v2/VALIDATION.md). The record below applies to the original release. The former default model was removed on 2026-10-07 at the project owner's request; its inspection results below are historical. Current neural model checks are recorded in [Glove Neural Scope validation](../neural-scope/VALIDATION.md).
 
 The project owner identified the glove hardware as the **ElastremeSense Manu-5D e-skin data glove kit**. This identification has been added to the documentation; it does not change the firmware or constitute a hardware compatibility test.
 
@@ -38,7 +38,7 @@ python3 tools/audit_release.py
 arduino-cli compile --fqbn arduino:renesas_uno:unor4wifi arduino/glove
 ```
 
-The audit checks file integrity, matching extracted patch sources, patch-cord references, expected dependency counts, model shapes, and the original firmware processing logic. The compile command assumes the required libraries are installed in a location visible to Arduino CLI.
+The audit checks file integrity, matching extracted patch sources, patch-cord references, expected dependency counts, removal of the former default model, and the original firmware processing logic. The compile command assumes the required libraries are installed in a location visible to Arduino CLI.
 
 ## Checks still requiring hardware or host access
 

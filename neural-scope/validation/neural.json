@@ -1,16 +1,16 @@
 {
-  "kind": "Executed shipped pure ES5 neural core in Node",
+  "kind": "Executed shipped pure ES5 neural core in Node; synthetic data only",
   "checks": [
     {
-      "name": "Original model imports all layers and ten paired examples",
+      "name": "User-selected Data Knot layer format imports without a bundled preset",
       "pass": true
     },
     {
-      "name": "Original neural output agrees with independently accumulated tanh/linear layers",
+      "name": "Neural output agrees with independently accumulated tanh/linear layers",
       "pass": true
     },
     {
-      "name": "Five-input legacy model cannot silently receive ten inputs or different outputs",
+      "name": "Data Knot input and output dimensions cannot silently change",
       "pass": true
     },
     {
@@ -22,16 +22,16 @@
       "pass": true
     },
     {
-      "name": "Original data training RMSE",
-      "value": 0.02960636848296187,
+      "name": "Synthetic single-hand training RMSE",
+      "value": 0.008948715499898006,
       "pass": true
     },
     {
-      "name": "Adam backprop learns the supplied ten-example regression dataset",
+      "name": "Adam backprop learns a synthetic single-hand ten-output mapping",
       "pass": true
     },
     {
-      "name": "Two-hand data training RMSE",
+      "name": "Synthetic two-hand training RMSE",
       "value": 0.007541203877510837,
       "pass": true
     },
