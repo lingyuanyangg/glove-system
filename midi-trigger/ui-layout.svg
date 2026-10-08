@@ -1,268 +1,193 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="984" height="169" viewBox="0 0 984 169"><rect width="984" height="169" fill="#292929"/>
-<path d="M492 40V157 M8 38H976" stroke="#4d4d4d"/>
+<svg xmlns="http://www.w3.org/2000/svg" width="664" height="169" viewBox="0 0 664 169"><rect width="664" height="169" fill="#292929"/>
+<path d="M332 57V165 M8 55H656" stroke="#4d4d4d"/>
 <text x="11" y="16.0" font-family="Arial,sans-serif" font-size="11" fill="#ddd">GLOVE / MIDI TRIGGER</text>
-<text x="11" y="32.5" font-family="Arial,sans-serif" font-size="8" fill="#ddd">Bend acceleration · hold · scale</text>
-<text x="183" y="12.5" font-family="Arial,sans-serif" font-size="8" fill="#ddd">Sens %</text>
-<rect x="180" y="19" width="62" height="17" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
-<text x="183" y="31.0" font-family="Arial,sans-serif" font-size="9" fill="#ddd">100</text>
-<text x="251" y="12.5" font-family="Arial,sans-serif" font-size="8" fill="#ddd">Threshold</text>
-<rect x="248" y="19" width="58" height="17" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
-<text x="251" y="31.0" font-family="Arial,sans-serif" font-size="9" fill="#ddd">0.25</text>
-<text x="315" y="12.5" font-family="Arial,sans-serif" font-size="8" fill="#ddd">Length ms</text>
-<rect x="312" y="19" width="60" height="17" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
-<text x="315" y="31.0" font-family="Arial,sans-serif" font-size="9" fill="#ddd">120</text>
-<text x="381" y="12.5" font-family="Arial,sans-serif" font-size="8" fill="#ddd">Retrig ms</text>
-<rect x="378" y="19" width="60" height="17" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
-<text x="381" y="31.0" font-family="Arial,sans-serif" font-size="9" fill="#ddd">120</text>
-<text x="447" y="12.5" font-family="Arial,sans-serif" font-size="8" fill="#ddd">Channel</text>
-<rect x="444" y="19" width="49" height="17" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
-<text x="447" y="31.0" font-family="Arial,sans-serif" font-size="9" fill="#ddd">1</text>
-<text x="502" y="12.5" font-family="Arial,sans-serif" font-size="8" fill="#ddd">Cal ref / s²</text>
-<rect x="499" y="19" width="82" height="17" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
-<text x="502" y="31.0" font-family="Arial,sans-serif" font-size="9" fill="#ddd">50</text>
-<rect x="589" y="19" width="80" height="17" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
-<text x="592" y="31.0" font-family="Arial,sans-serif" font-size="9" fill="#ddd">Calibrate 8 s</text>
-<rect x="675" y="19" width="47" height="17" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
-<text x="678" y="31.0" font-family="Arial,sans-serif" font-size="9" fill="#ddd">Panic</text>
-<text x="737" y="13.0" font-family="Arial,sans-serif" font-size="9" fill="#ddd">MIDI effect → instrument</text>
-<text x="737" y="31.0" font-family="Arial,sans-serif" font-size="8" fill="#ddd">Return fingers below 0.45 to arm.</text>
-<text x="11" y="51.0" font-family="Arial,sans-serif" font-size="10" fill="#ddd">LEFT</text>
-<text x="66" y="50.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">WAIT</text>
-<text x="147" y="50.5" font-family="Arial,sans-serif" font-size="8" fill="#ddd">GLeft · fresh frames</text>
-<text x="11" y="65.0" font-family="Arial,sans-serif" font-size="8" fill="#ddd">FINGER</text>
-<text x="61" y="65.0" font-family="Arial,sans-serif" font-size="8" fill="#ddd">ON</text>
-<text x="85" y="65.0" font-family="Arial,sans-serif" font-size="8" fill="#ddd">TRIGGER</text>
-<text x="135" y="65.0" font-family="Arial,sans-serif" font-size="8" fill="#ddd">PITCH</text>
-<text x="183" y="65.0" font-family="Arial,sans-serif" font-size="8" fill="#ddd">NOTE</text>
-<text x="223" y="65.0" font-family="Arial,sans-serif" font-size="8" fill="#ddd">ROOT</text>
-<text x="259" y="65.0" font-family="Arial,sans-serif" font-size="8" fill="#ddd">SCALE</text>
-<text x="337" y="65.0" font-family="Arial,sans-serif" font-size="8" fill="#ddd">LOW</text>
-<text x="377" y="65.0" font-family="Arial,sans-serif" font-size="8" fill="#ddd">HIGH</text>
-<text x="417" y="65.0" font-family="Arial,sans-serif" font-size="8" fill="#ddd">V MIN</text>
-<text x="453" y="65.0" font-family="Arial,sans-serif" font-size="8" fill="#ddd">V MAX</text>
-<text x="11" y="81.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">Pinky</text>
-<rect x="58" y="70" width="22" height="16" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
-<text x="61" y="81.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">On</text>
-<rect x="82" y="70" width="48" height="16" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
-<text x="85" y="81.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">Accel</text>
-<rect x="132" y="70" width="46" height="16" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
-<text x="135" y="81.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">Fixed</text>
-<rect x="180" y="70" width="38" height="16" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
-<text x="183" y="81.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">60</text>
-<rect x="220" y="70" width="34" height="16" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
-<text x="223" y="81.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">C</text>
-<rect x="256" y="70" width="76" height="16" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
-<text x="259" y="81.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">Major</text>
-<rect x="334" y="70" width="38" height="16" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
-<text x="337" y="81.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">48</text>
-<rect x="374" y="70" width="38" height="16" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
-<text x="377" y="81.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">84</text>
-<rect x="414" y="70" width="34" height="16" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
-<text x="417" y="81.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">20</text>
-<rect x="450" y="70" width="34" height="16" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
-<text x="453" y="81.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">127</text>
-<text x="11" y="99.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">Ring</text>
-<rect x="58" y="88" width="22" height="16" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
-<text x="61" y="99.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">On</text>
-<rect x="82" y="88" width="48" height="16" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
-<text x="85" y="99.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">Accel</text>
-<rect x="132" y="88" width="46" height="16" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
-<text x="135" y="99.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">Fixed</text>
-<rect x="180" y="88" width="38" height="16" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
-<text x="183" y="99.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">61</text>
-<rect x="220" y="88" width="34" height="16" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
-<text x="223" y="99.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">C</text>
-<rect x="256" y="88" width="76" height="16" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
-<text x="259" y="99.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">Major</text>
-<rect x="334" y="88" width="38" height="16" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
-<text x="337" y="99.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">48</text>
-<rect x="374" y="88" width="38" height="16" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
-<text x="377" y="99.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">84</text>
-<rect x="414" y="88" width="34" height="16" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
-<text x="417" y="99.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">20</text>
-<rect x="450" y="88" width="34" height="16" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
-<text x="453" y="99.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">127</text>
-<text x="11" y="117.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">Middle</text>
-<rect x="58" y="106" width="22" height="16" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
-<text x="61" y="117.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">On</text>
-<rect x="82" y="106" width="48" height="16" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
-<text x="85" y="117.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">Accel</text>
-<rect x="132" y="106" width="46" height="16" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
-<text x="135" y="117.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">Fixed</text>
-<rect x="180" y="106" width="38" height="16" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
-<text x="183" y="117.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">62</text>
-<rect x="220" y="106" width="34" height="16" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
-<text x="223" y="117.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">C</text>
-<rect x="256" y="106" width="76" height="16" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
-<text x="259" y="117.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">Major</text>
-<rect x="334" y="106" width="38" height="16" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
-<text x="337" y="117.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">48</text>
-<rect x="374" y="106" width="38" height="16" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
-<text x="377" y="117.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">84</text>
-<rect x="414" y="106" width="34" height="16" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
-<text x="417" y="117.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">20</text>
-<rect x="450" y="106" width="34" height="16" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
-<text x="453" y="117.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">127</text>
-<text x="11" y="135.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">Index</text>
-<rect x="58" y="124" width="22" height="16" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
-<text x="61" y="135.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">On</text>
-<rect x="82" y="124" width="48" height="16" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
-<text x="85" y="135.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">Accel</text>
-<rect x="132" y="124" width="46" height="16" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
-<text x="135" y="135.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">Fixed</text>
-<rect x="180" y="124" width="38" height="16" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
-<text x="183" y="135.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">63</text>
-<rect x="220" y="124" width="34" height="16" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
-<text x="223" y="135.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">C</text>
-<rect x="256" y="124" width="76" height="16" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
-<text x="259" y="135.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">Major</text>
-<rect x="334" y="124" width="38" height="16" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
-<text x="337" y="135.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">48</text>
-<rect x="374" y="124" width="38" height="16" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
-<text x="377" y="135.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">84</text>
-<rect x="414" y="124" width="34" height="16" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
-<text x="417" y="135.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">20</text>
-<rect x="450" y="124" width="34" height="16" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
-<text x="453" y="135.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">127</text>
-<text x="11" y="153.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">Thumb</text>
-<rect x="58" y="142" width="22" height="16" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
-<text x="61" y="153.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">On</text>
-<rect x="82" y="142" width="48" height="16" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
-<text x="85" y="153.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">Accel</text>
-<rect x="132" y="142" width="46" height="16" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
-<text x="135" y="153.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">Fixed</text>
-<rect x="180" y="142" width="38" height="16" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
-<text x="183" y="153.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">64</text>
-<rect x="220" y="142" width="34" height="16" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
-<text x="223" y="153.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">C</text>
-<rect x="256" y="142" width="76" height="16" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
-<text x="259" y="153.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">Major</text>
-<rect x="334" y="142" width="38" height="16" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
-<text x="337" y="153.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">48</text>
-<rect x="374" y="142" width="38" height="16" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
-<text x="377" y="153.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">84</text>
-<rect x="414" y="142" width="34" height="16" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
-<text x="417" y="153.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">20</text>
-<rect x="450" y="142" width="34" height="16" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
-<text x="453" y="153.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">127</text>
-<text x="499" y="51.0" font-family="Arial,sans-serif" font-size="10" fill="#ddd">RIGHT</text>
-<text x="554" y="50.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">WAIT</text>
-<text x="635" y="50.5" font-family="Arial,sans-serif" font-size="8" fill="#ddd">GRight · fresh frames</text>
-<text x="499" y="65.0" font-family="Arial,sans-serif" font-size="8" fill="#ddd">FINGER</text>
-<text x="549" y="65.0" font-family="Arial,sans-serif" font-size="8" fill="#ddd">ON</text>
-<text x="573" y="65.0" font-family="Arial,sans-serif" font-size="8" fill="#ddd">TRIGGER</text>
-<text x="623" y="65.0" font-family="Arial,sans-serif" font-size="8" fill="#ddd">PITCH</text>
-<text x="671" y="65.0" font-family="Arial,sans-serif" font-size="8" fill="#ddd">NOTE</text>
-<text x="711" y="65.0" font-family="Arial,sans-serif" font-size="8" fill="#ddd">ROOT</text>
-<text x="747" y="65.0" font-family="Arial,sans-serif" font-size="8" fill="#ddd">SCALE</text>
-<text x="825" y="65.0" font-family="Arial,sans-serif" font-size="8" fill="#ddd">LOW</text>
-<text x="865" y="65.0" font-family="Arial,sans-serif" font-size="8" fill="#ddd">HIGH</text>
-<text x="905" y="65.0" font-family="Arial,sans-serif" font-size="8" fill="#ddd">V MIN</text>
-<text x="941" y="65.0" font-family="Arial,sans-serif" font-size="8" fill="#ddd">V MAX</text>
-<text x="499" y="81.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">Pinky</text>
-<rect x="546" y="70" width="22" height="16" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
-<text x="549" y="81.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">On</text>
-<rect x="570" y="70" width="48" height="16" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
-<text x="573" y="81.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">Accel</text>
-<rect x="620" y="70" width="46" height="16" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
-<text x="623" y="81.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">Fixed</text>
-<rect x="668" y="70" width="38" height="16" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
-<text x="671" y="81.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">65</text>
-<rect x="708" y="70" width="34" height="16" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
-<text x="711" y="81.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">C</text>
-<rect x="744" y="70" width="76" height="16" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
-<text x="747" y="81.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">Major</text>
-<rect x="822" y="70" width="38" height="16" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
-<text x="825" y="81.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">48</text>
-<rect x="862" y="70" width="38" height="16" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
-<text x="865" y="81.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">84</text>
-<rect x="902" y="70" width="34" height="16" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
-<text x="905" y="81.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">20</text>
-<rect x="938" y="70" width="34" height="16" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
-<text x="941" y="81.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">127</text>
-<text x="499" y="99.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">Ring</text>
-<rect x="546" y="88" width="22" height="16" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
-<text x="549" y="99.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">On</text>
-<rect x="570" y="88" width="48" height="16" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
-<text x="573" y="99.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">Accel</text>
-<rect x="620" y="88" width="46" height="16" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
-<text x="623" y="99.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">Fixed</text>
-<rect x="668" y="88" width="38" height="16" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
-<text x="671" y="99.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">66</text>
-<rect x="708" y="88" width="34" height="16" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
-<text x="711" y="99.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">C</text>
-<rect x="744" y="88" width="76" height="16" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
-<text x="747" y="99.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">Major</text>
-<rect x="822" y="88" width="38" height="16" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
-<text x="825" y="99.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">48</text>
-<rect x="862" y="88" width="38" height="16" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
-<text x="865" y="99.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">84</text>
-<rect x="902" y="88" width="34" height="16" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
-<text x="905" y="99.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">20</text>
-<rect x="938" y="88" width="34" height="16" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
-<text x="941" y="99.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">127</text>
-<text x="499" y="117.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">Middle</text>
-<rect x="546" y="106" width="22" height="16" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
-<text x="549" y="117.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">On</text>
-<rect x="570" y="106" width="48" height="16" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
-<text x="573" y="117.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">Accel</text>
-<rect x="620" y="106" width="46" height="16" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
-<text x="623" y="117.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">Fixed</text>
-<rect x="668" y="106" width="38" height="16" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
-<text x="671" y="117.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">67</text>
-<rect x="708" y="106" width="34" height="16" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
-<text x="711" y="117.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">C</text>
-<rect x="744" y="106" width="76" height="16" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
-<text x="747" y="117.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">Major</text>
-<rect x="822" y="106" width="38" height="16" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
-<text x="825" y="117.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">48</text>
-<rect x="862" y="106" width="38" height="16" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
-<text x="865" y="117.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">84</text>
-<rect x="902" y="106" width="34" height="16" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
-<text x="905" y="117.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">20</text>
-<rect x="938" y="106" width="34" height="16" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
-<text x="941" y="117.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">127</text>
-<text x="499" y="135.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">Index</text>
-<rect x="546" y="124" width="22" height="16" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
-<text x="549" y="135.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">On</text>
-<rect x="570" y="124" width="48" height="16" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
-<text x="573" y="135.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">Accel</text>
-<rect x="620" y="124" width="46" height="16" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
-<text x="623" y="135.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">Fixed</text>
-<rect x="668" y="124" width="38" height="16" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
-<text x="671" y="135.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">68</text>
-<rect x="708" y="124" width="34" height="16" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
-<text x="711" y="135.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">C</text>
-<rect x="744" y="124" width="76" height="16" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
-<text x="747" y="135.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">Major</text>
-<rect x="822" y="124" width="38" height="16" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
-<text x="825" y="135.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">48</text>
-<rect x="862" y="124" width="38" height="16" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
-<text x="865" y="135.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">84</text>
-<rect x="902" y="124" width="34" height="16" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
-<text x="905" y="135.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">20</text>
-<rect x="938" y="124" width="34" height="16" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
-<text x="941" y="135.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">127</text>
-<text x="499" y="153.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">Thumb</text>
-<rect x="546" y="142" width="22" height="16" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
-<text x="549" y="153.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">On</text>
-<rect x="570" y="142" width="48" height="16" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
-<text x="573" y="153.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">Accel</text>
-<rect x="620" y="142" width="46" height="16" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
-<text x="623" y="153.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">Fixed</text>
-<rect x="668" y="142" width="38" height="16" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
-<text x="671" y="153.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">69</text>
-<rect x="708" y="142" width="34" height="16" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
-<text x="711" y="153.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">C</text>
-<rect x="744" y="142" width="76" height="16" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
-<text x="747" y="153.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">Major</text>
-<rect x="822" y="142" width="38" height="16" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
-<text x="825" y="153.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">48</text>
-<rect x="862" y="142" width="38" height="16" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
-<text x="865" y="153.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">84</text>
-<rect x="902" y="142" width="34" height="16" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
-<text x="905" y="153.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">20</text>
-<rect x="938" y="142" width="34" height="16" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
-<text x="941" y="153.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">127</text>
-<text x="11" y="167.5" font-family="Arial,sans-serif" font-size="8" fill="#ddd">* = held note    ·    Random: root + scale + Low–High    ·    Toggle: &gt;0.5 ON, &lt;0.45 OFF; bend sends poly pressure    ·    source loss releases notes</text>
+<text x="173" y="14.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">Root</text>
+<rect x="206" y="3" width="42" height="17" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
+<text x="209" y="15.0" font-family="Arial,sans-serif" font-size="9" fill="#ddd">C</text>
+<text x="261" y="14.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">Scale</text>
+<rect x="297" y="3" width="102" height="17" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
+<text x="300" y="15.0" font-family="Arial,sans-serif" font-size="9" fill="#ddd">Major</text>
+<rect x="520" y="3" width="80" height="17" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
+<text x="523" y="15.0" font-family="Arial,sans-serif" font-size="9" fill="#ddd">Calibrate 8 s</text>
+<rect x="610" y="3" width="46" height="17" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
+<text x="613" y="15.0" font-family="Arial,sans-serif" font-size="9" fill="#ddd">Panic</text>
+<text x="413" y="15.0" font-family="Arial,sans-serif" font-size="9" fill="#ddd">C3 = MIDI 60</text>
+<text x="156" y="52.5" font-family="Arial,sans-serif" font-size="8" fill="#ddd">Markov</text>
+<rect x="202" y="42" width="120" height="16" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
+<text x="205" y="53.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">Stepwise</text>
+<text x="11" y="33.5" font-family="Arial,sans-serif" font-size="8" fill="#ddd">Sens %</text>
+<rect x="50" y="23" width="47" height="14" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
+<text x="53" y="33.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">100</text>
+<text x="109" y="33.5" font-family="Arial,sans-serif" font-size="8" fill="#ddd">Threshold</text>
+<rect x="159" y="23" width="43" height="14" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
+<text x="162" y="33.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">0.25</text>
+<text x="213" y="33.5" font-family="Arial,sans-serif" font-size="8" fill="#ddd">Length ms</text>
+<rect x="257" y="23" width="44" height="14" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
+<text x="260" y="33.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">120</text>
+<text x="311" y="33.5" font-family="Arial,sans-serif" font-size="8" fill="#ddd">Retrig ms</text>
+<rect x="357" y="23" width="44" height="14" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
+<text x="360" y="33.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">40</text>
+<text x="413" y="33.5" font-family="Arial,sans-serif" font-size="8" fill="#ddd">V Min</text>
+<rect x="454" y="23" width="44" height="14" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
+<text x="457" y="33.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">20</text>
+<text x="510" y="33.5" font-family="Arial,sans-serif" font-size="8" fill="#ddd">V Max</text>
+<rect x="552" y="23" width="44" height="14" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
+<text x="555" y="33.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">127</text>
+<text x="605" y="33.5" font-family="Arial,sans-serif" font-size="8" fill="#ddd">Ch</text>
+<rect x="626" y="23" width="30" height="14" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
+<text x="629" y="33.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">1</text>
+<text x="11" y="52.5" font-family="Arial,sans-serif" font-size="8" fill="#ddd">Cal ref / s²</text>
+<rect x="77" y="42" width="62" height="14" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
+<text x="80" y="52.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">50</text>
+<text x="337" y="52.0" font-family="Arial,sans-serif" font-size="8" fill="#ddd">Accel: flex to strike · lift to re-arm.</text>
+<text x="11" y="68.0" font-family="Arial,sans-serif" font-size="10" fill="#ddd">LEFT</text>
+<text x="66" y="67.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">WAIT</text>
+<text x="131" y="67.5" font-family="Arial,sans-serif" font-size="8" fill="#ddd">GLeft · fresh frames</text>
+<text x="11" y="82.0" font-family="Arial,sans-serif" font-size="8" fill="#ddd">FINGER</text>
+<text x="60" y="82.0" font-family="Arial,sans-serif" font-size="8" fill="#ddd">ON</text>
+<text x="80" y="82.0" font-family="Arial,sans-serif" font-size="8" fill="#ddd">TRIGGER</text>
+<text x="127" y="82.0" font-family="Arial,sans-serif" font-size="8" fill="#ddd">PITCH</text>
+<text x="176" y="82.0" font-family="Arial,sans-serif" font-size="8" fill="#ddd">NOTE</text>
+<text x="226" y="82.0" font-family="Arial,sans-serif" font-size="8" fill="#ddd">LOW</text>
+<text x="276" y="82.0" font-family="Arial,sans-serif" font-size="8" fill="#ddd">HIGH</text>
+<text x="11" y="97.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">Pinky</text>
+<rect x="57" y="87" width="18" height="14" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
+<text x="60" y="97.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">On</text>
+<rect x="77" y="87" width="45" height="14" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
+<text x="80" y="97.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">Accel</text>
+<rect x="124" y="87" width="47" height="14" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
+<text x="127" y="97.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">Fixed</text>
+<rect x="173" y="87" width="48" height="14" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
+<text x="176" y="97.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">C3</text>
+<rect x="223" y="87" width="48" height="14" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
+<text x="226" y="97.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">C2</text>
+<rect x="273" y="87" width="48" height="14" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
+<text x="276" y="97.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">C5</text>
+<text x="11" y="113.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">Ring</text>
+<rect x="57" y="103" width="18" height="14" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
+<text x="60" y="113.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">On</text>
+<rect x="77" y="103" width="45" height="14" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
+<text x="80" y="113.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">Accel</text>
+<rect x="124" y="103" width="47" height="14" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
+<text x="127" y="113.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">Fixed</text>
+<rect x="173" y="103" width="48" height="14" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
+<text x="176" y="113.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">C#3</text>
+<rect x="223" y="103" width="48" height="14" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
+<text x="226" y="113.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">C2</text>
+<rect x="273" y="103" width="48" height="14" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
+<text x="276" y="113.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">C5</text>
+<text x="11" y="129.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">Middle</text>
+<rect x="57" y="119" width="18" height="14" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
+<text x="60" y="129.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">On</text>
+<rect x="77" y="119" width="45" height="14" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
+<text x="80" y="129.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">Accel</text>
+<rect x="124" y="119" width="47" height="14" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
+<text x="127" y="129.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">Fixed</text>
+<rect x="173" y="119" width="48" height="14" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
+<text x="176" y="129.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">D3</text>
+<rect x="223" y="119" width="48" height="14" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
+<text x="226" y="129.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">C2</text>
+<rect x="273" y="119" width="48" height="14" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
+<text x="276" y="129.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">C5</text>
+<text x="11" y="145.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">Index</text>
+<rect x="57" y="135" width="18" height="14" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
+<text x="60" y="145.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">On</text>
+<rect x="77" y="135" width="45" height="14" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
+<text x="80" y="145.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">Accel</text>
+<rect x="124" y="135" width="47" height="14" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
+<text x="127" y="145.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">Fixed</text>
+<rect x="173" y="135" width="48" height="14" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
+<text x="176" y="145.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">D#3</text>
+<rect x="223" y="135" width="48" height="14" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
+<text x="226" y="145.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">C2</text>
+<rect x="273" y="135" width="48" height="14" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
+<text x="276" y="145.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">C5</text>
+<text x="11" y="161.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">Thumb</text>
+<rect x="57" y="151" width="18" height="14" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
+<text x="60" y="161.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">On</text>
+<rect x="77" y="151" width="45" height="14" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
+<text x="80" y="161.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">Accel</text>
+<rect x="124" y="151" width="47" height="14" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
+<text x="127" y="161.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">Fixed</text>
+<rect x="173" y="151" width="48" height="14" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
+<text x="176" y="161.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">E3</text>
+<rect x="223" y="151" width="48" height="14" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
+<text x="226" y="161.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">C2</text>
+<rect x="273" y="151" width="48" height="14" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
+<text x="276" y="161.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">C5</text>
+<text x="343" y="68.0" font-family="Arial,sans-serif" font-size="10" fill="#ddd">RIGHT</text>
+<text x="398" y="67.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">WAIT</text>
+<text x="463" y="67.5" font-family="Arial,sans-serif" font-size="8" fill="#ddd">GRight · fresh frames</text>
+<text x="343" y="82.0" font-family="Arial,sans-serif" font-size="8" fill="#ddd">FINGER</text>
+<text x="392" y="82.0" font-family="Arial,sans-serif" font-size="8" fill="#ddd">ON</text>
+<text x="412" y="82.0" font-family="Arial,sans-serif" font-size="8" fill="#ddd">TRIGGER</text>
+<text x="459" y="82.0" font-family="Arial,sans-serif" font-size="8" fill="#ddd">PITCH</text>
+<text x="508" y="82.0" font-family="Arial,sans-serif" font-size="8" fill="#ddd">NOTE</text>
+<text x="558" y="82.0" font-family="Arial,sans-serif" font-size="8" fill="#ddd">LOW</text>
+<text x="608" y="82.0" font-family="Arial,sans-serif" font-size="8" fill="#ddd">HIGH</text>
+<text x="343" y="97.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">Pinky</text>
+<rect x="389" y="87" width="18" height="14" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
+<text x="392" y="97.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">On</text>
+<rect x="409" y="87" width="45" height="14" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
+<text x="412" y="97.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">Accel</text>
+<rect x="456" y="87" width="47" height="14" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
+<text x="459" y="97.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">Fixed</text>
+<rect x="505" y="87" width="48" height="14" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
+<text x="508" y="97.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">F3</text>
+<rect x="555" y="87" width="48" height="14" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
+<text x="558" y="97.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">C2</text>
+<rect x="605" y="87" width="48" height="14" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
+<text x="608" y="97.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">C5</text>
+<text x="343" y="113.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">Ring</text>
+<rect x="389" y="103" width="18" height="14" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
+<text x="392" y="113.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">On</text>
+<rect x="409" y="103" width="45" height="14" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
+<text x="412" y="113.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">Accel</text>
+<rect x="456" y="103" width="47" height="14" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
+<text x="459" y="113.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">Fixed</text>
+<rect x="505" y="103" width="48" height="14" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
+<text x="508" y="113.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">F#3</text>
+<rect x="555" y="103" width="48" height="14" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
+<text x="558" y="113.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">C2</text>
+<rect x="605" y="103" width="48" height="14" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
+<text x="608" y="113.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">C5</text>
+<text x="343" y="129.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">Middle</text>
+<rect x="389" y="119" width="18" height="14" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
+<text x="392" y="129.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">On</text>
+<rect x="409" y="119" width="45" height="14" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
+<text x="412" y="129.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">Accel</text>
+<rect x="456" y="119" width="47" height="14" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
+<text x="459" y="129.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">Fixed</text>
+<rect x="505" y="119" width="48" height="14" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
+<text x="508" y="129.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">G3</text>
+<rect x="555" y="119" width="48" height="14" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
+<text x="558" y="129.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">C2</text>
+<rect x="605" y="119" width="48" height="14" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
+<text x="608" y="129.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">C5</text>
+<text x="343" y="145.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">Index</text>
+<rect x="389" y="135" width="18" height="14" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
+<text x="392" y="145.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">On</text>
+<rect x="409" y="135" width="45" height="14" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
+<text x="412" y="145.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">Accel</text>
+<rect x="456" y="135" width="47" height="14" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
+<text x="459" y="145.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">Fixed</text>
+<rect x="505" y="135" width="48" height="14" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
+<text x="508" y="145.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">G#3</text>
+<rect x="555" y="135" width="48" height="14" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
+<text x="558" y="145.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">C2</text>
+<rect x="605" y="135" width="48" height="14" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
+<text x="608" y="145.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">C5</text>
+<text x="343" y="161.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">Thumb</text>
+<rect x="389" y="151" width="18" height="14" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
+<text x="392" y="161.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">On</text>
+<rect x="409" y="151" width="45" height="14" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
+<text x="412" y="161.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">Accel</text>
+<rect x="456" y="151" width="47" height="14" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
+<text x="459" y="161.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">Fixed</text>
+<rect x="505" y="151" width="48" height="14" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
+<text x="508" y="161.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">A3</text>
+<rect x="555" y="151" width="48" height="14" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
+<text x="558" y="161.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">C2</text>
+<rect x="605" y="151" width="48" height="14" rx="2" fill="#3e3e3e" stroke="#666" stroke-width=".6"/>
+<text x="608" y="161.5" font-family="Arial,sans-serif" font-size="9" fill="#ddd">C5</text>
 </svg>

@@ -72,14 +72,17 @@ Changing target, input mode or Scope stops active control. Load and Set recall l
 
 Load Glove MIDI Trigger before a MIDI instrument. Each hand has five independent finger rows.
 
-- **Accel** creates short notes from bend acceleration. Stronger movement increases note-on velocity.
+- **Accel** strikes once when curl increases with sufficient positive bend acceleration. Stopping and extension do not strike. A return of at least 0.02 below the stroke's peak re-arms without a stationary dwell. Stronger accelerating bends increase note-on velocity; Retrig defaults to 40 ms.
 - **Toggle** begins a held note above curl 0.5 and releases below 0.45. Return to neutral before starting or re-enabling a bent finger.
-- **Fixed** uses Note. **Random** chooses from Root/Scale within that finger's inclusive Low–High range. An empty range produces no note.
-- **V Min / V Max** set each finger's MIDI velocity endpoints; reversed endpoints invert the response.
+- **Fixed** uses Note. **Random** and **Markov** use the top-row global Root/Scale shared by both hands within that finger's inclusive Low–High range. An empty range produces no note.
+- **Markov** uses that finger's previous pitch and the global preset: Stepwise, Upward, Downward, Leaps, Tonic Pull or Balanced. Histories are independent and advance only on triggers; release retains them, while Panic/settings/reload/input loss reset them.
+- The top-row **V Min / V Max** set one shared MIDI velocity range (1–127) for all ten fingers. Reversed endpoints invert the response; equal endpoints give constant velocity.
+
+**Note**, **Low** and **High** use native Live number controls. Drag up/down in semitone steps, or select a field, type `C2`, `A4` or `F#3` and press **Enter**. Shift-drag gives finer mouse control. Live octave naming applies: **C3 = MIDI 60**, C2 = 48 and A4 = 81. Valid range is C-2–G8. Use sharp spelling for accidentals, such as A#3 for B-flat. Save the Set to retain settings.
 
 Click **Calibrate 8 s** and make several representative strikes with enabled fingers. Notes pause during capture. Calibration sets one shared acceleration reference; no sufficient motion keeps the previous value. Click again to cancel. Adjust Sens %, Threshold, Length ms and Retrig ms. Use **Panic** to release generated notes.
 
-Acceleration is calculated from finger curl, not IMU data. A held note's velocity is established at onset; continued curl sends **Poly Aftertouch**. Configure a pressure-sensitive instrument to hear continuous intensity changes. Random pitch remains fixed for the duration of a hold. Assign distinct pitches for independent finger articulation; identical generated pitches share a voice. Avoid overlapping keyboard/glove notes on the same pitch if independent release is needed.
+Acceleration is calculated from finger curl, not IMU data. A held note's velocity is established at onset; continued curl sends **Poly Aftertouch**. Configure a pressure-sensitive instrument to hear continuous intensity changes. Random/Markov pitch remains fixed for the duration of a hold. Assign distinct pitches for independent finger articulation; identical generated pitches share a voice. Avoid overlapping keyboard/glove notes on the same pitch if independent release is needed.
 
 ## Troubleshooting
 

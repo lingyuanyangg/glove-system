@@ -2,19 +2,50 @@
 
 [下载 MIDI Trigger](Glove_MIDI_Trigger.zip) · [英文说明](README.md)
 
-将 `Glove_MIDI_Trigger.amxd` 与 `glove_midi_trigger.js` 放在一起，加载到 **MIDI 轨道的乐器前面**。同一个 Set 保留已连接的 [Receiver](../receiver-v2/README_中文.md)。左右手十根手指独立控制。
+将 `Glove_MIDI_Trigger.amxd` 与 `glove_midi_trigger.js` 放在一起，加载到 **MIDI 轨道的乐器前面**。同一个 Set 保留已连接的 [Receiver](../receiver-v2/README_中文.md)。左右手十根手指独立控制，顶部 Root／Scale 和 V Min／V Max 由双手共用。
 
 ## 每根手指
 
 - **On**：启用／停用，停用释放音符。
-- **Accel**：弯曲加速度超过阈值时发短音，动作越强力度越大。
+- **Accel**：弯曲度上升且正向弯曲加速度超过阈值时，像按钢琴键一样触发一次短音；停止和回伸不发音，力度由正向加速度决定。
 - **Toggle**：弯曲度高于 0.5 保持音符，低于 0.45 释放；加载／重启／重新连接后先回到张手姿态。
-- **Fixed**：Note 指定音高；**Random**：按 Root／Scale 音阶在 Low–High 间随机选音，每次触发选一次。
-- **V Min／V Max**：每根手指的力度范围，MIDI 1–127，可反向；随机音域为 MIDI 0–127，范围内无音阶音时不发音。
+- **Fixed**：Note 指定音高；**Random**：按顶部全局 Root／Scale 音阶在 Low–High 间随机选音，每次触发选一次；**Markov**：按上一个音与全局 Markov 预设的转移概率选择下一个音。
+- **Low／High**：每根手指独立的随机音域，用音名输入，有效范围 C-2–G8（MIDI 0–127）；范围内无音阶音时不发音。
+
+## 音名输入与全局音阶
+
+**Note、Low、High** 都使用原生 `live.numbox` MIDI 音高组件。鼠标上下拖动按半音调整；选中后也可直接输入 `C2`、`A4`、`F#3`，按 **Enter** 应用。按住 Shift 拖动可更精细地控制。使用 Live 八度规则：**C3 = MIDI 60**，因此 C2 = 48、A4 = 81。变化音使用升号拼写，例如降 B 输入 A#3。底层保存为 MIDI 整数音高。保存 Set 保留设置。
+
+顶部 **Root／Scale** 控制左右手所有 Random／Markov 手指，每根手指保留独立的 Low／High 音域。例如 Root C、Scale Major、Low C2、High C4，只会在该音域的 C 大调音符中随机选择。Fixed 不受音阶影响。修改音高或全局音阶会释放相应音符，Accel 回伸后准备下一次击键；Toggle 则需回到弯曲度低于 0.45。
+
+## 全局力度
+
+顶部 **V Min／V Max** 设置左右手十根手指共用的 MIDI 力度范围（1–127），同时用于 Accel 和 Toggle。动作越强／弯曲度越高，力度越靠近 V Max。端点可反向；两端相同则力度恒定。修改端点会释放生成的音符，回伸后重新演奏。
+
+主界面为 **664 × 169**，手指行只保留 On、Trigger、Pitch、Note、Low、High。
+
+## Accel 弯曲击键
+
+同一次正向弯曲只触发一个音。继续弯曲、停住或回伸均不再发音；回伸到比这次弯曲峰值低至少 **0.02** 后，就能进行下一次击键，不需要停稳等待。轻微抖动不会重新准备触发。两次击键仍受 **Retrig ms** 约束，默认 40 ms，可调低至 20 ms。
+
+## Markov Chain 预设
+
+在需要的手指 **Pitch** 菜单中选择 **Markov**，第三行的全局 **Markov** 菜单选择预设。每根手指保留独立的上一音历史，只在触发新音时推进；回伸、停止和释放音符不推进。首音从允许音域均匀随机选取，后续受 Root／Scale 和该手指 Low／High 限制。
+
+| 预设 | 音符转移倾向 |
+| --- | --- |
+| Stepwise | 以相邻音阶音为主 |
+| Upward | 向上走，到顶部时倾向回到底部 |
+| Downward | 向下走，到底部时倾向回到顶部 |
+| Leaps | 较大跳进，偏好跨三至四个允许音符位置 |
+| Tonic Pull | 偏向主音、五度和三度，尽量保留当前音区 |
+| Balanced | 较均衡的选择，轻微偏向附近音高 |
+
+Panic、修改设置、重新加载和输入断流会重置历史。保存 Set 保留预设和设置，临时乐句历史不保存。Fixed／Random 不受 Markov 预设影响。
 
 ## 全局校准
 
-点击 **Calibrate 8 s**，用启用手指做几次正常力度动作。采集期间不发音，双手共用一个参考量，完成后保存在 Cal ref／s²。动作不足保留原值；再次点击取消。
+点击 **Calibrate 8 s**，用启用手指做几次正常力度的正向弯曲击键，每次回伸后再弯曲。采集期间不发音，双手共用一个参考量，完成后保存在 Cal ref／s²。动作不足保留原值；再次点击取消。
 
 **Sens %** 越高越敏感，**Threshold** 越高越难触发；**Length ms** 是短音长度，**Retrig ms** 是同手指的最短触发间隔。**Panic** 释放设备生成的音符。保存 Set 保留设置和校准，持续音不保存。
 

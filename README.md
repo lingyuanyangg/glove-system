@@ -11,7 +11,7 @@ A dual-hand musical control system based on the **ElastremeSense Manu-5D e-skin 
 | Glove Gesture | Left/right/combined-pose classification and gesture-to-button mapping | [Gesture](gesture-classification/Glove%20Gesture.zip) | [Training and mapping](gesture-classification/README.md) |
 | Glove Neural Scope | Learn left/right/both-hand poses to parameters of a selected device | [Neural Scope](neural-scope/Glove%20Neural%20Scope.zip) | [Training and models](neural-scope/README.md) |
 | Glove Mapper | Ten independent finger-to-parameter mappings with output Min/Max | [Mapper](mapper/Glove_Mapper.zip) | [Mapping](mapper/README.md) |
-| Glove MIDI Trigger | Acceleration strikes, curl-held notes, fixed/random scale pitches and velocity ranges | [MIDI Trigger](midi-trigger/Glove_MIDI_Trigger.zip) | [MIDI operation](midi-trigger/README.md) |
+| Glove MIDI Trigger | Piano-like bend strikes, curl-held notes, fixed/random/Markov pitch, global scale and velocity limits | [MIDI Trigger](midi-trigger/Glove_MIDI_Trigger.zip) | [MIDI operation](midi-trigger/README.md) |
 
 ## Requirements
 
