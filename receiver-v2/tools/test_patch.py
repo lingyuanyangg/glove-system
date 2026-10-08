@@ -71,7 +71,7 @@ usb=ids['usb_settings']['patcher']
 uids={o['box']['id']:o['box'] for o in usb['boxes']}
 ulines={(tuple(l['patchline']['source']),tuple(l['patchline']['destination'])) for l in usb['lines']}
 assert (('usb_setup_control',0),('usb_settings',0)) in lines
-assert ids['usb_setup_press']['text']=='sel 1'
+assert ids['usb_setup_press']['text']=='t b'
 for i,target in enumerate(['usb_ports','usb_status']):
     assert (('usb_in_'+str(i),0),(target,0)) in ulines
 for i,source in enumerate(['usb_ports','usb_refresh','usb_connect','usb_close']):

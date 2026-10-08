@@ -82,7 +82,7 @@ test('stationary dual USB frames keep downstream consumers fresh for training',(
  const n=a.engineOutputs.length;time+=30;a.engine.tick();assert.equal(a.engineOutputs.length,n);
 });
 test('loss reports no data and never fabricates heartbeat frames',()=>{
- time+=1200;c.tick();a.engine.tick();assert(c.lastStatus.includes('waiting for data'));assert.equal(a.engine.hands[0].status,'HOLD');
+ time+=1200;c.tick();a.engine.tick();assert(c.lastStatus.includes('no live L/R'));assert.equal(a.engine.hands[0].status,'HOLD');
 });
 test('port refresh preserves an open selection after index reordering',()=>{
  scan(a,['cu.usbserial-A',port]);assert.equal(c.selected,port);assert(c.opened);assert(a.logs.some(x=>x[0]===3&&x[1]==='set'&&x[2]===2));
@@ -120,5 +120,15 @@ test('saved-name recall is closed and two instances remain isolated',()=>{
 });
 test('Close and disposal stop polling and release the native port',()=>{
  open();c.disconnect(1);assert(!c.opened);c.notifydeleted();assert.equal(commands().slice(-1)[0][0],'close');
+});
+test('native live.text button bangs open, refresh and close without numeric toggles',()=>{
+ const b=rig();b.c.refresh('bang');b.c.serialinfo('port',port);b.c.chooseport(1);b.c.connect('bang');b.c.serialinfo('port',port);assert(b.c.opened);b.c.disconnect('bang');assert(!b.c.opened);
+});
+test('firmware diagnostics distinguish USB bytes from valid hand frames without making data',()=>{
+ const b=rig();open(b);send('\n#STATUS,USB2,L,123,0,R,456,8;\n',b);b.c.status(true);
+ assert(b.c.lastStatus.includes('board OK'));assert(b.c.lastStatus.includes('L 123 / R 456'));assert.equal(b.c.times[0],0);assert.equal(b.c.times[1],0);assert(!b.engine.hands[0].ready&&!b.engine.hands[1].ready);
+ send('#STATUS,USB2,L,NaN,9,R,123,9;\n',b);assert.equal(b.c.boardStatus[0],123);
+ time+=2001;b.c.status(true);assert(b.c.lastStatus.includes('status stale'));
+ b.c.disconnect(1);assert.equal(b.c.rxBytes,0);assert.equal(b.c.boardStatus,null);
 });
 console.log(`${count} USB controller/integration checks passed; no Max or physical port test.`);

@@ -173,7 +173,7 @@ b['saved_attribute_attributes']={'valueof':dict(parameter_longname='Input Mode',
     parameter_mmax=1,parameter_initial=[0],parameter_initial_enable=1,parameter_invisible=1)}
 p['parameters']['input_mode']=['Input Mode','Input',0]
 button('usb_setup','USB…',[747,151,56,15],mode=0)
-box('usb_setup_press',text='sel 1');wire('usb_setup','usb_setup_press')
+box('usb_setup_press',text='t b');wire('usb_setup','usb_setup_press')
 box('usb_setup_open',cls='message',text='open');wire('usb_setup_press','usb_setup_open')
 box('usb_setup_control',text='pcontrol');wire('usb_setup_open','usb_setup_control')
 main_patch=p

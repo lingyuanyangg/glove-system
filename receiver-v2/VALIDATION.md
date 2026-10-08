@@ -10,7 +10,7 @@
 - Verified the AMXD audio-effect header and payload length, and parsed its JSON payload to confirm exact equality with the editable `.maxpat` source.
 - Preserved original published device/model/helper hashes; the original release audit still passes.
 
-- Executed the actual USB controller together with the actual engine in a Node VM with simulated Max serial/status/menu/Task peers. **28 checks** passed: closed startup and recall; named port enumeration, selection and refresh; 115200 8N1 Open; OSC isolation; exact decimal framing; split packets and initial synchronization; malformed/overflow/binary/newline rejection and recovery; partial-frame timeout; hand routing and calibration; stationary two-hand training streams; read/write counters; firmware error reporting; lost data; port reordering/removal/open fallback/native errors/watchdogs; mode changes; instance isolation; momentary buttons; Close/disposal. These simulated tests do not open an OS serial port.
+- Executed the actual USB controller together with the actual engine in a Node VM with simulated Max serial/status/menu/Task peers. **30 checks** passed: closed startup and recall; named port enumeration, selection and refresh; 115200 8N1 Open; OSC isolation; exact decimal framing; split packets and initial synchronization; malformed/overflow/binary/newline rejection and recovery; partial-frame timeout; hand routing and calibration; stationary two-hand training streams; read/write counters; firmware error reporting; lost data; port reordering/removal/open fallback/native errors/watchdogs; mode changes; instance isolation; momentary buttons; Close/disposal. These simulated controller tests do not open an OS serial port. Two additional checks cover native button bang commands and diagnostic counters/stale status without artificial hand freshness.
 - Confirmed fresh GLeft/GRight output for stationary real-input frames, with no manufactured heartbeat after source loss and no additional change-driven UI/OSC chatter. Overdue, malformed and cancelled pending frames do not refresh those buses.
 
 ## Scope of the checks
@@ -48,3 +48,9 @@ The builder expects the installed Cycling '74 `liveui.map.maxpat` under `/Applic
 6. Receive OSC at a separate destination port, enable OSC Out and confirm `/GLeft` and `/GRight`, each with five values matching the Max buses. Change destination with Apply. Stop incoming packets for over one second and confirm HOLD retains the last state.
 
 The supplied demo sender (`tools/send_demo.py`) produces synthetic normalized data to localhost; it does not read the glove. Use its `--raw` option for the calibration example above. Disable other receivers before testing the same input ports.
+
+## 2026-10-08 live fault investigation
+
+macOS and Arduino CLI identify `/dev/cu.usbmodem90706920872C2` as UNO R4 WiFi. No process held the port at inspection. A raw 115200/8N1 diagnostic read for six seconds received **zero bytes** before the firmware correction. This cannot establish actual glove UART activity. The installed receiver files matched the published release. Native Max UI inspection again timed out, so the on-screen console and actual button/port operation have not been verified.
+
+Source inspection found two concrete issues: the target UART's inherited zero availableForWrite() suppressed all Arduino output, and the USB… live.text button emits bang but the old opener selected numeric 1. Both are corrected. Firmware diagnostics now distinguish board transport, UART byte arrival and valid frame counts without refreshing hand streams.

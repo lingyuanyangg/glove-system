@@ -1,23 +1,23 @@
 {
   "Glove_Receiver_Dual.amxd": {
-    "bytes": 501090,
-    "sha256": "6d6d34e3df73a3cc422edf3a1fbbcce7eef720ce50cfe380c7c032df5974d68f"
+    "bytes": 501088,
+    "sha256": "af42edace803a7e29e791c2506f85565507583f8d9f0590afe0c04a96e911da2"
   },
   "Glove_Receiver_Dual.maxpat": {
-    "bytes": 1889533,
-    "sha256": "1f15a5d6a053a02307f4fbddc900c67f01e0ba07bd03880e26b62a4f75ab2d4a"
+    "bytes": 1889531,
+    "sha256": "d1f6e7e85ccfa884fd5829fa37e866278a814a31c1a8978ce11aa5e18ca53a70"
   },
   "README.md": {
-    "bytes": 9699,
-    "sha256": "a46af4f7e95e04728088d48164c119b52c4b87d2f470b4c473a014452fc04222"
+    "bytes": 10580,
+    "sha256": "fcc2a859445bd0c78ee5c2ddcba2dea824ce0c240d5601ed03c246f72f83919a"
   },
   "README_中文.md": {
-    "bytes": 3161,
-    "sha256": "a0c82f0a1f9cdaba13fa6b5030d5c43283a5d848abaa7fe0b85092b8b53527cb"
+    "bytes": 3797,
+    "sha256": "e4bf8824e157f81c0be25d32b353ab6d0acb853e3650b79ef598b87f7a2929ea"
   },
   "VALIDATION.md": {
-    "bytes": 6033,
-    "sha256": "c15118c76c2922ba49c9ae93e076873ea46a0ee4622d6a74e9678aab810ae81b"
+    "bytes": 7031,
+    "sha256": "db304c5f342be8d81e9db18a6d2ac1fa95329a2f1b11e73fcb2968de62c34974"
   },
   "glove_dual_engine.js": {
     "bytes": 5104,
@@ -28,8 +28,8 @@
     "sha256": "c948d10b2408866ec21eb8502820a1211574a1abca1289c43d0010b5fe31f75d"
   },
   "glove_usb_serial.js": {
-    "bytes": 7804,
-    "sha256": "28f1df4585889b708566de980bf6ec99d01ea367d66402faa8f473a43add0b2d"
+    "bytes": 8652,
+    "sha256": "f439e82615f4891e129a0877080c27970d3a5ca38289b7a14998d0b627446f59"
   },
   "hands.svg": {
     "bytes": 3079,
@@ -44,8 +44,8 @@
     "sha256": "c4a4412fbac75522efc6fee7ac69815122ca34f15b30cd8f845efb7f3bc21147"
   },
   "tools/build.py": {
-    "bytes": 17334,
-    "sha256": "db7ad603554c93de2eff558ad24ad1513f1ee65835f53f7785eb7ea72ae8222b"
+    "bytes": 17332,
+    "sha256": "d4674f97ebc563ba49ebe60f26b04947fb1cd379a1b294687ec8a7975d7aefc3"
   },
   "tools/export_layout.js": {
     "bytes": 3465,
@@ -60,12 +60,12 @@
     "sha256": "0edd8ef623469da5d1b27514c435655081730b460f5675845d796723a4e29a6c"
   },
   "tools/test_patch.py": {
-    "bytes": 5218,
-    "sha256": "09cc8ea708f9129d146d7ac2bbb4b6e2c1a4d8b05a15a6708ba90b1df8a3c299"
+    "bytes": 5216,
+    "sha256": "93eb8a3a97da1824349e10305902850bcacc3d072c4979d478d4463d68380d10"
   },
   "tools/test_usb.js": {
-    "bytes": 8961,
-    "sha256": "062f1e485c089b5a75fb0d510dfd67b451ddd50eca4b3f8feee21713fe901317"
+    "bytes": 9885,
+    "sha256": "d1b17c7cc5cf824eb16a564500c1680ad7d8c203ce07459d375ebf606a26b9df"
   },
   "usb-settings-preview.png": {
     "bytes": 17240,

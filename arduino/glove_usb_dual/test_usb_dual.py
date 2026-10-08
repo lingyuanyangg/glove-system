@@ -26,7 +26,13 @@ class FakePort:public Stream{public:
  int available()override{return input.size();}
  int read()override{if(input.empty())return -1;int v=input.front();input.pop_front();return v;}
  void begin(unsigned long b){baud=b;}
- int availableForWrite(){return room;}
+ int availableForWrite(){
+#ifdef NO_USB
+ return 0; // Actual UNO R4 WiFi UART inherits Print's zero-returning default.
+#else
+ return room;
+#endif
+ }
  size_t write(const uint8_t*b,size_t n){output.append((const char*)b,n);room-=n;return n;}
  void feed(const std::string&s){for(unsigned char c:s)input.push_back(c);}
 };
@@ -81,6 +87,27 @@ int main(){
  std::cout<<"PASS: "<<checks<<" actual-sketch checks with simulated ports; no hardware test\n";
 }
 '''
+bridge_test = r'''
+#include <cassert>
+#include <iostream>
+#include "@SKETCH@"
+int main(){
+ setup();int checks=0;
+ assert(Serial.availableForWrite()==0);++checks;
+ const std::string frame="1800,1600,1500,1490,1345,0,0,0,0,0,0;";
+ clockMs=100;Serial1.feed(frame);rightGlove.feed(frame);loop();
+ assert(Serial.output.find("L,180.0,160.0,150.0,149.0,134.5;")!=std::string::npos);++checks;
+ assert(Serial.output.find("R,180.0,160.0,150.0,149.0,134.5;")!=std::string::npos);++checks;
+ assert(!hands[0].pending&&!hands[1].pending);++checks;
+ Serial.output.clear();clockMs=1100;loop();
+ assert(Serial.output=="#STATUS,USB2,L,"+std::to_string(frame.size())+",1,R,"+std::to_string(frame.size())+",1;\n");++checks;
+ assert(Serial.output.find("L,180.")==std::string::npos);++checks;
+ Serial.output.clear();clockMs=2100;rightReady=false;loop();
+ assert(Serial.output.find("#ERROR,RIGHT_SERIAL_INIT;")!=std::string::npos);++checks;
+ assert(Serial.output.find("#STATUS,USB2,L,")!=std::string::npos);++checks;
+ std::cout<<"PASS: "<<checks<<" UNO R4 WiFi bridge checks with zero availableForWrite; no hardware test\n";
+}
+'''
 with tempfile.TemporaryDirectory(prefix="glove-usb-check-") as folder:
     temp = Path(folder)
     for name, content in {"Arduino.h": arduino, "SoftwareSerial.h": soft, "Servo.h": servo,
@@ -89,4 +116,8 @@ with tempfile.TemporaryDirectory(prefix="glove-usb-check-") as folder:
     binary = temp / "test"
     subprocess.run(["/usr/bin/clang++", "-std=c++17", "-DARDUINO_UNOR4_WIFI", "-I", str(temp),
                     str(temp / "test.cpp"), "-o", str(binary)], check=True)
+    subprocess.run([str(binary)], check=True)
+    (temp / "bridge.cpp").write_text(bridge_test.replace("@SKETCH@", str(root / "glove_usb_dual.ino")))
+    subprocess.run(["/usr/bin/clang++", "-std=c++17", "-DARDUINO_UNOR4_WIFI", "-DNO_USB", "-I", str(temp),
+                    str(temp / "bridge.cpp"), "-o", str(binary)], check=True)
     subprocess.run([str(binary)], check=True)

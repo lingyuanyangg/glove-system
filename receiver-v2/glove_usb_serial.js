@@ -8,13 +8,14 @@ outlets = 7;
 var inputMode = 0, selected = '', ports = [], opened = false, initialized = false;
 var refreshing = false, refreshAt = 0, awaitingCheck = false, checkAt = 0;
 var buffer = '', discard = true, lastByteAt = 0, times = [0,0];
+var rxBytes = 0, boardStatus = null, boardStatusAt = 0;
 var badFrames = 0, boardFault = '', portFault = '', lastStatus = '', lastUi = 0;
 var runner = new Task(tick, this), scan = new Task(refresh, this);
 runner.interval = 50;
 function now() { return Date.now(); }
 function args(a) { return arrayfromargs(a); }
 function finite(v) { return typeof v === 'number' && isFinite(v); }
-function resetParser() { buffer='';discard=true;lastByteAt=0;times=[0,0];badFrames=0;boardFault=''; }
+function resetParser() { buffer='';discard=true;lastByteAt=0;times=[0,0];badFrames=0;boardFault='';rxBytes=0;boardStatus=null;boardStatusAt=0; }
 function title() {
     outlet(5,'set',inputMode ? 'USB  /  L' : 'IN 7000  ·  /servos');
     outlet(6,'set',inputMode ? 'USB  /  R' : 'IN 6000  ·  /servos');
@@ -29,6 +30,10 @@ function status(force) {
         else {
             var live=[];for(var h=0;h<2;h++)if(times[h]&&time-times[h]<=1000)live.push(h?'R':'L');
             s=live.length?'USB · '+live.join(' / '):'USB · waiting for data';
+            if(!live.length) {
+                if(boardStatus)s=(time-boardStatusAt<=2000?'USB · board OK':'USB · board status stale')+' · UART bytes L '+boardStatus[0]+' / R '+boardStatus[2]+' · frames '+boardStatus[1]+' / '+boardStatus[3];
+                else s=rxBytes?'USB · RX '+rxBytes+' bytes · no live L/R frame':'USB · waiting · 0 bytes';
+            }
             if(badFrames)s+=' · bad '+badFrames;
         }
     }
@@ -137,6 +142,12 @@ function complete(text) {
     text=text.replace(/^\s+|\s+$/g,'');
     if(text==='')return;
     if(text.charAt(0)==='#') {
+        var f=text.split(',');
+        if(f.length===8&&f[0]==='#STATUS'&&f[1]==='USB2'&&f[2]==='L'&&f[5]==='R') {
+            var values=[],ok=true;
+            for(var i=0;i<4;i++){var s=f[[3,4,6,7][i]];var n=Number(s);if(!/^\d+$/.test(s)||!finite(n)||n>4294967295)ok=false;values.push(n);}
+            if(ok){boardStatus=values;boardStatusAt=now();}
+        }
         if(text==='#ERROR,RIGHT_SERIAL_INIT') {boardFault=text;times[1]=0;outlet(1,'lostright');}
         status(false);return;
     }
@@ -149,6 +160,7 @@ function complete(text) {
 function byte(v) {
     if(!inputMode||!opened||awaitingCheck)return;
     if(!finite(v)||v!==Math.floor(v)||v<0||v>255){buffer='';discard=true;badFrames++;return;}
+    rxBytes++;
     var time=now();
     if(buffer&&lastByteAt&&time-lastByteAt>250){buffer='';discard=true;badFrames++;}
     lastByteAt=time;

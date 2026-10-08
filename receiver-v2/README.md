@@ -25,7 +25,7 @@ R,170.0,152.0,149.4,158.0,132.1;
 
 These are five **degree values**, already divided by ten in the firmware; this receiver does not divide them again. L/R routes to the same raw calibration and filtering as /servos. The format requires the hand tag, exactly five finite values from 0 to 180, and a semicolon; CR/LF after the terminator is accepted. Partial, oversized, binary and malformed frames are rejected. On Open the first incomplete fragment is discarded until a delimiter or newline. The firmware status `#ERROR,RIGHT_SERIAL_INIT;` is displayed as a Right initialization error, not parsed as finger values.
 
-Port enumeration, Open/Close and 5ms polling use Max's native `serial` object; no Node process, Python bridge, driver installer or serial package is bundled. A driver may be needed if the operating system does not expose the board's port. The saved Live Set retains **the port name**, not its menu index. Port recall and device load always start closed; click Open after confirming the device. A waiting-data status is not proof of successful Bluetooth pairing or an open physical port.
+Port enumeration, Open/Close and 5ms polling use Max's native `serial` object; no Node process, Python bridge, driver installer or serial package is bundled. A driver may be needed if the operating system does not expose the board's port. The saved Live Set retains **the port name**, not its menu index. Port recall and device load always start closed; click Open after confirming the device. A waiting-data status is not proof of successful Bluetooth pairing or an open physical port. The corrected USB firmware sends a one-second board diagnostic packet. While waiting, **board OK** confirms a recent status packet and displays UART byte/valid-frame counters for each hand; **board status stale** means no recent status packet. Diagnostic packets never refresh GLeft/GRight or drive mappings. Zero bytes versus incoming bytes without valid hand frames are distinguished in the USB status.
 
 The compact native main UI stays **808 × 169**, within Live's fixed device height. Input selects OSC or USB; **USB…** opens a separate **580 × 80** native settings window for Port, Refresh, Open, Close and status. See [Cycling ’74's device UI guide](https://docs.cycling74.com/userguide/m4l/live_userinterfaces/). Keep one receiver per Set because the GLeft/GRight buses are shared.
 
@@ -100,3 +100,7 @@ Illustrative layout previews generated from the shipped vectors and presentation
 ![Main receiver](layout-preview.png)
 
 ![USB settings window](usb-settings-preview.png)
+
+## USB troubleshooting correction
+
+Re-upload the corrected USB firmware from this release: the earlier UNO R4 WiFi sender incorrectly gated writes on availableForWrite(), which returns zero for that core's bridge UART. The receiver's USB… opener also now accepts the native live.text bang output. After updating, reload the receiver, open USB… settings, Refresh, choose the current Arduino port and Open. Check the UART counters before changing calibration or filtering.

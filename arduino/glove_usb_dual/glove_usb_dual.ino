@@ -6,7 +6,8 @@
 // USB output: L,180.0,160.0,150.0,149.0,134.5;\n (or R,...).
 // Input: exactly 11 integers, comma-separated, terminated by ';'.
 // The first five integers are angles in tenths of a degree; other fields ignored.
-// No Wi-Fi, OSC, String allocation, blocking USB wait or delay().
+// No Wi-Fi, OSC, String allocation, blocking USB startup wait or delay().
+// UNO R4 WiFi Serial uses the ESP32 bridge UART; short bulk writes wait for TX.
 
 #include <Arduino.h>
 #include <SoftwareSerial.h>
@@ -50,6 +51,8 @@ struct HandState {
   bool pending;
   uint32_t receivedAt;
   uint32_t sentAt;
+  uint32_t rxBytes;
+  uint32_t validFrames;
 };
 HandState hands[2] = {};
 
@@ -118,6 +121,7 @@ void acceptFrame(uint8_t hand) {
     if (corrected > 1800) corrected = 1800;
     state.angles[i] = corrected;
   }
+  state.validFrames++;
   state.receivedAt = millis();
   state.pending = true;
   if (hand == SERVO_HAND) moveServos(state.angles);
@@ -125,6 +129,7 @@ void acceptFrame(uint8_t hand) {
 
 void receiveByte(uint8_t hand, char c) {
   HandState &state = hands[hand];
+  state.rxBytes++;
   if (c == ';') {
     if (!state.discardUntilDelimiter) {
       state.frame[state.length] = '\0';
@@ -160,6 +165,19 @@ int formatOutput(char *line, size_t capacity, uint8_t hand) {
                   a[2]/10, a[2]%10, a[3]/10, a[3]%10, a[4]/10, a[4]%10);
 }
 
+bool writeUsbFrame(char *line, size_t length) {
+#ifdef NO_USB
+  // UNO R4 WiFi core 1.6.0 maps Serial to UART through the ESP32 USB bridge.
+  // UART inherits Print::availableForWrite(), which returns 0, so it MUST NOT
+  // be used as a transmit gate here. The mutable buffer selects UART bulk write.
+  return Serial.write(reinterpret_cast<uint8_t *>(line), length) == length;
+#else
+  // Native USB CDC cores do expose usable transmit-buffer space.
+  if (Serial.availableForWrite() < static_cast<int>(length)) return false;
+  return Serial.write(reinterpret_cast<uint8_t *>(line), length) == length;
+#endif
+}
+
 void sendPending(uint8_t hand) {
   HandState &state = hands[hand];
   const uint32_t now = millis();
@@ -172,9 +190,7 @@ void sendPending(uint8_t hand) {
   char line[40];
   const int count = formatOutput(line, sizeof(line), hand);
   if (count <= 0 || count >= static_cast<int>(sizeof(line))) return;
-  if (Serial.availableForWrite() < count) return;
-  // Only one writer; sufficient buffer room prevents waiting for USB throughput.
-  Serial.write(reinterpret_cast<const uint8_t *>(line), count);
+  if (!writeUsbFrame(line, static_cast<size_t>(count))) return;
   state.pending = false;
   state.sentAt = now;
 }
@@ -183,11 +199,25 @@ void reportRightFault() {
   static uint32_t previous = 0;
   const uint32_t now = millis();
   if (rightReady || static_cast<uint32_t>(now - previous) < 1000) return;
-  const char error[] = "#ERROR,RIGHT_SERIAL_INIT;\n";
-  if (Serial.availableForWrite() >= static_cast<int>(sizeof(error)-1)) {
-    Serial.write(reinterpret_cast<const uint8_t *>(error), sizeof(error)-1);
+  char error[] = "#ERROR,RIGHT_SERIAL_INIT;\n";
+  if (writeUsbFrame(error, sizeof(error)-1)) {
     previous = now;
   }
+}
+
+void reportStatus() {
+  static uint32_t previous = 0;
+  const uint32_t now = millis();
+  if (static_cast<uint32_t>(now - previous) < 1000) return;
+  char line[96];
+  const int count = snprintf(line, sizeof(line),
+      "#STATUS,USB2,L,%lu,%lu,R,%lu,%lu;\n",
+      static_cast<unsigned long>(hands[0].rxBytes),
+      static_cast<unsigned long>(hands[0].validFrames),
+      static_cast<unsigned long>(hands[1].rxBytes),
+      static_cast<unsigned long>(hands[1].validFrames));
+  if (count > 0 && count < static_cast<int>(sizeof(line)) &&
+      writeUsbFrame(line, static_cast<size_t>(count))) previous = now;
 }
 
 void setup() {
@@ -214,4 +244,5 @@ void loop() {
   sendPending(first ^ 1);
   first ^= 1;
   reportRightFault();
+  reportStatus();
 }
