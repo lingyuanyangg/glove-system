@@ -5,7 +5,6 @@ build/
 *.elf
 *.hex
 *.bin
-*.zip
 .env
 .env.*
 arduino_secrets.h

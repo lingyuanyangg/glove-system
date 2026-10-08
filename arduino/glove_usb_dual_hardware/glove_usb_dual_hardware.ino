@@ -2,7 +2,6 @@
 // LEFT:  module TXD -> D0 (Serial1 RX); module RXD <- D1 (optional).
 // RIGHT: module TXD -> D12 (hardware RX); module RXD <- D11 (optional).
 // This variant uses SCI0 on D11 TX / D12 RX, with no SoftwareSerial.
-// Use glove_usb_dual.ino for the original D11 RX / D10 TX wiring.
 // Power both supplied receiver modules from 3.3 V, share GND, match UART levels.
 // USB output: L,180.0,160.0,150.0,149.0,134.5;\n (or R,...).
 // Input: exactly 11 integers, comma-separated, terminated by ';'.
@@ -12,7 +11,7 @@
 
 #include <Arduino.h>
 #ifndef RIGHT_USE_HARDWARE_UART
-#define RIGHT_USE_HARDWARE_UART 1 // 0: existing D11 RX; 1: hardware D12 RX.
+#define RIGHT_USE_HARDWARE_UART 1 // Right input uses the D12 hardware UART.
 #endif
 #if RIGHT_USE_HARDWARE_UART != 0 && RIGHT_USE_HARDWARE_UART != 1
 #error "RIGHT_USE_HARDWARE_UART must be 0 (D11 software RX) or 1 (D12 hardware RX)."
@@ -129,7 +128,7 @@ bool parseFrame(const char *text, int result[5]) {
 
 void moveServos(const int angles[5]) {
 #if ENABLE_SERVOS
-  // Preserve the original servo order and first-four reversed directions.
+  // First four servo directions are reversed; the thumb is direct.
   servo1.write(180 - (angles[0] + 5) / 10);
   servo2.write(180 - (angles[1] + 5) / 10);
   servo3.write(180 - (angles[2] + 5) / 10);

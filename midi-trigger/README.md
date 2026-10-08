@@ -1,49 +1,53 @@
 # Glove MIDI Trigger
 
-A native Max for Live **MIDI effect** for the ElastremeSense Manu-5D e-skin glove system. Each of ten fingers can strike an acceleration-triggered note or hold a note while curled. Fixed and scale-constrained random pitches, note ranges and velocity endpoints are independent for every finger. No FluCoMa, Data Knot, Node runtime or external Max package is needed at runtime.
+A native Max for Live **MIDI effect** for ten independent fingers: bend-acceleration strikes or curl-held notes, fixed or scale-constrained random pitches, and individual note/velocity ranges. The **984 × 169** main panel places both hands' settings side by side.
 
-![Native layout preview](ui-layout.png)
+[Download MIDI Trigger](Glove_MIDI_Trigger.zip) · [中文操作说明](README_中文.md)
 
-The preview illustrates the generated layout; Live supplies its actual native widget theme. The main panel is 984 × 169 pixels. A star beside a finger means it owns an active note. Controls and the calibration reference are Live parameters saved with the device/Set; held notes, derivative history and an unfinished calibration are never recalled.
+![MIDI Trigger interface layout](ui-layout.png)
 
 ## Install and play
 
-1. Keep `Glove_MIDI_Trigger.amxd` and `glove_midi_trigger.js` together. The ZIP preserves this folder structure. Load `receiver-v2/Glove_Receiver_Dual.amxd` once in the same Live Set and connect USB or OSC there.
-2. Put **Glove MIDI Trigger on a MIDI track before an instrument**, such as Drum Rack or a synthesizer. The Receiver may stay on its existing audio track. The effect creates MIDI even without incoming keyboard notes; keyboard/clip MIDI also passes through.
-3. Return fingers to an open pose. LEFT/RIGHT show LIVE when fresh data arrive; WAIT releases that hand's notes. Each hand reads `GLeft` or `GRight`, in **pinky, ring, middle, index, thumb** order.
-4. Leave **Accel** selected to strike notes by moving fingers. Click **Calibrate 8 s** and make several representative strikes with enabled fingers. Notes are suppressed during capture. Calibration pools both hands into one global acceleration reference; repeat if the message reports too little motion. Click again to cancel.
-5. **Sens %** increases or decreases acceleration response. **Threshold** sets the minimum normalized strength; **Length ms** is acceleration-note duration and **Retrig ms** is the shortest interval between strikes from one finger. **Cal ref / s²** exposes the saved reference and can also be entered manually.
-6. Choose **Toggle** to hold a note when curl crosses **above 0.5**. Returning **below 0.45** releases it; the small hysteresis prevents threshold chatter. A finger loaded or re-enabled while already bent must return below 0.45 first. **Panic** releases generated notes and re-arms from a fresh pose.
+Keep `Glove_MIDI_Trigger.amxd` and `glove_midi_trigger.js` together. Load on a **MIDI track before an instrument**. Connect/calibrate [Glove Receiver Dual](../receiver-v2/README.md) anywhere in the same Set. The effect reads fresh `GLeft` / `GRight` frames, ordered pinky, ring, middle, index, thumb. Keyboard/clip MIDI passes through.
 
-## Per-finger settings
+Return fingers to an open pose. LEFT/RIGHT show LIVE when data arrive and WAIT otherwise. A star beside a finger means it owns an active note.
 
-| Control | Behavior |
+## Per-finger controls
+
+| Control | Function |
 | --- | --- |
-| On | Enables this finger. Switching it off releases its note. |
-| Trigger | Accel = short acceleration strike; Toggle = continuous curl gate/hold, not a latched flip-flop. |
-| Pitch / Note | Fixed uses Note (MIDI 0–127); Random chooses a new pitch at each trigger. |
-| Root / Scale | Applied to Random only. Roots C–B; chromatic, major, natural minor, seven diatonic modes, major/minor pentatonic, blues and whole tone. |
-| Low / High | Inclusive MIDI limits for Random. Only pitches in the chosen root/scale are eligible. An inverted range, or a one-note range outside the scale, produces no note and a status message. |
-| V Min / V Max | MIDI 1–127, independent for each finger. Endpoints may be inverted for an inverse response. Velocity 0 is never emitted as a note-on. |
+| On | Enable/disable; disabling releases its note |
+| Trigger | Accel = short movement strike; Toggle = note held while curled |
+| Pitch / Note | Fixed uses Note; Random chooses once at each trigger |
+| Root / Scale | Random only: root C–B, chromatic, major/minor, diatonic modes, pentatonic, blues or whole tone |
+| Low / High | Inclusive random MIDI note range, 0–127; only notes within the selected scale are eligible |
+| V Min / V Max | Per-finger MIDI velocity endpoints, 1–127; reversed endpoints invert response |
 
-Live displays MIDI pitch names using its own octave naming (for example MIDI 60 is C3 in Live). Fixed mode ignores Root/Scale/Low/High. Random mode ignores Note. The default fixed pitches are MIDI 60–69, left pinky through right thumb.
+Fixed mode ignores Root/Scale/Low/High; Random ignores Note. An empty random scale/range intersection produces no note and a message. Live uses its own octave names, such as C3 for MIDI 60. Default fixed notes are MIDI 60–69 across Left pinky through Right thumb.
 
-## What “acceleration” means
+## Acceleration and global calibration
 
-These buses carry five filtered **curl positions**, not IMU acceleration. The effect computes the magnitude of the time derivative of curl velocity: bend acceleration in **normalized curl / second²**. It uses measured frame arrival intervals, not a fixed frame rate. Both starting and stopping a movement, including extension, can create a strike.
+Accel uses the magnitude of **bend acceleration**, calculated from normalized curl changes over time. It is not IMU acceleration. Starting/stopping either bend or extension can strike a note. Stronger movement produces larger velocity within V Min–V Max.
 
-Velocity is smoothed with a 20 ms time constant; acceleration with 30 ms. A 15 ms peak window makes note-on velocity reflect the movement's initial peak, followed by a 5 ms scheduling task. These are design values, not measured end-to-end latency. The Receiver's Smooth/Deadband and the hardware transport still affect the signal; begin with the existing Receiver's 8 ms / 0.003 defaults.
+Click **Calibrate 8 s** and make several representative strikes with enabled fingers. Notes pause while capturing a global reference pooled from both hands. The completed reference is saved as **Cal ref / s²**. Insufficient motion keeps the existing value; click again to cancel.
 
-Strength = `abs(acceleration) / calibration_reference × Sens / 100`. A strike starts at Threshold; velocity maps strength between Threshold and 1 onto V Min–V Max, clipped at the endpoints. The detector re-arms below half Threshold and obeys Retrig ms. Calibration uses the 95th percentile of 120 ms peak bins containing motion above 0.5 curl/s², over 8 seconds; at least eight bins are required. Enabled fingers in either trigger mode contribute. Quiet or cancelled calibration keeps the old reference.
+- **Sens %**: higher makes the same movement stronger/more sensitive.
+- **Threshold**: minimum normalized strength to trigger.
+- **Length ms**: acceleration-note duration.
+- **Retrig ms**: shortest repeat interval per finger.
+- **Channel**: outgoing glove MIDI channel, subject to Live/instrument routing.
+- **Panic**: release generated notes and return to neutral for re-arm.
 
-## Hold intensity and MIDI behavior
+Calibration/filter settings in the Receiver affect this signal. Save the Live Set for MIDI settings and calibration; held notes are not recalled.
 
-At Toggle note-on, curl from 0.5 to 1 maps onto V Min–V Max. **MIDI note-on velocity is fixed for the lifetime of a note.** Further bending sends per-note **polyphonic key pressure (Poly Aftertouch)** at most every 25 ms when its value changes. Your instrument must respond to poly pressure to hear that continuous intensity change; otherwise the note sustains with its initial velocity. The effect does not repeatedly retrigger a held note. See the [MIDI message reference](https://docs.cycling74.com/userguide/midi/) for note/pressure message types.
+## Toggle and continuous intensity
 
-Random chooses once per hold and keeps that pitch until release. Fingers sharing the same output pitch/channel share one voice: the first onset supplies note-on velocity, the maximum current owner intensity supplies pressure, and the final owner releases the note. Use different fixed notes if you want independent articulation. Incoming keyboard/clip notes pass through separately; avoid assigning the same pitch to a keyboard note and a glove hold if independent release is required. The Channel control encodes outgoing glove MIDI; actual channel routing/filtering remains subject to Live and the target instrument.
+Toggle here is a curl gate: **above 0.5 begins a held note; below 0.45 releases it**. Hysteresis avoids threshold chatter. A finger already bent at load/re-enable/reconnect must return below 0.45 first.
 
-A frame gap over 100 ms resets derivatives and releases that hand's held notes on the next frame. With no valid frames, a 250 ms timeout releases them. Disable, per-finger setting changes, global setting changes, Panic, calibration, and device deletion release owned notes. No global CC123 is sent, so Panic targets this device's generated voices. Complete incoming MIDI messages are reconstructed before forwarding to prevent inserted note packets from corrupting MIDI running status; channel messages, system common, real-time, and complete SysEx packets are handled (SysEx limited to 65,536 bytes and subject to host support). [midiout](https://docs.cycling74.com/reference/midiout/) receives each complete packet.
+Curl 0.5–1 maps to V Min–V Max. Note-on velocity is set at onset; continued curl sends **Poly Aftertouch** at most every 25 ms when its value changes. The instrument must respond to poly pressure for continuous intensity changes. The effect does not repeatedly retrigger a held note. Random chooses once per onset and keeps the pitch during the hold.
 
-## Source and verification
+Fingers with identical generated pitch/channel share one voice: the first onset supplies velocity, maximum owner intensity supplies pressure, and the last owner releases it. Use distinct pitches for independent articulation. Avoid keyboard/glove overlap on the same pitch if independent note release is needed.
 
-`tools/build.py` regenerates the editable `.maxpat`, MIDI-type `.amxd` envelope, and SVG preview. `tools/test_engine.js` runs against the actual ES5 engine in a deterministic Node VM. `tools/test_patch.py` checks parameters, routing, packet envelope and UI bounds. Node/Python are development tools only. See [VALIDATION.md](VALIDATION.md) for completed checks and their limits.
+A frame gap over 100 ms resets/release on the next frame; no valid data for 250 ms releases that hand. Disable, settings/mode changes, Panic, calibration and deletion release generated notes. Panic does not send a global All Notes Off for incoming keyboard notes.
+
+See the [technical specification](../docs/TECHNICAL.md) for formulas and timing, and [operating guide](../docs/OPERATING.md) for setup/troubleshooting.

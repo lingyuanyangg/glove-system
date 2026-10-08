@@ -1,195 +1,150 @@
 # Technical specification
 
-This specification describes the supplied Arduino sketch, four Max for Live patch payloads, and regression JSON inspected on **2026-10-06**. Statements about wiring and algorithms follow the files; end-to-end performance has not been measured.
+## Hardware and transport
 
-The rebuilt dual-hand receiver is described separately in the [Receiver v2 specification and guide](../receiver-v2/README.md), including exclusive OSC/USB input selection, a native USB serial adapter for tagged L/R degree frames, right-hand UDP input, independent ten-finger [Glove Mapper](../mapper/README.md) with adjustable target ranges, deadband/time filtering, atomic Max frames and configurable OSC forwarding. Its low-latency revision groups native serial bytes by the read count, coalesces bursts per hand, uses a nominal 5ms filter tick with an 8ms default time constant, and separates control from approximately 30Hz monitor output. Pose calibration uses independent per-finger endpoints and `clip(0.9 * (input - open) / (fist - open), 0, 1)` before filtering; it supports either sensor direction. Completed pairs are saved through bound pattr state. The independent Mapper also receives change-driven GLeftControl/GRightControl smoothing ticks. Native mapper Min/Max percentages scale its signal into the target parameter's real units, consumed by `live.remote~ @normalized 0`; Max buses and OSC stay normalized. Read-only raw input/endpoint inspection uses a separate cached 5Hz diagnostic path. USB3 reports cumulative UART bad frames and peak queued bytes; the paired firmware drains bounded entry-time queues before output and offers an optional SCI0 hardware UART for Right on D12 RX / D11 TX. These settings are not measurements of end-to-end hardware latency.
+The source is the **ElastremeSense Manu-5D e-skin data glove kit**. Each glove communicates with its paired Bluetooth-to-UART receiver. The Arduino bridges the two UART streams to USB; it does not acquire sensor signals directly or perform Bluetooth pairing.
 
-## Glove hardware platform
-
-The glove hardware in this project is based on the **ElastremeSense Manu-5D e-skin data glove kit**, as identified by the project owner. The kit forms the glove sensing side of the system; the published software implements the downstream Arduino servo/OSC bridge and Max for Live processing.
-
-The external acquisition and transmission setup must present five integer values to the Arduino in the serial format specified below. This format is the interface required by the supplied sketch; it is not a claim about the kit's unmodified factory protocol. Kit acquisition firmware, transmitter configuration, sensor wiring, and product specifications are outside the supplied files.
-
-## 1. Arduino bridge
-
-The UNO R4 WiFi sketch is a serial-to-servo and serial-to-OSC bridge. It does not sample glove sensors directly. `Serial` provides USB diagnostics at 115200 baud; `Serial1` receives external data at 115200 baud on D0/RX and D1/TX. The external Bluetooth hardware and its pairing protocol are not specified in the provided files.
-
-### Serial framing and conversion
-
-The expected input is an ASCII sequence of five decimal integers separated by commas and terminated with a semicolon:
-
-```text
-900,900,900,900,900;
-```
-
-The receive buffer is 160 bytes, allowing up to 159 stored characters plus the terminating null. Each `;` calls `handleFrame()`. Leading and trailing whitespace is removed, then `strtok()` and `strtol()` parse up to five fields.
-
-For each channel `i`:
-
-```text
-ri = round(vi / 10), with half values rounded away from zero
-si = clamp(ri + SERVOi_TRIM, SERVOi_MIN, SERVOi_MAX)
-```
-
-The defaults are trim = 0 and limits = 0–180 for all channels. Thus 900 produces 90, 1800 produces 180, and negative values clamp to zero under the default limits.
-
-| Input index | Servo | Signal pin | Physical command | OSC argument |
-| ---: | --- | --- | --- | --- |
-| 0 | `servo1` | D6 | `180 - s1` | `s1` |
-| 1 | `servo2` | D5 | `180 - s2` | `s2` |
-| 2 | `servo3` | D4 | `180 - s3` | `s3` |
-| 3 | `servo4` | D3 | `180 - s4` | `s4` |
-| 4 | `servo5` | D2 | `s5` | `s5` |
-
-The OSC values describe the calibrated channels **before** physical direction reversal. For example, an OSC value of 30 commands 150 degrees on one of the first four servos, and 30 degrees on the fifth. Calibration limits act before this reversal, so physical limits for the first four servos are `[180 - MAX, 180 - MIN]`.
-
-### Startup and network behavior
-
-`setup()` starts both serial ports and attempts Wi-Fi connection. The explicit polling loop checks at most 20 times with a 500 ms delay. This is approximately a ten-second polling window; it does not bound every internal library call.
-
-On successful connection, the code sets `isWifiConnected = true` and binds the local UDP socket to port **2390**. It then attaches each servo and writes `clamp(90 + TRIM, MIN, MAX)`. This initial write does not use the later first-four-servo reversal. A 90-degree command is an initialization value, not a guarantee of mechanical safety for every assembly.
-
-For every processed nonempty frame, servo commands are written first. If the startup connection succeeded and `WiFi.status()` is currently `WL_CONNECTED`, one OSC message is sent:
-
-```text
-Address: /servos
-Arguments: s1 s2 s3 s4 s5
-OSC argument types: five int32 values (iiiii)
-Destination: configured computer IPv4 address, UDP 7000
-```
-
-This is one OSC message with five arguments, not a plain text list and not an OSC bundle. The transmit frequency follows incoming frames; there is no fixed network update rate. The source binds port 2390 but contains no UDP receive or feedback-control path. If startup Wi-Fi fails, servo processing continues and this sketch never retries `WiFi.begin()`.
-
-### Parser limitations
-
-- Missing trailing fields remain zero. Empty CSV fields are skipped by `strtok()`, which can shift later values into earlier channels.
-- `strtol()` is used without end-pointer or overflow checks, so malformed numeric fields can become zero or partially parsed integers.
-- Extra fields after the first five are ignored.
-- Buffer overflow resets `inLen`; it does not discard the complete remaining frame up to the next semicolon. A frame suffix can consequently be parsed as a new frame.
-- No input timeout parks the servos when serial data stops; they retain their most recent commands.
-
-These behaviors are preserved in the public firmware copy.
-
-## 2. OSC receiver and normalization
-
-`GloveRecevier.amxd` contains the following receive path:
-
-```text
-udpreceive 7000 → route /servos → multislider (5, 0–200)
-    → unpack f f f f f → p OSCScale → join 5 → s GLeft
-```
-
-Max's `udpreceive` decodes OSC into Max messages in its default mode, so a separate decoder is not present or required by this patch. See [Cycling '74's reference](https://docs.cycling74.com/reference/udpreceive/).
-
-The `p OSCScale` subpatch applies channel-specific linear scaling followed by `clip 0. 1.`:
-
-| Channel | Input minimum | Input maximum | Normalized value |
-| ---: | ---: | ---: | --- |
-| 0 | 0 | 180 | `clip(s1 / 180, 0, 1)` |
-| 1 | 18 | 180 | `clip((s2 - 18) / 162, 0, 1)` |
-| 2 | 18 | 180 | `clip((s3 - 18) / 162, 0, 1)` |
-| 3 | 18 | 180 | `clip((s4 - 18) / 162, 0, 1)` |
-| 4 | 70 | 180 | `clip((s5 - 70) / 110, 0, 1)` |
-
-These values are installation-specific calibration constants. The internal five-value list preserves channel order; the receive/UI path processes floats after the Arduino's integer output.
-
-### Optional OSC forwarding
-
-Each normalized value also passes through a `prepend /glove/finger/N` object into `udpsend 127.0.0.1 8000`. Max encodes these messages as OSC; see the [UDP send reference](https://docs.cycling74.com/reference/udpsend/).
-
-The forwarding wires reverse channel numbering:
-
-| Internal `GLeft` index | Forwarded address | Label in `Glovebang` |
-| ---: | --- | --- |
-| 0 | `/glove/finger/4` | pinky |
-| 1 | `/glove/finger/3` | ring |
-| 2 | `/glove/finger/2` | middle |
-| 3 | `/glove/finger/1` | index |
-| 4 | `/glove/finger/0` | thumb |
-
-Finger names come from the MIDI patch labels, not from the Arduino sender. Verify the physical glove wiring before relying on that naming convention. The five outgoing messages are independent UDP packets without a shared frame identifier or bundle timestamp.
-
-The receiver has an audio-effect file header but no `plugin~ → plugout~` audio path. Its function is control reception. The shared `GLeft` bus has no instance-specific prefix.
-
-## 3. Direct Live parameter mapping
-
-`Glove_Direct_Map.amxd` receives `GLeft`, unpacks its five floats, and feeds five `unitPart.maxpat` bpatchers. It also connects the two `plugin~` outputs directly to the corresponding `plugout~` inputs.
-
-The recovered `unitPart.maxpat` implements assignment through:
-
-```text
-Assignment control → live.path live_set view selected_parameter
-    → parameter ID → live.object
-Incoming normalized value → scale 0. 1. [target min] [target max]
-    → output slider → set value $1 → live.object
-```
-
-Its `p param_path` queries the selected parameter's `min`, `max`, `name`, and parent objects. Min/max update the scaling bounds and output slider. The parent names form a descriptive tooltip. A range control allows the output slider bounds to be adjusted.
-
-The assignment LED, gate, and 500 ms metro implement an assignment selection/blinking interaction. Once assigned, each row writes the target parameter's `value` using `live.object`; this is direct Live API control, not MIDI CC or `live.remote~` modulation.
-
-The helper stores parameter IDs in Live-enabled number boxes, but it does not contain a persistent canonical-path restoration scheme. Assignment survival after set reload, copied tracks, or device reordering requires host testing. The original helper also retains an old Reaktor parameter tooltip; it is not a runtime Reaktor dependency.
-
-## 4. Gesture-triggered MIDI
-
-`Glovebang.amxd` is a MIDI-effect device. Its five channels follow the labels pinky, ring, middle, index, thumb and use the normalized `GLeft` values.
-
-### Movement detection
-
-Each detector sends current values into the left inlet of the **CNMAT MMJ Depot `delta` abstraction**. A `zl.reg` stores the current value, while `metro 10 @active` periodically sends the stored reference into the right inlet of `delta`. The locally inspected abstraction subtracts the reference from the new value, then updates its internal reference.
-
-The result is compared with `> 0.2`, and `sel 1` generates a bang for positive changes above the threshold. A shared flonum can override this threshold through the detectors' second inlets. The metro interval is nominally 10 ms; actual scheduling and source cadence affect the comparison.
-
-This detector is one-sided, with no absolute-value operation, hysteresis, or dedicated edge debounce. `sel 1` responds whenever it receives 1, so repeated qualifying updates can retrigger it. It is a movement trigger, not a trained gesture classifier.
-
-### Note generation and bursts
-
-Each trigger runs `t b b b b` to update optional random pitch and duration, issue the main note, and test a burst generator. Pitch and duration randomization are gated by separate toggles. The pitch branch uses `random 127` plus configurable `scale 0 127 0 127` bounds. The duration branch uses `random 1000`; number boxes feed duration and velocity into `makenote 100 100`. Load messages initialize duration and velocity to 100 and the upper pitch limit to 127.
-
-Each channel sends `makenote` pitch/velocity output to its own `noteout`, including the scheduled zero-velocity release. No explicit MIDI channel override is wired into these `noteout` objects.
-
-The burst subpatch compares `random 100` with the shared `chance` dial. When selected, it starts `qmetro 10` with an interval from `random 50` and stops it using a delay computed as:
-
-```text
-random 1. → pow(value, 2) → scale 0. 1. 0. 500. → delay
-```
-
-Under the saved Max 9 behavior, `random 1.` produces floats in its range; this yields a variable burst window up to roughly 500 ms. Each burst tick bangs the channel's existing pitch number box. It does not itself refresh the random pitch/duration branches. Integer random intervals can include zero; practical timing must be checked in the host. See the [Max random reference](https://docs.cycling74.com/reference/random/) for float arguments.
-
-## 5. Five-to-ten regression mapping
-
-The inference path in `reressorMapping2.amxd` is:
-
-```text
-r GLeft → dk.regressor @outputmode rawlist
-    → multislider (10, 0–1) → unpack 10 floats → ten unitPart rows
-```
-
-The original patch retains `loadbang → button → read gloveRegressor10.json`. That default model has been removed at the project owner's request; this is a historical message, not a shipped model dependency. Load your own Data Knot model or use the new [Glove Neural Scope](../neural-scope/README.md) saved-model selector. Data Knot provides the regression abstractions and uses FluCoMa's `fluid.mlpregressor~` internally. Its `rawlist` output mode returns values without parameter-name/value pairs. See [Data Knot](https://rodrigoconstanzo.com/data-knot/) and the [FluCoMa MLPRegressor overview](https://learn.flucoma.org/reference/mlpregressor/).
-
-The removed model was inspected before removal and contained:
-
-| Property | Stored value |
+| Connection | Arduino pin / interface |
 | --- | --- |
-| Training examples | 10 paired rows, keys `0`–`9` |
-| Input dimensions | 5 |
-| Output dimensions | 10 |
-| Network structure | 5 → 3 → 3 → 10 |
-| Hidden layer activations | Code `3`, tanh in the locally installed package documentation |
-| Output activation | Code `0`, identity |
-| Output names | `parameter1`–`parameter10` |
-| Metadata scaler | `none` |
-| Metadata Python-trained flag | `0` |
-| Stored creation string | `2026-07-06 / 18:53:43` |
+| Left receiver TXD → board RX | D0, `Serial1` |
+| Optional board TX → left receiver RXD | D1 |
+| Right receiver TXD → board RX | D12, dedicated SCI0 hardware UART |
+| Optional board TX → right receiver RXD | D11 |
+| Computer | USB connector; `Serial` via the board's ESP32 USB bridge |
+| Both UART inputs / USB | 115200 baud, 8 data bits, no parity, 1 stop bit |
 
-The linear output layer can predict values outside 0–1. The device's output multislider constrains the values passed to the ten mapping rows. The removed JSON also contained an `input_normalization` object with `cols = 10`; this does not replace the verified five-column input dataset or the five-row first-layer matrix. It should be interpreted through the package that reads the model, rather than guessed as an additional preprocessing step.
+The supplied receivers use 3.3 V power and common ground. UNO R4 WiFi transmit GPIO levels are 5 V; optional connections into a module's RXD need compatible levels. For receive-only use, leave both module RXD pins disconnected. Match the module's TXD levels to the board's input requirements.
 
-### Training controls
+`RIGHT_USE_HARDWARE_UART` is enabled in the supplied sketch. `ENABLE_SERVOS=1` enables five servos on pins 6, 5, 4, 3 and 2; `SERVO_HAND=0` selects Left and `1` selects Right. The first four servo directions are reversed and the thumb is direct. Set `ENABLE_SERVOS=0` for data-only use. Servo power and mechanical arrangements are separate from UART reception.
 
-`GLeft` also feeds the first inlet of `dk.regressorcreate~`; the ten-value output multislider feeds its second inlet as target parameters. The editor exposes `addpoint`, `clear`, `train $1`, `print`, and `write`. Entry count and training loss are displayed, with loss also sent to a graph.
+### Receiver → Arduino
 
-Training and inference are separate objects. There is no direct connection that replaces the inference model when training finishes. Export the new JSON and explicitly reload it into `dk.regressor`.
+Each UART frame has exactly eleven comma-separated integers and ends with a semicolon:
 
-An editor-only branch uses `uzi 10 → random 2. → - 1. → zl.group 10` to create target lists. No initiating trigger is wired to `uzi` in the supplied patch. This branch produces values nominally between -1 and 1 before the 0–1 multislider; it is not an automatic training data generator.
+```text
+1800,1600,1500,1490,1345,0,0,0,0,0,0;
+```
 
-This is supervised continuous regression over example poses and control values. The historical ten examples and stored fit did not establish prediction accuracy, generalization, or suitability for another user's calibration. No evaluation dataset or benchmark is provided.
+The first five fields are angles in tenths of a degree, constrained to 0–1800. Their order is **pinky, ring, middle, index, thumb**. The remaining six fields are validated as integers and ignored. Each hand has independent parser state. Incomplete, malformed, overflowing and non-ASCII frames are discarded without replacing a valid pose. The wire format has no checksum, so valid-looking corrupted data cannot be identified by syntax alone.
+
+### Arduino → Receiver
+
+USB frames contain a hand label followed by five degree values:
+
+```text
+L,180.0,160.0,150.0,149.0,134.5;
+R,170.0,152.0,149.4,158.0,132.1;
+```
+
+A newline follows the semicolon. The Arduino divides angles by ten once; Max does not divide USB values again. Input work alternates between hands in bounded 32-byte slices. Complete bursts coalesce to the latest pose. Output is limited to **50 fresh frames per second per hand**, and pending frames older than 100 ms are discarded. No new input means no repeated pose frame. Short bulk USB-bridge UART writes wait for transmission with interrupts enabled.
+
+The board also sends diagnostics once per second:
+
+```text
+#STATUS,USB3,L,<bytes>,<valid>,<bad>,<queue_peak>,R,<bytes>,<valid>,<bad>,<queue_peak>;
+#ERROR,RIGHT_SERIAL_INIT;
+```
+
+Counters are cumulative since boot; queue peak is the largest observed queue, not a dropped-byte count. Diagnostics do not update finger data or train models. Right UART initialization failure lights the onboard LED; it is not a Bluetooth pairing indicator. Servos retain their last position if input stops.
+
+## Receiver processing
+
+Glove Receiver Dual is an audio effect with stereo pass-through. USB and OSC are selectable inputs. Native `serial` polling is nominally 2 ms; filtering runs on a nominal 5 ms task, while numeric/hand monitors refresh at approximately 30 Hz.
+
+| Hand | OSC UDP port | Raw address / units | Normalized address |
+| --- | ---: | --- | --- |
+| Left | 7000 | `/servos`, five angles in degrees | `/GLeft`, five 0–1 values |
+| Right | 6000 | `/servos`, five angles in degrees | `/GRight`, five 0–1 values |
+
+Every hand packet requires exactly five finite numeric values in the common finger order. USB accepts raw degree values in 0–180. OSC normalized values are clipped to 0–1.
+
+### Calibration
+
+Each hand stores five independent Open/Fist endpoint pairs and their input format. Calibrated output is:
+
+```text
+curl[i] = clamp(0.9 * (input[i] - open[i]) / (fist[i] - open[i]), 0, 1)
+```
+
+Open maps to 0 and the captured fist to 0.9; further sensor travel can reach 1.0. Either sensor direction is supported. Raw endpoints are applied only to raw data and normalized endpoints only to normalized data. Capture averages the last 250 ms of unfiltered input, requires at least three frames with the latest no older than 150 ms, and rejects moving poses. Maximum accepted spread is 3 degrees or 0.02 normalized units. Minimum absolute endpoint span is 5 degrees or 0.025 normalized units for every finger. A failed capture preserves the complete active calibration.
+
+Without a matching endpoint pair, raw values use:
+
+```text
+minimum = [0, 18, 18, 18, 70]
+maximum = [180, 180, 180, 180, 180]
+curl[i] = clamp((raw[i] - minimum[i]) / (maximum[i] - minimum[i]), 0, 1)
+```
+
+Normalized input without a matching pair is clipped directly. Completed endpoint pairs are saved with the Live Set; temporary captures and input history are not saved.
+
+### Filtering and outputs
+
+Stabilize combines an input deadband, default **0.003**, and exponential smoothing, default **8 ms**. The deadband compares with the last accepted input. Smoothing uses `alpha = 1 - exp(-elapsed_ms / Smooth_ms)`; the first valid frame initializes immediately. Smooth 0 bypasses time smoothing, Deadband 0 accepts every change, and Stabilize off bypasses both stages.
+
+| Max bus | Content and timing |
+| --- | --- |
+| `GLeft`, `GRight` | Five calibrated, filtered floats in 0–1 when new physical input is pending; stationary real frames are also published. No synthetic freshness heartbeat. |
+| `GLeftControl`, `GRightControl` | Change-driven filtered controls, including smoothing ticks between physical frames; used by Mapper. |
+| `GGestureLeft`, `GGestureRight`, `GGestureBoth` | Gesture `enter <label> <number>` and `exit <label> <number>` events. |
+
+Physical frames within one filter tick coalesce to the newest pose. Pending frames older than 100 ms do not refresh consumers. Receiver WAIT means no data since initialization, LIVE means recent valid input, and HOLD means one second without valid input; Receiver and Mapper retain their last values in HOLD. These are arrival states at Max, not Bluetooth sensor timestamps. Use one Receiver per Set because these buses and the two OSC input ports are shared.
+
+OSC Out sends changed five-value `/GLeft` and `/GRight` packets to a configurable destination IP/host and port, default `127.0.0.1:8000`. Apply or enabling output re-sends available current poses. USB port state is recalled closed; the port name, filter settings, destination and complete calibration are retained with the Set.
+
+## Glove Mapper
+
+Ten independent native `liveui.map` components bind fingers to Live parameters through `live.remote~`. Target ranges are queried before applying control. Min/Max are percentages of each target's full native range:
+
+```text
+target_fraction = Min / 100 + curl * (Max - Min) / 100
+target_value = target_min + target_fraction * (target_max - target_min)
+```
+
+Reversed or equal endpoints are valid. With Min 20%, Max 80%, curl 0.9 produces 74% of the target range. Mapper adds no second smoothing stage. Mappings and endpoints are saved with the Set; × releases a target. Live's audio engine must run for signal-based remote control.
+
+## Glove Gesture
+
+Native FluCoMa `fluid.mlpclassifier~` learns five-input single-hand poses or ten-input combined poses. Both concatenates Left then Right and recognizes one complete ordered pair. Supported labels are Open, Fist, Index, V, Middle and OK, plus Other. Both supports **36 ordered combinations**; only enabled recorded classes are trained.
+
+Networks are **5 → 8 → classes** or **10 → 32 → classes**, with tanh hidden activation, sigmoid classifier output, SGD learning rate 0.01, momentum 0.9 and batch size 4. Each enabled class and Other need at least 20 examples. Limits are 400 examples per class and 8,000 total examples for Both.
+
+Each frame expires after 300 ms; Both requires hand arrival times within 80 ms. The stable-time guard defaults to 120 ms and trigger gap to 350 ms. Radius, default 0.18, rejects inputs whose RMS normalized distance to the predicted class's nearest stored example is too large. Radius is a distance test, not a confidence probability. Training error does not measure recognition accuracy on new movements.
+
+A separate Mapping window has six Left, six Right and 36 Both slots. Targets must be exposed two-state device parameters; non-quantized 0–1 switches are accepted. Actions are Toggle, Pulse, Hold, On and Off. Pulse defaults to 120 ms; Pulse/Hold release to the target's low value. Track/transport controls and arbitrary UI buttons are outside this parameter-mapping interface.
+
+Single-hand event numbers are Open 1, Fist 2, Index 3, V 4, Middle 5, OK 6. Both labels use `left__right`; number = `1 + leftIndex * 6 + rightIndex`, with zero-based indices in that order. `fist__v` is 10. Other produces no entry trigger. Stop/input loss exits an active class. Saved model JSON carries examples, labels and weights, without Live target assignments. Finger-bend data alone cannot resolve contact, orientation or position if measured patterns are identical.
+
+## Glove Neural Scope
+
+Native `fluid.mlpregressor~` learns **5 or 10 → 16 tanh units → N linear outputs**, where N is the selected parameter count, up to 256. Separate native training/inference objects and paired datasets hold the model and captured glove/sound examples. Training uses SGD, learning rate 0.01, momentum 0.9, batch size 1 and scheduled fit chunks. Epochs defaults to 800. There must be at least two distinct examples; each bank holds up to 512. Displayed RMSE is training error.
+
+This track selects the effect's own track; Selected track uses Live's selected track. Follow tracks its selected device; TARGET pins a device. Device On is initially excluded from Scope. Each target, input mode and scoped-output structure has an independent bank. Adding/removing examples invalidates its trained model. Changing target/input/scope stops active control.
+
+Glove frames trigger native `predictpoint`. One request is in flight; bursts coalesce to the latest pending frame. Both uses the latest valid value from each hand, with no per-hand expiry or pair-skew test in this device. Stop before disconnecting a source; it is not an independent connection monitor. Predicted outputs are clipped to 0–1, converted to native target ranges, clamped to custom Min/Max and quantized when required. Min/Max clamp learned outputs; they do not rescale the model. Native `live.remote~` output smoothing defaults to 30 ms, adjustable 0–500 ms. Stop releases the mappings.
+
+Up to 128 named snapshots can store weights, examples, scoped outputs and bounds. Load requires matching input mode and target structure and leaves Run off. Export/Import transfers JSON. Raw FluCoMa models bind in scoped table order with matching dimensions; a five-input/ten-output Data Knot regression JSON requires one hand and ten scoped outputs. No preset model is loaded automatically. Banks, snapshots and settings are saved with the Live Set; runtime Live IDs and transient input frames are not model identities.
+
+## Glove MIDI Trigger
+
+This is a MIDI effect placed before an instrument. Each finger selects Accel or Toggle, Fixed or Random, Root/Scale, inclusive Low/High note limits, and velocity endpoints 1–127. Scale choices are chromatic, major, natural minor, Dorian, Phrygian, Lydian, Mixolydian, Locrian, major/minor pentatonic, blues and whole tone. MIDI note limits are 0–127. An empty scale/range intersection emits no note.
+
+Accel measures **bend acceleration**, not IMU acceleration: the magnitude of the second time derivative of normalized curl, in curl/s². Frame intervals below 5 ms coalesce; gaps above 100 ms reset derivatives. Velocity and acceleration smoothing constants are 20 and 30 ms. A 15 ms peak window captures initial trigger strength, serviced by a nominal 5 ms task.
+
+```text
+strength = abs(bend_acceleration) / calibration_reference * Sens / 100
+velocity_fraction = clamp((strength - Threshold) / (1 - Threshold), 0, 1)
+velocity = round(V_Min + velocity_fraction * (V_Max - V_Min))
+```
+
+Threshold defaults to 0.25, Sens to 100%, Length to 120 ms and Retrig to 120 ms. Accel re-arms below half Threshold. Eight-second global calibration pools enabled fingers from both hands; it uses the 95th percentile of 120 ms motion-peak bins above 0.5 curl/s² and needs eight bins. Capture suppresses notes. Cancelled/insufficient capture retains the saved reference.
+
+Toggle holds a note above curl 0.5 and releases below 0.45. Curl 0.5–1 maps to V Min–V Max. Note-on velocity is set at onset; continued bending sends per-note Poly Aftertouch at most every 25 ms when its value changes. The instrument must respond to poly pressure for continuous intensity changes. Random pitch is chosen once per onset and held until release. Reversed velocity endpoints are supported.
+
+Fingers sharing a pitch/channel share one generated voice: the first onset supplies note-on velocity, maximum current owner intensity supplies pressure, and the final owner releases it. A 100 ms inter-frame gap resets/releases on the next frame, and 250 ms without valid input releases the hand's notes. Mode/settings changes, disable, Panic, calibration and deletion release generated notes. Toggle requires neutral below 0.45 after load/re-enable/reconnect. Keyboard/clip MIDI passes through as complete reconstructed packets. Incoming and generated notes on the same pitch can still interact at the target instrument.
+
+## Reference documentation
+
+- [Arduino UNO R4 WiFi](https://docs.arduino.cc/hardware/uno-r4-wifi/)
+- [FluCoMa MLPRegressor](https://learn.flucoma.org/reference/mlpregressor/) and [MLPClassifier](https://learn.flucoma.org/reference/mlpclassifier/)
+- [Live remote control](https://docs.cycling74.com/reference/live.remote~/), [DeviceParameter](https://docs.cycling74.com/apiref/lom/deviceparameter/), and [MIDI](https://docs.cycling74.com/userguide/midi/)

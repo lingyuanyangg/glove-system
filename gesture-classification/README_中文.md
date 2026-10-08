@@ -1,37 +1,26 @@
-# Glove Gesture — 单手势主界面与双手组合分类
+# Glove Gesture
 
-主界面改为 **800 × 169**：只显示当前选择的手势；Run 时改为显示实际检测结果，并标示确认中、已确认或 Other。点击 **Mapping** 打开独立按钮映射窗口。
+[下载 Gesture](Glove%20Gesture.zip) · [英文说明](README.md)
+
+基于 FluCoMa 的手势分类器，可选左手、右手、双手。主界面显示选择／识别到的姿态，Mapping 为独立窗口。安装 Max Package Manager 中的 FluidCorpusManipulation／FluCoMa，将 `Glove_Gesture` 内全部文件保留在一起，加载到音频轨道或乐器后面。
 
 ## 训练
 
-1. 先运行双手接收器，确保 `GLeft` / `GRight` 有归一化数据。输入顺序：小指、无名指、中指、食指、拇指。本机检查的 FluCoMa / FluidCorpusManipulation 版本为 **1.0.9**。
-2. 选择 Left 或 Right，通过下拉菜单选择张手、握拳、食指、V 字、中指、OK；主界面显示所选手势图。
-3. 点击 **Record 2s**，重复录制 5–10 次，包含自然变化。录制的类别会自动启用；Include in training 可排除所选类别，Clear 只删除该类别样本。
-4. 点击 **Other 2s** 录制放松及过渡动作。每个启用类别和 Other 至少需要 20 个样本，再点击 Train。未录制的类别默认不启用。
-5. 开启 Run 后，下拉菜单锁定，中央图像随检测结果改变。Confirming 表示防抖确认中，Confirmed 表示已触发，Other 显示未知标记。
+先连接并校准 [Receiver](../receiver-v2/README_中文.md)。选择左手／右手，再从下拉菜单选择张手、握拳、食指、V 字、中指或 OK。点击 **Record 2s** 采集，重复多次并加入自然变化。记录的类别自动启用，可用 Include in training 排除。
 
-## 双手分别选择，再合并训练
+使用 **Other 2s** 记录放松姿态和过渡动作。每个启用类别及 Other 至少需要 20 个样本。点击 Train，再 Run。界面显示识别姿态；Confirming 正在等待稳定，Confirmed 表示已确认，Other 表示未接受的已知姿态。
 
-选择 **Both hands**，左、右分别选择手势，例如 **左握拳＋右 V 字**。两只手的图像放在同一个组合显示区，Record 2s 录制左五值＋右五值，标签为 `fist__v`。
+双手模式分别选择左右姿态，例如左拳＋右 V，合并成一个十维类别训练。共有 36 种有序组合；左右交换不是同一类。两只手需持续提供有效帧。弯曲度不能单独识别接触、方向或位置，训练时应检查容易混淆的 OK／食指等姿态。
 
-共有 **36 种有顺序的组合**；左握拳＋右 V 与左 V＋右握拳是不同类别。只训练已启用的组合。训练后由一个十维分类器识别整个组合；Run 时两个图像随检测到的组合变化。
+## Mapping 与模型
 
-两手数据到达时间差需不超过 80 ms，每手数据超过 300 ms 过期。缺少任何一手时，会清除识别并释放临时按钮状态。实际 OK 接触、掌心方向与空间位置不能仅由现有弯曲值可靠判断。
+Mapping 窗口选择左／右／双手的映射视图，点击某行 Map，再点 Live 中暴露的双状态设备参数。× 清除；Show all combinations 展示全部双手组合。可映射 Device On／Off、效果开关等，不能直接映射任意界面按钮或 transport／track 控制。
 
-## 独立 Mapping 窗口
+- Toggle：确认进入时切换一次。
+- Pulse：置高后按 Pulse 时间置低。
+- Hold：确认期间置高，离开／Stop／断流置低。
+- On／Off：进入时写入指定状态。
 
-窗口内可浏览 Left、Right、Both，而不改变主设备当前输入模式。左手六个、右手六个、双手组合 36 个，共 **48 个独立映射槽**。双手默认只列出已录制、启用或映射的组合；Show all combinations 显示全部组合。
+默认 Hold 120 ms、Gap 350 ms、Pulse 120 ms、Radius 0.18、500 epochs。Radius 是样本距离限制，不是置信概率。保持同一姿态不会重复触发，需要离开再进入。
 
-点击对应行 Map，再点击 Live 的双状态设备参数按钮，例如 Device On/Off。× 取消映射。支持 Toggle、Pulse、Hold、On、Off。映射学习由原生 `live.map` 处理；每个槽的 `live.object` 持久化保存目标身份。Map 会停止 Run。
-
-可映射二状态参数和插件暴露的 0–1 开关；播放、录音、Clip Launch、轨道 arm/mute/solo 等需要单独接口。Pulse/Hold 结束写入低值；目标被手动改离高值时，不覆盖该修改。
-
-## 防抖和模型
-
-默认 Hold 120 ms、Gap 350 ms、Pulse 120 ms、Radius 0.18。保持同一姿势只触发一次。Radius 是到同类训练样本的归一化 RMS 距离阈值，不是置信概率。请用未参与录制的新动作测试，不把训练误差当作真实准确率。
-
-左手、右手、双手保留独立数据库。Save 保存模型快照，Load 需要匹配的输入模式，恢复后 Run 关闭。保存 Live Set 保留训练选择、模型、48 个动作类型、防抖设置及原生映射。Export/Import 使用第二版分类 JSON，不携带按钮身份。
-
-**升级时重新载入更新的 AMXD，并检查／重新映射按钮。** 更新会保留原安装文件夹的备份。旧单手模型可继续导入。旧双手模型只保存一个手势名，迁移为同名双手组合（如 `open__open`），保留样本、权重和标签顺序；若旧类别实际代表不同手势，请按新的左右下拉菜单重新录制，旧文件无法还原各手含义。
-
-所有七个运行文件必须同目录：AMXD、maxpat、控制 JS、主 UI HTML、Mapping HTML、帮助 HTML、帮助路径 JS。离线及原生算法检查通过；实际 Max/Live 界面、持久化和真实手套识别仍需宿主验证，见 [VALIDATION.md](VALIDATION.md)。
+命名并 Save 模型，在选择器中 Load；Export／Import JSON 可跨 Set 转移，不含 Live 映射目标。保存 Live Set 保留训练库、模型、设置和按钮映射。训练误差不等于新动作识别准确率，应在演奏前测试新的重复动作。
