@@ -27,6 +27,13 @@
     "Missing native externals report a fault and prevent Run",
     "Prediction watchdog releases temporary buttons",
     "Disabled class and cleared examples invalidate only the current bank",
-    "Disposal cancels tasks and releases temporary outputs"
+    "Disposal cancels tasks and releases temporary outputs",
+    "Independent training dropdowns record a mixed left/right class and enable it",
+    "Mixed pair trains natively, predicts its exact label and fires its own slot",
+    "Left and Right mappings have independent gesture slots",
+    "Native learn/cancel/unmap and persistent-holder recall address the correct row",
+    "Mapping window state is isolated and includes all 48 slots and three banks",
+    "Version-one paired snapshots migrate label metadata without changing weights",
+    "Version-one Set state migrates all banks and action arrays with Run off"
   ]
 }

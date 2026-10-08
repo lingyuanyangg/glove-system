@@ -10,6 +10,7 @@
     "Distance rejection uses RMS normalized features and the predicted class",
     "Native classifier format validates encoder labels, dimensions and weights",
     "Snapshots require gesture-specific identity and rejection examples",
-    "Capture limits and independent bank defaults"
+    "Capture limits and independent bank defaults",
+    "All 36 ordered pairs have unique labels, titles and independent mapping slots"
   ]
 }

@@ -8,7 +8,7 @@
       "pass": true
     },
     {
-      "name": "Ten-input, seven-label held-out synthetic classification",
+      "name": "Ten-input, 36 ordered pairs plus Other held-out synthetic classification",
       "accuracy": 1,
       "pass": true
     },

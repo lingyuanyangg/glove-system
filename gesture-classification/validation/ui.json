@@ -1,15 +1,16 @@
 {
-  "kind": "Actual HTML functions executed with a minimal simulated DOM; no browser/Live render",
+  "kind": "Actual main/mapping HTML functions with simulated DOM; no browser or Live render",
   "checks": [
-    "Six inline original hand illustrations and matching controls",
-    "Left mirrors the hand; Right and Both show their own orientation/pairs",
-    "Missing native engine disables Run and Train",
-    "Recording and training states prevent overlapping actions",
-    "Confirmed/candidate cards and button targets are visibly distinguished",
-    "Named model selection enforces hand mode while export stays available",
-    "Fragmented, out-of-order, duplicate and stale packets are handled",
-    "Malformed complete state does not replace the interface",
-    "Light and dark Live themes derive readable card/background borders",
-    "Card recording/action commands and model/file controls use the bridge"
+    "Main surface contains one pose area, six-choice dropdowns and a separate Mapping button",
+    "Single-hand modes show only their training dropdown and correct mirrored image",
+    "Both mode independently selects and displays two different poses in one combination",
+    "Run displays the detected pose and distinguishes confirming from confirmed",
+    "Other shows an unknown marker, never a misleading previous hand pose",
+    "Native readiness, recording and model compatibility gate controls",
+    "Fragmented/out-of-order/stale packets and malformed states preserve the interface",
+    "Shared theme logic derives readable light and dark panels",
+    "Mapping window lists independent Left/Right rows and sends native learn commands",
+    "Combined mapping view filters recorded pairs or exposes all 36 ordered combinations",
+    "Mapping armed state, target names and per-row actions update independently"
   ]
 }

@@ -14,8 +14,8 @@ var GestureNative=(function(){
         this.check();if(this.job)throw Error('Wait for the previous native training response');Gesture.samples(a,n);
         var x={cols:n,data:{}},y={cols:1,data:{}},classes=[];for(var i=0;i<a.length;i++){x.data[String(i)]=a[i].x;y.data[String(i)]=[a[i].label];if(classes.indexOf(a[i].label)<0)classes.push(a[i].label);}
         if(classes.length<2)throw Error('Record at least two classes');
-        var job={epoch:0,epochs:epochs,n:n,classes:classes,loss:null,best:null,bestLoss:Infinity,chunk:Math.max(1,Math.min(10,Math.floor(32768/(a.length*classes.length*16)))),stage:'datasets',xLoaded:false,yLoaded:false,cancelled:false,deadline:new Date().getTime()+10000};this.job=job;
-        this.train.message('clear');this.train.message('hiddenlayers',n===10?16:8);this.train.message('activation',3);this.train.message('learnrate',0.01);this.train.message('momentum',0.9);this.train.message('batchsize',4);this.train.message('validation',0);
+        var job={epoch:0,epochs:epochs,n:n,classes:classes,loss:null,best:null,bestLoss:Infinity,chunk:Math.max(1,Math.min(10,Math.floor(32768/(a.length*classes.length*(n===10?32:8))))),stage:'datasets',xLoaded:false,yLoaded:false,cancelled:false,deadline:new Date().getTime()+10000};this.job=job;
+        this.train.message('clear');this.train.message('hiddenlayers',n===10?32:8);this.train.message('activation',3);this.train.message('learnrate',0.01);this.train.message('momentum',0.9);this.train.message('batchsize',4);this.train.message('validation',0);
         this.xDict.parse(JSON.stringify(x));this.yDict.parse(JSON.stringify(y));this.x.message('load','dictionary',this.xDict.name);this.y.message('load','dictionary',this.yDict.name);return job;
     };
     Bridge.prototype.schedule=function(){var self=this,j=this.job;if(!j)return;if(j.cancelled){this.job=null;return;}j.stage='scheduled';j.deadline=0;this.task=new Task(function(){self.task=null;try{self.fit();}catch(e){self.fail(e.message);}},this);this.task.schedule(1);};
