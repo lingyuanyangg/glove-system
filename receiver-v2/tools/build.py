@@ -83,7 +83,7 @@ label('left_status','WAIT',[340,4,48,15],9)['suppressinlet']=0
 label('right_status','WAIT',[746,4,48,15],9)['suppressinlet']=0
 
 box('engine',text='js glove_dual_engine.js',rect=[80,360,170,22],
-    numinlets=1,numoutlets=3,outlettype=['','',''],varname='engine')
+    numinlets=1,numoutlets=5,outlettype=['','','','',''],varname='engine')
 box('device',text='live.thisdevice',rect=[20,240,95,22])
 box('start',text='start',cls='message',rect=[20,278,50,22]);wire('device','start');wire('start','engine')
 box('colors',text='live.colors',rect=[680,300,75,22])
@@ -96,11 +96,12 @@ for h,(name,port,origin,mirrored) in enumerate([('left',7000,8,False),('right',6
     labelname=name.capitalize()
     box(name+'_udp',text=f'udpreceive {port}',rect=[40+300*h,210,130,22])
     box(name+'_route',text=f'route /servos /G{labelname}',rect=[40+300*h,245,180,22])
-    wire(name+'_udp',name+'_route')
+    box(name+'_input_gate',text='gate 1 1',numinlets=2,numoutlets=1,outlettype=[''])
+    wire(name+'_udp',name+'_input_gate',0,1);wire(name+'_input_gate',name+'_route')
     for o,kind in enumerate(['raw','norm']):
         id=name+'_'+kind;box(id,text='prepend '+kind+name,rect=[40+300*h+o*130,285,125,22])
         wire(name+'_route',id,o);wire(id,'engine')
-    box(name+'_send',text='s G'+labelname,rect=[40+300*h,465,75,22]);wire('engine',name+'_send',h)
+    box(name+'_send',text='s G'+labelname,rect=[40+300*h,465,75,22]);wire('engine',name+'_send',3+h)
     box(name+'_unpack',text='unpack f f f f f',rect=[40+300*h,505,190,22]);wire('engine',name+'_unpack',h)
     box(name+'_statusset',text='prepend set',rect=[290+100*h,439,85,22]);wire('handroute',name+'_statusset',h);wire(name+'_statusset',name+'_status')
     box(name+'_art',text='prepend '+name,rect=[50+300*h,550,95,22]);wire('engine',name+'_art',h);wire(name+'_art','art')
@@ -147,7 +148,7 @@ box('host_state',text='pattr destination @bindto osc_host @initial 127.0.0.1',
 p['parameters']['host_state']=['OSC Destination','Destination',0]
 label('port_label','Port',[510,150,24,17]);param('osc_port','OSC Port',1,65535,8000,[539,151,53,15],unit=0,integer=True)
 button('apply','Apply',[602,151,40,15],mode=0)
-label('order_note','Pinky → Ring → Middle → Index → Thumb',[652,151,151,15],8)
+
 box('host_route',text='route text');wire('osc_host','host_route')
 box('host_prepend',text='prepend host');wire('host_route','host_prepend')
 box('port_integer',text='i');wire('osc_port','port_integer')
@@ -163,15 +164,78 @@ for h,name in enumerate(['left','right']):
     box(prefix,text='prepend /G'+name.capitalize());wire(gate,prefix);wire(prefix,'udpout')
 box('host_flush',text='deferlow');wire('host_route','host_flush');wire('port_prepend','host_flush');wire('host_flush','flush')
 box('audioin',text='plugin~',rect=[880,220,75,22]);box('audioout',text='plugout~',rect=[880,265,75,22]);wire('audioin','audioout');wire('audioin','audioout',1,1)
+# Keep the Live presentation within its fixed 169px height; USB settings use a separate window.
+label('input_label','Input',[652,150,31,17])
+b=box('input_mode','live.menu',pres=[686,151,51,15],varname='input_mode',
+    numinlets=1,numoutlets=3,outlettype=['int','','float'],parameter_enable=1,fontsize=10)
+b['saved_attribute_attributes']={'valueof':dict(parameter_longname='Input Mode',
+    parameter_shortname='Input',parameter_type=2,parameter_enum=['OSC','USB'],
+    parameter_mmax=1,parameter_initial=[0],parameter_initial_enable=1,parameter_invisible=1)}
+p['parameters']['input_mode']=['Input Mode','Input',0]
+button('usb_setup','USB…',[747,151,56,15],mode=0)
+box('usb_setup_press',text='sel 1');wire('usb_setup','usb_setup_press')
+box('usb_setup_open',cls='message',text='open');wire('usb_setup_press','usb_setup_open')
+box('usb_setup_control',text='pcontrol');wire('usb_setup_open','usb_setup_control')
+main_patch=p
+p=patch();p.update(rect=[120,160,580,80],devicewidth=580,enablehscroll=0,enablevscroll=0)
+label('usb_port_label','Port',[8,7,26,18])
+box('usb_ports','umenu',pres=[40,8,286,18],varname='usb_ports',
+    numinlets=1,numoutlets=3,outlettype=['int','',''],items=['Choose USB port'],
+    parameter_enable=0,fontsize=10,allowdrag=0,
+    saved_attribute_attributes={'bgfillcolor':{'expression':'themecolor.live_lcd_bg'},
+        'textcolor':{'expression':'themecolor.live_lcd_control_fg'}})
+button('usb_refresh','Refresh',[334,8,57,18],mode=0)
+button('usb_connect','Open',[399,8,50,18],mode=0)
+button('usb_close','Close',[457,8,50,18],mode=0)
+label('usb_hint','115200 · 8N1 · Close Arduino Serial Monitor before Open',[8,33,564,16])
+label('usb_status','OSC · USB closed',[8,55,564,18],10)
+for i,target in enumerate(['usb_ports','usb_status']):
+    box('usb_in_'+str(i),'inlet',rect=[20+i*60,110,25,25],numinlets=0,numoutlets=1)
+    wire('usb_in_'+str(i),target)
+for i,source in enumerate(['usb_ports','usb_refresh','usb_connect','usb_close']):
+    box('usb_out_'+str(i),'outlet',rect=[20+i*60,280,25,25],numinlets=1,numoutlets=0)
+    wire(source,'usb_out_'+str(i))
+for i,b in enumerate([o['box'] for o in p['boxes'] if o['box'].get('presentation')]):
+    b['patching_rect']=[20+(i%3)*190,150+(i//3)*32, min(b['presentation_rect'][2],180),b['presentation_rect'][3]]
+usb_patch=p;p=main_patch
+box('usb_settings',text='p USB_Settings',patcher=usb_patch,
+    numinlets=2,numoutlets=4,outlettype=['int','','',''],varname='usb_settings')
+for k,v in usb_patch['parameters'].items():
+    if isinstance(v,list):p['parameters']['usb_settings::'+k]=v
+wire('usb_setup_control','usb_settings')
+box('usb_controller',text='js glove_usb_serial.js',varname='usb_controller',
+    numinlets=1,numoutlets=7,outlettype=['','','','','','',''])
+box('serial',text='serial @baud 115200 @autoopen 0 @poll 0 @chunk 0 @defer 1 @xonxoff 0',
+    numinlets=1,numoutlets=2,outlettype=['int',''])
+wire('usb_controller','serial');wire('serial','usb_controller')
+box('serial_info',text='prepend serialinfo');wire('serial','serial_info',1);wire('serial_info','usb_controller')
+wire('usb_controller','engine',1)
+for name in ['left','right']:wire('usb_controller',name+'_input_gate',2)
+wire('usb_controller','usb_settings',3,0)
+wire('usb_controller','usb_settings',4,1)
+wire('usb_controller','left_port',5);wire('usb_controller','right_port',6)
+box('input_mode_command',text='prepend mode');wire('input_mode','input_mode_command');wire('input_mode_command','usb_controller')
+for o,selector in enumerate(['chooseport','refresh','connect','disconnect']):
+    id='usb_'+selector+'_command';box(id,text='prepend '+selector)
+    wire('usb_settings',id,o);wire(id,'usb_controller')
+box('usb_init',cls='message',text='init');box('usb_init_defer',text='deferlow')
+wire('device','usb_init_defer');wire('usb_init_defer','usb_init');wire('usb_init','usb_controller')
+box('usb_saved_port',text='pattr usb_port_name @bindto usb_controller @initial none',
+    varname='usb_port_name',parameter_enable=1,
+    saved_attribute_attributes={'valueof':dict(parameter_longname='USB Port Name',
+        parameter_shortname='USB Port',parameter_type=3,parameter_invisible=1,
+        parameter_initial=['none'],parameter_initial_enable=1)})
+p['parameters']['usb_saved_port']=['USB Port Name','USB Port',0]
 p['parameters']['parameterbanks']={'0':dict(index=0,name='Receiver',parameters=['smooth_ms','deadband','filter_enabled','osc_enable','osc_port','-','-','-'])}
 p['parameters']['inherited_shortname']=1
-p['dependency_cache']=[dict(name=f,bootpath='.',patcherrelativepath='.',type='TEXT',implicit=1) for f in ['glove_dual_engine.js','glove_hands.js']]
+p['dependency_cache']=[dict(name=f,bootpath='.',patcherrelativepath='.',type='TEXT',implicit=1) for f in ['glove_dual_engine.js','glove_hands.js','glove_usb_serial.js']]
 p['autosave']=0
 # Arrange the editable graph separately from the compact performance presentation.
 objects={o['box']['id']:o['box'] for o in p['boxes']}
 for h,name in enumerate(['left','right']):
     x=30+h*660
     positions={name+'_udp':[x,250,130,22],name+'_route':[x,290,210,22],
+        name+'_input_gate':[x+220,250,80,22],
         name+'_raw':[x,330,120,22],name+'_norm':[x+170,330,125,22],
         name+'_send':[x,440,80,22],name+'_unpack':[x,485,555,22],
         name+'_art':[x+130,440,90,22],name+'_statusset':[x+250,440,95,22]}

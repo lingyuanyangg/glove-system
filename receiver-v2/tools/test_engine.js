@@ -59,4 +59,18 @@ test('manual tests clamp values and update only selected channel',()=>{
 test('flush repeats current frame without modifying it',()=>{
  const before=Array.from(latest(1));c.flush();assert.deepEqual(Array.from(latest(1)),before);
 });
+test('stationary real frames keep learning buses fresh without UI/OSC chatter',()=>{
+ reset();c.normleft(.5,.5,.5,.5,.5);c.normright(.5,.5,.5,.5,.5);now+=10;c.tick();
+ const monitors=outputs.filter(x=>x[0]<2).length;outputs=[];
+ for(let i=0;i<100;i++){now+=20;c.normleft(.5,.5,.5,.5,.5);c.normright(.5,.5,.5,.5,.5);c.tick();}
+ assert.equal(monitors,2);assert.equal(outputs.filter(x=>x[0]<2).length,0);
+ assert.equal(outputs.filter(x=>x[0]===3).length,100);assert.equal(outputs.filter(x=>x[0]===4).length,100);
+ outputs.filter(x=>x[0]>=3).forEach(x=>assert.deepEqual(Array.from(x[1]),[.5,.5,.5,.5,.5]));
+ outputs=[];now+=20;c.tick();c.flush();assert.equal(outputs.filter(x=>x[0]>=3).length,0);
+});
+test('malformed, cancelled and overdue frames never refresh the learning buses',()=>{
+ reset();c.normleft(.5,.5,.5,.5,.5);now+=101;c.tick();assert.equal(outputs.filter(x=>x[0]===3).length,0);
+ outputs=[];c.normright(.5,.5,.5,.5,.5);c.lostright();now+=10;c.tick();assert.equal(outputs.filter(x=>x[0]===4).length,0);assert.equal(c.hands[1].status,'HOLD');
+ c.normleft(.5,.5,NaN,.5,.5);now+=10;c.tick();assert.equal(outputs.filter(x=>x[0]===3).length,0);
+});
 console.log(`${count} engine checks passed.`);

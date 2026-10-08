@@ -2,7 +2,7 @@
 // Every consumer receives the same atomic, filtered five-float frame.
 autowatch = 1;
 inlets = 1;
-outlets = 3;
+outlets = 5;
 var minimum = [0, 18, 18, 18, 70];
 var maximum = [180, 180, 180, 180, 180];
 var tau = 30, dead = 0.003, filtering = 1;
@@ -13,7 +13,7 @@ runner.interval = 10;
 
 function makehand() {
     return { ready: false, target: [0,0,0,0,0], value: [0,0,0,0,0],
-        sent: [0,0,0,0,0], received: 0, status: "WAIT" };
+        sent: [0,0,0,0,0], received: 0, pendingBus: false, status: "WAIT" };
 }
 function finite(v) { return typeof v === "number" && isFinite(v); }
 function clip(v) { return Math.max(0, Math.min(1, v)); }
@@ -44,6 +44,7 @@ function receive(index, args, normalized) {
             (args[i] - minimum[i]) / (maximum[i] - minimum[i]));
     }
     hand.received = now;
+    hand.pendingBus = true;
     if (!hand.ready) {
         hand.ready = true; hand.target = values.slice(); hand.value = values.slice();
         emit(index, true);
@@ -78,6 +79,13 @@ function process(now) {
             if (Math.abs(hand.target[i]-hand.value[i])<0.00001) hand.value[i]=hand.target[i];
         }
         emit(h, false);
+        // Only real valid input refreshes learning/classification consumers.
+        // Changed-only UI/OSC outputs remain on outlets 0/1. Fresh stable frames
+        // have separate bus outlets 3/4, paired at this same filter tick.
+        if (hand.pendingBus) {
+            hand.pendingBus=false;
+            if(now-hand.received<=100)outlet(3+h,hand.value.slice());
+        }
         if (hand.received && now-hand.received>1000 && hand.status!=="TEST") setstatus(h,"HOLD");
     }
 }
@@ -93,6 +101,9 @@ function setstatus(h, s) {
 function report() {
     for (var h=0; h<2; h++) outlet(2,"status",h,hands[h].status);
 }
+function lostleft() { lost(0); }
+function lostright() { lost(1); }
+function lost(h) { hands[h].pendingBus=false;hands[h].received=0;setstatus(h,"HOLD"); }
 // Re-send current frames when OSC forwarding is enabled or its destination changes.
 function flush() { for (var h=0; h<2; h++) if (hands[h].ready) emit(h,true); }
 function reset() { hands=[makehand(),makehand()]; lastTick=Date.now(); report(); }

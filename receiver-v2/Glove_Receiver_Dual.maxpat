@@ -209,8 +209,10 @@
           ],
           "text": "js glove_dual_engine.js",
           "numinlets": 1,
-          "numoutlets": 3,
+          "numoutlets": 5,
           "outlettype": [
+            "",
+            "",
             "",
             "",
             ""
@@ -320,6 +322,24 @@
             22
           ],
           "text": "route /servos /GLeft"
+        }
+      },
+      {
+        "box": {
+          "id": "left_input_gate",
+          "maxclass": "newobj",
+          "patching_rect": [
+            250,
+            250,
+            80,
+            22
+          ],
+          "text": "gate 1 1",
+          "numinlets": 2,
+          "numoutlets": 1,
+          "outlettype": [
+            ""
+          ]
         }
       },
       {
@@ -27179,6 +27199,24 @@
             22
           ],
           "text": "route /servos /GRight"
+        }
+      },
+      {
+        "box": {
+          "id": "right_input_gate",
+          "maxclass": "newobj",
+          "patching_rect": [
+            910,
+            250,
+            80,
+            22
+          ],
+          "text": "gate 1 1",
+          "numinlets": 2,
+          "numoutlets": 1,
+          "outlettype": [
+            ""
+          ]
         }
       },
       {
@@ -54492,35 +54530,11 @@
       },
       {
         "box": {
-          "id": "order_note",
-          "maxclass": "live.comment",
-          "patching_rect": [
-            1010,
-            1015,
-            145,
-            22
-          ],
-          "text": "Pinky → Ring → Middle → Index → Thumb",
-          "presentation": 1,
-          "presentation_rect": [
-            652,
-            151,
-            151,
-            15
-          ],
-          "fontsize": 8,
-          "numinlets": 1,
-          "numoutlets": 0,
-          "textjustification": 0
-        }
-      },
-      {
-        "box": {
           "id": "host_route",
           "maxclass": "newobj",
           "patching_rect": [
-            30,
-            1070,
+            1010,
+            1015,
             145,
             22
           ],
@@ -54532,7 +54546,7 @@
           "id": "host_prepend",
           "maxclass": "newobj",
           "patching_rect": [
-            275,
+            30,
             1070,
             145,
             22
@@ -54545,7 +54559,7 @@
           "id": "port_integer",
           "maxclass": "newobj",
           "patching_rect": [
-            520,
+            275,
             1070,
             145,
             22
@@ -54558,7 +54572,7 @@
           "id": "port_prepend",
           "maxclass": "newobj",
           "patching_rect": [
-            765,
+            520,
             1070,
             145,
             22
@@ -54571,7 +54585,7 @@
           "id": "udpout",
           "maxclass": "newobj",
           "patching_rect": [
-            1010,
+            765,
             1070,
             160,
             22
@@ -54584,8 +54598,8 @@
           "id": "apply_bang",
           "maxclass": "newobj",
           "patching_rect": [
-            30,
-            1125,
+            1010,
+            1070,
             145,
             22
           ],
@@ -54597,7 +54611,7 @@
           "id": "startup_destination",
           "maxclass": "newobj",
           "patching_rect": [
-            275,
+            30,
             1125,
             145,
             22
@@ -54610,7 +54624,7 @@
           "id": "osc_switch",
           "maxclass": "newobj",
           "patching_rect": [
-            520,
+            275,
             1125,
             145,
             22
@@ -54623,7 +54637,7 @@
           "id": "flush",
           "maxclass": "message",
           "patching_rect": [
-            765,
+            520,
             1125,
             145,
             22
@@ -54637,7 +54651,7 @@
           "maxclass": "newobj",
           "patching_rect": [
             20,
-            2960,
+            2984,
             145,
             22
           ],
@@ -54650,7 +54664,7 @@
           "maxclass": "newobj",
           "patching_rect": [
             20,
-            2984,
+            3008,
             145,
             22
           ],
@@ -54663,7 +54677,7 @@
           "maxclass": "newobj",
           "patching_rect": [
             20,
-            3008,
+            3032,
             145,
             22
           ],
@@ -54676,7 +54690,7 @@
           "maxclass": "newobj",
           "patching_rect": [
             20,
-            3032,
+            3056,
             145,
             22
           ],
@@ -54688,7 +54702,7 @@
           "id": "host_flush",
           "maxclass": "newobj",
           "patching_rect": [
-            1010,
+            765,
             1125,
             145,
             22
@@ -54701,8 +54715,8 @@
           "id": "audioin",
           "maxclass": "newobj",
           "patching_rect": [
-            30,
-            1180,
+            1010,
+            1125,
             75,
             22
           ],
@@ -54714,12 +54728,823 @@
           "id": "audioout",
           "maxclass": "newobj",
           "patching_rect": [
-            275,
+            30,
             1180,
             75,
             22
           ],
           "text": "plugout~"
+        }
+      },
+      {
+        "box": {
+          "id": "input_label",
+          "maxclass": "live.comment",
+          "patching_rect": [
+            275,
+            1180,
+            145,
+            22
+          ],
+          "text": "Input",
+          "presentation": 1,
+          "presentation_rect": [
+            652,
+            150,
+            31,
+            17
+          ],
+          "fontsize": 9,
+          "numinlets": 1,
+          "numoutlets": 0,
+          "textjustification": 0
+        }
+      },
+      {
+        "box": {
+          "id": "input_mode",
+          "maxclass": "live.menu",
+          "patching_rect": [
+            520,
+            1180,
+            145,
+            22
+          ],
+          "presentation": 1,
+          "presentation_rect": [
+            686,
+            151,
+            51,
+            15
+          ],
+          "varname": "input_mode",
+          "numinlets": 1,
+          "numoutlets": 3,
+          "outlettype": [
+            "int",
+            "",
+            "float"
+          ],
+          "parameter_enable": 1,
+          "fontsize": 10,
+          "saved_attribute_attributes": {
+            "valueof": {
+              "parameter_longname": "Input Mode",
+              "parameter_shortname": "Input",
+              "parameter_type": 2,
+              "parameter_enum": [
+                "OSC",
+                "USB"
+              ],
+              "parameter_mmax": 1,
+              "parameter_initial": [
+                0
+              ],
+              "parameter_initial_enable": 1,
+              "parameter_invisible": 1
+            }
+          }
+        }
+      },
+      {
+        "box": {
+          "id": "usb_setup",
+          "maxclass": "live.text",
+          "patching_rect": [
+            765,
+            1180,
+            145,
+            22
+          ],
+          "text": "USB…",
+          "presentation": 1,
+          "presentation_rect": [
+            747,
+            151,
+            56,
+            15
+          ],
+          "texton": "USB…",
+          "mode": 0,
+          "numinlets": 1,
+          "numoutlets": 2,
+          "outlettype": [
+            "",
+            ""
+          ],
+          "parameter_enable": 1,
+          "varname": "usb_setup",
+          "fontsize": 9,
+          "saved_attribute_attributes": {
+            "valueof": {
+              "parameter_longname": "USB…",
+              "parameter_shortname": "USB…",
+              "parameter_type": 2,
+              "parameter_enum": [
+                "Off",
+                "On"
+              ],
+              "parameter_mmax": 1,
+              "parameter_initial": [
+                0
+              ],
+              "parameter_initial_enable": 1,
+              "parameter_invisible": 2
+            }
+          }
+        }
+      },
+      {
+        "box": {
+          "id": "usb_setup_press",
+          "maxclass": "newobj",
+          "patching_rect": [
+            1010,
+            1180,
+            145,
+            22
+          ],
+          "text": "sel 1"
+        }
+      },
+      {
+        "box": {
+          "id": "usb_setup_open",
+          "maxclass": "message",
+          "patching_rect": [
+            30,
+            1235,
+            145,
+            22
+          ],
+          "text": "open"
+        }
+      },
+      {
+        "box": {
+          "id": "usb_setup_control",
+          "maxclass": "newobj",
+          "patching_rect": [
+            275,
+            1235,
+            145,
+            22
+          ],
+          "text": "pcontrol"
+        }
+      },
+      {
+        "box": {
+          "id": "usb_settings",
+          "maxclass": "newobj",
+          "patching_rect": [
+            520,
+            1235,
+            145,
+            22
+          ],
+          "text": "p USB_Settings",
+          "patcher": {
+            "fileversion": 1,
+            "appversion": {
+              "major": 9,
+              "minor": 1,
+              "revision": 3,
+              "architecture": "arm64",
+              "modernui": 1
+            },
+            "classnamespace": "box",
+            "rect": [
+              120,
+              160,
+              580,
+              80
+            ],
+            "openinpresentation": 1,
+            "default_fontsize": 11,
+            "default_fontname": "Arial",
+            "devicewidth": 580,
+            "enablehscroll": 0,
+            "enablevscroll": 0,
+            "boxes": [
+              {
+                "box": {
+                  "id": "usb_port_label",
+                  "maxclass": "live.comment",
+                  "patching_rect": [
+                    20,
+                    150,
+                    26,
+                    18
+                  ],
+                  "text": "Port",
+                  "presentation": 1,
+                  "presentation_rect": [
+                    8,
+                    7,
+                    26,
+                    18
+                  ],
+                  "fontsize": 9,
+                  "numinlets": 1,
+                  "numoutlets": 0,
+                  "textjustification": 0
+                }
+              },
+              {
+                "box": {
+                  "id": "usb_ports",
+                  "maxclass": "umenu",
+                  "patching_rect": [
+                    210,
+                    150,
+                    180,
+                    18
+                  ],
+                  "presentation": 1,
+                  "presentation_rect": [
+                    40,
+                    8,
+                    286,
+                    18
+                  ],
+                  "varname": "usb_ports",
+                  "numinlets": 1,
+                  "numoutlets": 3,
+                  "outlettype": [
+                    "int",
+                    "",
+                    ""
+                  ],
+                  "items": [
+                    "Choose USB port"
+                  ],
+                  "parameter_enable": 0,
+                  "fontsize": 10,
+                  "allowdrag": 0,
+                  "saved_attribute_attributes": {
+                    "bgfillcolor": {
+                      "expression": "themecolor.live_lcd_bg"
+                    },
+                    "textcolor": {
+                      "expression": "themecolor.live_lcd_control_fg"
+                    }
+                  }
+                }
+              },
+              {
+                "box": {
+                  "id": "usb_refresh",
+                  "maxclass": "live.text",
+                  "patching_rect": [
+                    400,
+                    150,
+                    57,
+                    18
+                  ],
+                  "text": "Refresh",
+                  "presentation": 1,
+                  "presentation_rect": [
+                    334,
+                    8,
+                    57,
+                    18
+                  ],
+                  "texton": "Refresh",
+                  "mode": 0,
+                  "numinlets": 1,
+                  "numoutlets": 2,
+                  "outlettype": [
+                    "",
+                    ""
+                  ],
+                  "parameter_enable": 1,
+                  "varname": "usb_refresh",
+                  "fontsize": 9,
+                  "saved_attribute_attributes": {
+                    "valueof": {
+                      "parameter_longname": "Refresh",
+                      "parameter_shortname": "Refresh",
+                      "parameter_type": 2,
+                      "parameter_enum": [
+                        "Off",
+                        "On"
+                      ],
+                      "parameter_mmax": 1,
+                      "parameter_initial": [
+                        0
+                      ],
+                      "parameter_initial_enable": 1,
+                      "parameter_invisible": 2
+                    }
+                  }
+                }
+              },
+              {
+                "box": {
+                  "id": "usb_connect",
+                  "maxclass": "live.text",
+                  "patching_rect": [
+                    20,
+                    182,
+                    50,
+                    18
+                  ],
+                  "text": "Open",
+                  "presentation": 1,
+                  "presentation_rect": [
+                    399,
+                    8,
+                    50,
+                    18
+                  ],
+                  "texton": "Open",
+                  "mode": 0,
+                  "numinlets": 1,
+                  "numoutlets": 2,
+                  "outlettype": [
+                    "",
+                    ""
+                  ],
+                  "parameter_enable": 1,
+                  "varname": "usb_connect",
+                  "fontsize": 9,
+                  "saved_attribute_attributes": {
+                    "valueof": {
+                      "parameter_longname": "Open",
+                      "parameter_shortname": "Open",
+                      "parameter_type": 2,
+                      "parameter_enum": [
+                        "Off",
+                        "On"
+                      ],
+                      "parameter_mmax": 1,
+                      "parameter_initial": [
+                        0
+                      ],
+                      "parameter_initial_enable": 1,
+                      "parameter_invisible": 2
+                    }
+                  }
+                }
+              },
+              {
+                "box": {
+                  "id": "usb_close",
+                  "maxclass": "live.text",
+                  "patching_rect": [
+                    210,
+                    182,
+                    50,
+                    18
+                  ],
+                  "text": "Close",
+                  "presentation": 1,
+                  "presentation_rect": [
+                    457,
+                    8,
+                    50,
+                    18
+                  ],
+                  "texton": "Close",
+                  "mode": 0,
+                  "numinlets": 1,
+                  "numoutlets": 2,
+                  "outlettype": [
+                    "",
+                    ""
+                  ],
+                  "parameter_enable": 1,
+                  "varname": "usb_close",
+                  "fontsize": 9,
+                  "saved_attribute_attributes": {
+                    "valueof": {
+                      "parameter_longname": "Close",
+                      "parameter_shortname": "Close",
+                      "parameter_type": 2,
+                      "parameter_enum": [
+                        "Off",
+                        "On"
+                      ],
+                      "parameter_mmax": 1,
+                      "parameter_initial": [
+                        0
+                      ],
+                      "parameter_initial_enable": 1,
+                      "parameter_invisible": 2
+                    }
+                  }
+                }
+              },
+              {
+                "box": {
+                  "id": "usb_hint",
+                  "maxclass": "live.comment",
+                  "patching_rect": [
+                    400,
+                    182,
+                    180,
+                    16
+                  ],
+                  "text": "115200 · 8N1 · Close Arduino Serial Monitor before Open",
+                  "presentation": 1,
+                  "presentation_rect": [
+                    8,
+                    33,
+                    564,
+                    16
+                  ],
+                  "fontsize": 9,
+                  "numinlets": 1,
+                  "numoutlets": 0,
+                  "textjustification": 0
+                }
+              },
+              {
+                "box": {
+                  "id": "usb_status",
+                  "maxclass": "live.comment",
+                  "patching_rect": [
+                    20,
+                    214,
+                    180,
+                    18
+                  ],
+                  "text": "OSC · USB closed",
+                  "presentation": 1,
+                  "presentation_rect": [
+                    8,
+                    55,
+                    564,
+                    18
+                  ],
+                  "fontsize": 10,
+                  "numinlets": 1,
+                  "numoutlets": 0,
+                  "textjustification": 0
+                }
+              },
+              {
+                "box": {
+                  "id": "usb_in_0",
+                  "maxclass": "inlet",
+                  "patching_rect": [
+                    20,
+                    110,
+                    25,
+                    25
+                  ],
+                  "numinlets": 0,
+                  "numoutlets": 1
+                }
+              },
+              {
+                "box": {
+                  "id": "usb_in_1",
+                  "maxclass": "inlet",
+                  "patching_rect": [
+                    80,
+                    110,
+                    25,
+                    25
+                  ],
+                  "numinlets": 0,
+                  "numoutlets": 1
+                }
+              },
+              {
+                "box": {
+                  "id": "usb_out_0",
+                  "maxclass": "outlet",
+                  "patching_rect": [
+                    20,
+                    280,
+                    25,
+                    25
+                  ],
+                  "numinlets": 1,
+                  "numoutlets": 0
+                }
+              },
+              {
+                "box": {
+                  "id": "usb_out_1",
+                  "maxclass": "outlet",
+                  "patching_rect": [
+                    80,
+                    280,
+                    25,
+                    25
+                  ],
+                  "numinlets": 1,
+                  "numoutlets": 0
+                }
+              },
+              {
+                "box": {
+                  "id": "usb_out_2",
+                  "maxclass": "outlet",
+                  "patching_rect": [
+                    140,
+                    280,
+                    25,
+                    25
+                  ],
+                  "numinlets": 1,
+                  "numoutlets": 0
+                }
+              },
+              {
+                "box": {
+                  "id": "usb_out_3",
+                  "maxclass": "outlet",
+                  "patching_rect": [
+                    200,
+                    280,
+                    25,
+                    25
+                  ],
+                  "numinlets": 1,
+                  "numoutlets": 0
+                }
+              }
+            ],
+            "lines": [
+              {
+                "patchline": {
+                  "source": [
+                    "usb_in_0",
+                    0
+                  ],
+                  "destination": [
+                    "usb_ports",
+                    0
+                  ]
+                }
+              },
+              {
+                "patchline": {
+                  "source": [
+                    "usb_in_1",
+                    0
+                  ],
+                  "destination": [
+                    "usb_status",
+                    0
+                  ]
+                }
+              },
+              {
+                "patchline": {
+                  "source": [
+                    "usb_ports",
+                    0
+                  ],
+                  "destination": [
+                    "usb_out_0",
+                    0
+                  ]
+                }
+              },
+              {
+                "patchline": {
+                  "source": [
+                    "usb_refresh",
+                    0
+                  ],
+                  "destination": [
+                    "usb_out_1",
+                    0
+                  ]
+                }
+              },
+              {
+                "patchline": {
+                  "source": [
+                    "usb_connect",
+                    0
+                  ],
+                  "destination": [
+                    "usb_out_2",
+                    0
+                  ]
+                }
+              },
+              {
+                "patchline": {
+                  "source": [
+                    "usb_close",
+                    0
+                  ],
+                  "destination": [
+                    "usb_out_3",
+                    0
+                  ]
+                }
+              }
+            ],
+            "parameters": {
+              "usb_refresh": [
+                "Refresh",
+                "Refresh",
+                0
+              ],
+              "usb_connect": [
+                "Open",
+                "Open",
+                0
+              ],
+              "usb_close": [
+                "Close",
+                "Close",
+                0
+              ]
+            }
+          },
+          "numinlets": 2,
+          "numoutlets": 4,
+          "outlettype": [
+            "int",
+            "",
+            "",
+            ""
+          ],
+          "varname": "usb_settings"
+        }
+      },
+      {
+        "box": {
+          "id": "usb_controller",
+          "maxclass": "newobj",
+          "patching_rect": [
+            765,
+            1235,
+            145,
+            22
+          ],
+          "text": "js glove_usb_serial.js",
+          "varname": "usb_controller",
+          "numinlets": 1,
+          "numoutlets": 7,
+          "outlettype": [
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            ""
+          ]
+        }
+      },
+      {
+        "box": {
+          "id": "serial",
+          "maxclass": "newobj",
+          "patching_rect": [
+            1010,
+            1235,
+            145,
+            22
+          ],
+          "text": "serial @baud 115200 @autoopen 0 @poll 0 @chunk 0 @defer 1 @xonxoff 0",
+          "numinlets": 1,
+          "numoutlets": 2,
+          "outlettype": [
+            "int",
+            ""
+          ]
+        }
+      },
+      {
+        "box": {
+          "id": "serial_info",
+          "maxclass": "newobj",
+          "patching_rect": [
+            30,
+            1290,
+            145,
+            22
+          ],
+          "text": "prepend serialinfo"
+        }
+      },
+      {
+        "box": {
+          "id": "input_mode_command",
+          "maxclass": "newobj",
+          "patching_rect": [
+            275,
+            1290,
+            145,
+            22
+          ],
+          "text": "prepend mode"
+        }
+      },
+      {
+        "box": {
+          "id": "usb_chooseport_command",
+          "maxclass": "newobj",
+          "patching_rect": [
+            520,
+            1290,
+            145,
+            22
+          ],
+          "text": "prepend chooseport"
+        }
+      },
+      {
+        "box": {
+          "id": "usb_refresh_command",
+          "maxclass": "newobj",
+          "patching_rect": [
+            765,
+            1290,
+            145,
+            22
+          ],
+          "text": "prepend refresh"
+        }
+      },
+      {
+        "box": {
+          "id": "usb_connect_command",
+          "maxclass": "newobj",
+          "patching_rect": [
+            1010,
+            1290,
+            145,
+            22
+          ],
+          "text": "prepend connect"
+        }
+      },
+      {
+        "box": {
+          "id": "usb_disconnect_command",
+          "maxclass": "newobj",
+          "patching_rect": [
+            30,
+            1345,
+            145,
+            22
+          ],
+          "text": "prepend disconnect"
+        }
+      },
+      {
+        "box": {
+          "id": "usb_init",
+          "maxclass": "message",
+          "patching_rect": [
+            275,
+            1345,
+            145,
+            22
+          ],
+          "text": "init"
+        }
+      },
+      {
+        "box": {
+          "id": "usb_init_defer",
+          "maxclass": "newobj",
+          "patching_rect": [
+            520,
+            1345,
+            145,
+            22
+          ],
+          "text": "deferlow"
+        }
+      },
+      {
+        "box": {
+          "id": "usb_saved_port",
+          "maxclass": "newobj",
+          "patching_rect": [
+            765,
+            1345,
+            145,
+            22
+          ],
+          "text": "pattr usb_port_name @bindto usb_controller @initial none",
+          "varname": "usb_port_name",
+          "parameter_enable": 1,
+          "saved_attribute_attributes": {
+            "valueof": {
+              "parameter_longname": "USB Port Name",
+              "parameter_shortname": "USB Port",
+              "parameter_type": 3,
+              "parameter_invisible": 1,
+              "parameter_initial": [
+                "none"
+              ],
+              "parameter_initial_enable": 1
+            }
+          }
         }
       }
     ],
@@ -54839,6 +55664,18 @@
             0
           ],
           "destination": [
+            "left_input_gate",
+            1
+          ]
+        }
+      },
+      {
+        "patchline": {
+          "source": [
+            "left_input_gate",
+            0
+          ],
+          "destination": [
             "left_route",
             0
           ]
@@ -54896,7 +55733,7 @@
         "patchline": {
           "source": [
             "engine",
-            0
+            3
           ],
           "destination": [
             "left_send",
@@ -55331,6 +56168,18 @@
             0
           ],
           "destination": [
+            "right_input_gate",
+            1
+          ]
+        }
+      },
+      {
+        "patchline": {
+          "source": [
+            "right_input_gate",
+            0
+          ],
+          "destination": [
             "right_route",
             0
           ]
@@ -55388,7 +56237,7 @@
         "patchline": {
           "source": [
             "engine",
-            1
+            4
           ],
           "destination": [
             "right_send",
@@ -56211,6 +57060,342 @@
             1
           ]
         }
+      },
+      {
+        "patchline": {
+          "source": [
+            "usb_setup",
+            0
+          ],
+          "destination": [
+            "usb_setup_press",
+            0
+          ]
+        }
+      },
+      {
+        "patchline": {
+          "source": [
+            "usb_setup_press",
+            0
+          ],
+          "destination": [
+            "usb_setup_open",
+            0
+          ]
+        }
+      },
+      {
+        "patchline": {
+          "source": [
+            "usb_setup_open",
+            0
+          ],
+          "destination": [
+            "usb_setup_control",
+            0
+          ]
+        }
+      },
+      {
+        "patchline": {
+          "source": [
+            "usb_setup_control",
+            0
+          ],
+          "destination": [
+            "usb_settings",
+            0
+          ]
+        }
+      },
+      {
+        "patchline": {
+          "source": [
+            "usb_controller",
+            0
+          ],
+          "destination": [
+            "serial",
+            0
+          ]
+        }
+      },
+      {
+        "patchline": {
+          "source": [
+            "serial",
+            0
+          ],
+          "destination": [
+            "usb_controller",
+            0
+          ]
+        }
+      },
+      {
+        "patchline": {
+          "source": [
+            "serial",
+            1
+          ],
+          "destination": [
+            "serial_info",
+            0
+          ]
+        }
+      },
+      {
+        "patchline": {
+          "source": [
+            "serial_info",
+            0
+          ],
+          "destination": [
+            "usb_controller",
+            0
+          ]
+        }
+      },
+      {
+        "patchline": {
+          "source": [
+            "usb_controller",
+            1
+          ],
+          "destination": [
+            "engine",
+            0
+          ]
+        }
+      },
+      {
+        "patchline": {
+          "source": [
+            "usb_controller",
+            2
+          ],
+          "destination": [
+            "left_input_gate",
+            0
+          ]
+        }
+      },
+      {
+        "patchline": {
+          "source": [
+            "usb_controller",
+            2
+          ],
+          "destination": [
+            "right_input_gate",
+            0
+          ]
+        }
+      },
+      {
+        "patchline": {
+          "source": [
+            "usb_controller",
+            3
+          ],
+          "destination": [
+            "usb_settings",
+            0
+          ]
+        }
+      },
+      {
+        "patchline": {
+          "source": [
+            "usb_controller",
+            4
+          ],
+          "destination": [
+            "usb_settings",
+            1
+          ]
+        }
+      },
+      {
+        "patchline": {
+          "source": [
+            "usb_controller",
+            5
+          ],
+          "destination": [
+            "left_port",
+            0
+          ]
+        }
+      },
+      {
+        "patchline": {
+          "source": [
+            "usb_controller",
+            6
+          ],
+          "destination": [
+            "right_port",
+            0
+          ]
+        }
+      },
+      {
+        "patchline": {
+          "source": [
+            "input_mode",
+            0
+          ],
+          "destination": [
+            "input_mode_command",
+            0
+          ]
+        }
+      },
+      {
+        "patchline": {
+          "source": [
+            "input_mode_command",
+            0
+          ],
+          "destination": [
+            "usb_controller",
+            0
+          ]
+        }
+      },
+      {
+        "patchline": {
+          "source": [
+            "usb_settings",
+            0
+          ],
+          "destination": [
+            "usb_chooseport_command",
+            0
+          ]
+        }
+      },
+      {
+        "patchline": {
+          "source": [
+            "usb_chooseport_command",
+            0
+          ],
+          "destination": [
+            "usb_controller",
+            0
+          ]
+        }
+      },
+      {
+        "patchline": {
+          "source": [
+            "usb_settings",
+            1
+          ],
+          "destination": [
+            "usb_refresh_command",
+            0
+          ]
+        }
+      },
+      {
+        "patchline": {
+          "source": [
+            "usb_refresh_command",
+            0
+          ],
+          "destination": [
+            "usb_controller",
+            0
+          ]
+        }
+      },
+      {
+        "patchline": {
+          "source": [
+            "usb_settings",
+            2
+          ],
+          "destination": [
+            "usb_connect_command",
+            0
+          ]
+        }
+      },
+      {
+        "patchline": {
+          "source": [
+            "usb_connect_command",
+            0
+          ],
+          "destination": [
+            "usb_controller",
+            0
+          ]
+        }
+      },
+      {
+        "patchline": {
+          "source": [
+            "usb_settings",
+            3
+          ],
+          "destination": [
+            "usb_disconnect_command",
+            0
+          ]
+        }
+      },
+      {
+        "patchline": {
+          "source": [
+            "usb_disconnect_command",
+            0
+          ],
+          "destination": [
+            "usb_controller",
+            0
+          ]
+        }
+      },
+      {
+        "patchline": {
+          "source": [
+            "device",
+            0
+          ],
+          "destination": [
+            "usb_init_defer",
+            0
+          ]
+        }
+      },
+      {
+        "patchline": {
+          "source": [
+            "usb_init_defer",
+            0
+          ],
+          "destination": [
+            "usb_init",
+            0
+          ]
+        }
+      },
+      {
+        "patchline": {
+          "source": [
+            "usb_init",
+            0
+          ],
+          "destination": [
+            "usb_controller",
+            0
+          ]
+        }
       }
     ],
     "parameters": {
@@ -56549,6 +57734,36 @@
         "Apply",
         0
       ],
+      "input_mode": [
+        "Input Mode",
+        "Input",
+        0
+      ],
+      "usb_setup": [
+        "USB…",
+        "USB…",
+        0
+      ],
+      "usb_settings::usb_refresh": [
+        "Refresh",
+        "Refresh",
+        0
+      ],
+      "usb_settings::usb_connect": [
+        "Open",
+        "Open",
+        0
+      ],
+      "usb_settings::usb_close": [
+        "Close",
+        "Close",
+        0
+      ],
+      "usb_saved_port": [
+        "USB Port Name",
+        "USB Port",
+        0
+      ],
       "parameterbanks": {
         "0": {
           "index": 0,
@@ -56577,6 +57792,13 @@
       },
       {
         "name": "glove_hands.js",
+        "bootpath": ".",
+        "patcherrelativepath": ".",
+        "type": "TEXT",
+        "implicit": 1
+      },
+      {
+        "name": "glove_usb_serial.js",
         "bootpath": ".",
         "patcherrelativepath": ".",
         "type": "TEXT",
