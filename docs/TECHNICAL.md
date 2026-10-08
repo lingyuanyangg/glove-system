@@ -2,7 +2,7 @@
 
 This specification describes the supplied Arduino sketch, four Max for Live patch payloads, and regression JSON inspected on **2026-10-06**. Statements about wiring and algorithms follow the files; end-to-end performance has not been measured.
 
-The rebuilt dual-hand receiver is described separately in the [Receiver v2 specification and guide](../receiver-v2/README.md), including exclusive OSC/USB input selection, a native USB serial adapter for tagged L/R degree frames, right-hand UDP input, ten normalized native mappings, deadband/time filtering, atomic Max frames and configurable OSC forwarding.
+The rebuilt dual-hand receiver is described separately in the [Receiver v2 specification and guide](../receiver-v2/README.md), including exclusive OSC/USB input selection, a native USB serial adapter for tagged L/R degree frames, right-hand UDP input, ten normalized native mappings, deadband/time filtering, atomic Max frames and configurable OSC forwarding. Its low-latency revision groups native serial bytes by the read count, coalesces bursts per hand, uses a nominal 5ms filter tick with an 8ms default time constant, and separates control from approximately 30Hz monitor output. These settings are not measurements of end-to-end hardware latency.
 
 ## Glove hardware platform
 

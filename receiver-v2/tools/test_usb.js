@@ -35,7 +35,7 @@ test('Open selects USB, closes OSC gates, configures 115200 8N1 and polls',()=>{
  c.connect(1);assert.equal(c.inputMode,1);assert(c.awaitingCheck);assert(a.ui.some(x=>x[0]==='input_mode'&&x[1]==='set'&&x[2]===1));
  assert(a.logs.some(x=>x[0]===2&&x[1]===0));assert(commands().some(x=>x[0]==='baud'&&x[1]===115200));assert(commands().some(x=>x[0]==='xonxoff'&&x[1]===0));
  c.refresh(1);assert(!c.refreshing&&c.awaitingCheck);
- send(left);assert.equal(c.times[0],0);c.serialinfo('port',port);assert(!c.awaitingCheck&&!c.portFault);assert(commands().some(x=>x[0]==='poll'&&x[1]===5));
+ send(left);assert.equal(c.times[0],0);c.serialinfo('port',port);assert(!c.awaitingCheck&&!c.portFault);assert(commands().some(x=>x[0]==='poll'&&x[1]===2));
 });
 test('initial partial frame is discarded; split packets and CRLF reassemble',()=>{
  send('junk;\r\nL,90.');send('0,99.0,99.0,99.0,125.0;\r\n');sync();
@@ -131,4 +131,69 @@ test('firmware diagnostics distinguish USB bytes from valid hand frames without 
  time+=2001;b.c.status(true);assert(b.c.lastStatus.includes('status stale'));
  b.c.disconnect(1);assert.equal(b.c.rxBytes,0);assert.equal(b.c.boardStatus,null);
 });
-console.log(`${count} USB controller/integration checks passed; no Max or physical port test.`);
+test('a buffered burst forwards only the latest valid frame per hand',()=>{
+ const b=rig();open(b);send('\n',b);b.logs.length=0;
+ let burst='';for(let i=0;i<20;i++)burst+=`L,${i},99,99,99,125;\nR,${180-i},99,99,99,125;\n`;
+ send(burst,b);
+ const raw=b.logs.filter(x=>x[0]===1&&(x[1]==='rawleft'||x[1]==='rawright'));
+ assert.equal(raw.length,2);assert.equal(raw.find(x=>x[1]==='rawleft')[2],19);assert.equal(raw.find(x=>x[1]==='rawright')[2],161);
+});
+test('a Right fault cancels an earlier Right frame in the same burst',()=>{
+ const b=rig();open(b);send('\n'+right+'#ERROR,RIGHT_SERIAL_INIT;\n'+left,b);
+ assert(!b.engine.hands[1].ready);assert.equal(b.engine.hands[1].status,'HOLD');assert(b.engine.hands[0].ready);
+ send(right,b);assert(b.engine.hands[1].ready&&!b.c.boardFault);
+});
+// Walk the shipped native input graph using the documented object message rules.
+// This models Max scheduling and grouping semantics, not the actual Max host.
+function transport(r){
+ const patch=JSON.parse(fs.readFileSync(path.join(root,'Glove_Receiver_Dual.maxpat'))).patcher;
+ const boxes=new Map(patch.boxes.map(o=>[o.box.id,o.box])),deferred=[];
+ let group=[],size=1,calls=0;
+ function output(id,out,a){
+  for(const link of patch.lines.map(x=>x.patchline).filter(x=>x.source[0]===id&&x.source[1]===out))
+   receive(link.destination[0],link.destination[1],a);
+ }
+ function receive(id,inlet,a){
+  if(id==='usb_controller'){
+   calls++;if(a[0]==='serialinfo')r.c.serialinfo(...a.slice(1));else if(a.length===1)r.c.msg_int(a[0]);else r.c.list(...a);return;
+  }
+  const box=boxes.get(id);assert(box,'missing native transport object '+id);
+  const text=box.text;
+  if(text==='route read'){output(id,a[0]==='read'?0:1,a[0]==='read'?a.slice(1):a);}
+  else if(text==='t i b'){output(id,1,['bang']);output(id,0,[a[0]]);}
+  else if(text==='zlclear'){output(id,0,['zlclear']);}
+  else if(text==='max 1'){output(id,0,[Math.max(1,a[0])]);}
+  else if(text==='zl group 1 @zlmaxsize 2048'){
+   if(inlet===1){size=a[0];assert(size<=2048);}
+   else if(a[0]==='zlclear')group=[];
+   else {group.push(...a);while(group.length>=size)output(id,0,group.splice(0,size));}
+  }
+  else if(text==='prepend serialinfo')output(id,0,['serialinfo',...a]);
+  else if(text==='deferlow')deferred.push(()=>output(id,0,a));
+  else throw Error('unsupported native transport object '+text);
+ }
+ return {
+  read(bytes){output('serial',1,['read',bytes.length]);for(const v of bytes)output('serial',0,[v]);},
+  info(...a){output('serial',1,a);},
+  drain(){while(deferred.length)deferred.shift()();},
+  get calls(){return calls;},get pending(){return deferred.length;}
+ };
+}
+test('native graph groups each exact read without waiting for another USB poll',()=>{
+ const b=rig();open(b);const t=transport(b);const bytes=Buffer.from('\n'+left+right);
+ t.read(bytes);assert.equal(t.pending,1);assert(!b.engine.hands[0].ready);t.drain();
+ assert.equal(t.calls,1);assert(b.engine.hands[0].ready&&b.engine.hands[1].ready);
+ t.read(Buffer.from('L,90,'));t.drain();const before=b.c.times[0];time+=5;
+ t.read(Buffer.from('99,99,99,125;\n'));t.drain();assert(b.c.times[0]>before);
+});
+test('zero-byte polls never enter JavaScript and deferred batches keep FIFO order',()=>{
+ const b=rig();open(b);const t=transport(b);for(let i=0;i<1000;i++)t.read([]);assert.equal(t.calls,0);assert.equal(t.pending,0);
+ t.read(Buffer.from('\nL,10,99,99,99,125;\n'));t.read(Buffer.from('L,170,99,99,99,125;\n'));
+ assert.equal(t.pending,2);t.drain();assert.equal(b.engine.hands[0].target[0],170/180);
+});
+test('native port acknowledgements arrive before FIFO data and Close rejects queued bytes',()=>{
+ const b=rig();scan(b);b.c.chooseport(1);b.c.connect(1);const t=transport(b);
+ t.info('port',port);t.read(Buffer.from('\n'+left));t.drain();assert(b.engine.hands[0].ready&&!b.c.awaitingCheck);
+ t.read(Buffer.from(right));b.c.disconnect(1);t.drain();assert(!b.engine.hands[1].ready&&!b.c.opened);
+});
+console.log(`${count} USB controller/integration checks passed including native input graph regressions.`);

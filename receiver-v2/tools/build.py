@@ -83,7 +83,7 @@ label('left_status','WAIT',[340,4,48,15],9)['suppressinlet']=0
 label('right_status','WAIT',[746,4,48,15],9)['suppressinlet']=0
 
 box('engine',text='js glove_dual_engine.js',rect=[80,360,170,22],
-    numinlets=1,numoutlets=5,outlettype=['','','','',''],varname='engine')
+    numinlets=1,numoutlets=7,outlettype=['','','','','','',''],varname='engine')
 box('device',text='live.thisdevice',rect=[20,240,95,22])
 box('start',text='start',cls='message',rect=[20,278,50,22]);wire('device','start');wire('start','engine')
 box('colors',text='live.colors',rect=[680,300,75,22])
@@ -103,8 +103,9 @@ for h,(name,port,origin,mirrored) in enumerate([('left',7000,8,False),('right',6
         wire(name+'_route',id,o);wire(id,'engine')
     box(name+'_send',text='s G'+labelname,rect=[40+300*h,465,75,22]);wire('engine',name+'_send',3+h)
     box(name+'_unpack',text='unpack f f f f f',rect=[40+300*h,505,190,22]);wire('engine',name+'_unpack',h)
+    box(name+'_monitor_unpack',text='unpack f f f f f',numinlets=1,numoutlets=5,outlettype=['float']*5);wire('engine',name+'_monitor_unpack',5+h)
     box(name+'_statusset',text='prepend set',rect=[290+100*h,439,85,22]);wire('handroute',name+'_statusset',h);wire(name+'_statusset',name+'_status')
-    box(name+'_art',text='prepend '+name,rect=[50+300*h,550,95,22]);wire('engine',name+'_art',h);wire(name+'_art','art')
+    box(name+'_art',text='prepend '+name,rect=[50+300*h,550,95,22]);wire('engine',name+'_art',5+h);wire(name+'_art','art')
     for ch,(finger,x,tip) in enumerate(zip(['Pinky','Ring','Middle','Index','Thumb'],[28,96,164,232,324],[91,78,69,78,112])):
         x=origin+(370-x if mirrored else x)
         id=f'{name}_{finger.lower()}'
@@ -115,7 +116,7 @@ for h,(name,port,origin,mirrored) in enumerate([('left',7000,8,False),('right',6
         # Native numeric range/format; hidden monitor state is not automated or saved.
         b['saved_attribute_attributes']['valueof']['parameter_invisible']=2
         b.update(ignoreclick=1,parameter_mappable=0)
-        setid=id+'_set';box(setid,text='prepend set');wire(name+'_unpack',setid,ch);wire(setid,id)
+        setid=id+'_set';box(setid,text='prepend set');wire(name+'_monitor_unpack',setid,ch);wire(setid,id)
         sig=id+'_signal';box(sig,text='sig~ 0.');wire(name+'_unpack',sig,ch)
         mapper=id+'_map';mp=mapping(labelname+' '+finger)
         box(mapper,'bpatcher',pres=[x-29,tip-17,60,14],patcher=mp,
@@ -128,7 +129,7 @@ for h,(name,port,origin,mirrored) in enumerate([('left',7000,8,False),('right',6
         wire(sig,mapper)
 
 button('filter_enabled','Stabilize',[8,151,54,15],1)
-label('smooth_label','Smooth',[72,150,39,17]);param('smooth_ms','Smooth ms',0,500,30,[113,151,46,15],unit=2)
+label('smooth_label','Smooth',[72,150,39,17]);param('smooth_ms','Smooth ms',0,500,8,[113,151,46,15],unit=2)
 label('dead_label','Deadband',[169,150,48,17]);param('deadband','Deadband',0,.1,.003,[222,151,52,15],decimal_places=3)
 for id,selector in [('filter_enabled','enabled'),('smooth_ms','smooth'),('deadband','deadband')]:
     box(id+'_prepend',text='prepend '+selector);wire(id,id+'_prepend');wire(id+'_prepend','engine')
@@ -205,10 +206,25 @@ for k,v in usb_patch['parameters'].items():
 wire('usb_setup_control','usb_settings')
 box('usb_controller',text='js glove_usb_serial.js',varname='usb_controller',
     numinlets=1,numoutlets=7,outlettype=['','','','','','',''])
-box('serial',text='serial @baud 115200 @autoopen 0 @poll 0 @chunk 0 @defer 1 @xonxoff 0',
+box('serial',text='serial @baud 115200 @autoopen 0 @poll 0 @asyncread 1 @bufsize 2048 @chunk 0 @defer 0 @xonxoff 0',
     numinlets=1,numoutlets=2,outlettype=['int',''])
-wire('usb_controller','serial');wire('serial','usb_controller')
-box('serial_info',text='prepend serialinfo');wire('serial','serial_info',1);wire('serial_info','usb_controller')
+wire('usb_controller','serial')
+# serial reports read N before the N bytes. Native grouping avoids one JS call
+# per byte; defer complete lists FIFO only after grouping, preserving byte order.
+box('serial_group',text='zl group 1 @zlmaxsize 2048',numinlets=2,numoutlets=2,outlettype=['',''])
+box('serial_route',text='route read',numinlets=1,numoutlets=2,outlettype=['',''])
+box('serial_read_setup',text='t i b',numinlets=1,numoutlets=2,outlettype=['int','bang'])
+box('serial_group_clear',cls='message',text='zlclear',numinlets=2,numoutlets=1,outlettype=[''])
+box('serial_group_size',text='max 1',numinlets=2,numoutlets=1,outlettype=['int'])
+box('serial_batch_defer',text='deferlow',numinlets=1,numoutlets=1,outlettype=[''])
+box('serial_info_defer',text='deferlow',numinlets=1,numoutlets=1,outlettype=[''])
+box('serial_info',text='prepend serialinfo',numinlets=1,numoutlets=1,outlettype=[''])
+wire('serial','serial_group',0,0);wire('serial','serial_route',1)
+wire('serial_route','serial_read_setup',0);wire('serial_read_setup','serial_group_clear',1)
+wire('serial_group_clear','serial_group');wire('serial_read_setup','serial_group_size',0)
+wire('serial_group_size','serial_group',0,1)
+wire('serial_group','serial_batch_defer');wire('serial_batch_defer','usb_controller')
+wire('serial_route','serial_info',1);wire('serial_info','serial_info_defer');wire('serial_info_defer','usb_controller')
 wire('usb_controller','engine',1)
 for name in ['left','right']:wire('usb_controller',name+'_input_gate',2)
 wire('usb_controller','usb_settings',3,0)
@@ -238,6 +254,7 @@ for h,name in enumerate(['left','right']):
         name+'_input_gate':[x+220,250,80,22],
         name+'_raw':[x,330,120,22],name+'_norm':[x+170,330,125,22],
         name+'_send':[x,440,80,22],name+'_unpack':[x,485,555,22],
+        name+'_monitor_unpack':[x,800,555,22],
         name+'_art':[x+130,440,90,22],name+'_statusset':[x+250,440,95,22]}
     for k,v in positions.items():objects[k]['patching_rect']=v
     for ch,finger in enumerate(['pinky','ring','middle','index','thumb']):

@@ -65,12 +65,34 @@ test('stationary real frames keep learning buses fresh without UI/OSC chatter',(
  for(let i=0;i<100;i++){now+=20;c.normleft(.5,.5,.5,.5,.5);c.normright(.5,.5,.5,.5,.5);c.tick();}
  assert.equal(monitors,2);assert.equal(outputs.filter(x=>x[0]<2).length,0);
  assert.equal(outputs.filter(x=>x[0]===3).length,100);assert.equal(outputs.filter(x=>x[0]===4).length,100);
- outputs.filter(x=>x[0]>=3).forEach(x=>assert.deepEqual(Array.from(x[1]),[.5,.5,.5,.5,.5]));
- outputs=[];now+=20;c.tick();c.flush();assert.equal(outputs.filter(x=>x[0]>=3).length,0);
+ outputs.filter(x=>x[0]>=3&&x[0]<5).forEach(x=>assert.deepEqual(Array.from(x[1]),[.5,.5,.5,.5,.5]));
+ outputs=[];now+=20;c.tick();c.flush();assert.equal(outputs.filter(x=>x[0]>=3&&x[0]<5).length,0);
 });
 test('malformed, cancelled and overdue frames never refresh the learning buses',()=>{
  reset();c.normleft(.5,.5,.5,.5,.5);now+=101;c.tick();assert.equal(outputs.filter(x=>x[0]===3).length,0);
  outputs=[];c.normright(.5,.5,.5,.5,.5);c.lostright();now+=10;c.tick();assert.equal(outputs.filter(x=>x[0]===4).length,0);assert.equal(c.hands[1].status,'HOLD');
  c.normleft(.5,.5,NaN,.5,.5);now+=10;c.tick();assert.equal(outputs.filter(x=>x[0]===3).length,0);
 });
-console.log(`${count} engine checks passed.`);
+test('optimized default reaches 95 percent within 25ms of a step',()=>{
+ const oldNow=now;now=30000;outputs=[];
+ const fast={...context,Task:function(){this.cancel=()=>{};this.repeat=()=>{};}};
+ vm.createContext(fast);vm.runInContext(fs.readFileSync(path.join(root,'glove_dual_engine.js'),'utf8'),fast);
+ assert.equal(fast.runner.interval,5);assert.equal(fast.tau,8);fast.start();
+ fast.normleft(0,0,0,0,0);fast.normleft(1,1,1,1,1);
+ let reached=0;for(let t=5;t<=30;t+=5){now=30000+t;fast.tick();if(!reached&&fast.hands[0].value[0]>=.95)reached=t;}
+ assert.equal(reached,25);assert(fast.hands[0].value[0]>.97);now=oldNow;
+});
+test('drawing throttle never delays live mapping or the fresh learning bus',()=>{
+ reset();c.smooth(0);c.normleft(0,0,0,0,0);outputs=[];
+ now+=1;c.normleft(1,1,1,1,1);assert.equal(latest(0)[0],1);assert(!outputs.some(x=>x[0]===5));
+ now+=5;c.tick();assert(outputs.some(x=>x[0]===3&&x[1][0]===1));assert(!outputs.some(x=>x[0]===5));
+ now+=33;c.tick();assert(outputs.some(x=>x[0]===5&&x[1][0]===1));
+});
+test('200Hz control input paints only the latest value at about 30Hz',()=>{
+ reset();c.smooth(0);c.deadband(0);c.normleft(0,0,0,0,0);outputs=[];
+ for(let i=1;i<=500;i++){now+=5;c.normleft(i/500,i/500,i/500,i/500,i/500);c.tick();}
+ assert.equal(outputs.filter(x=>x[0]===0).length,500);
+ assert(outputs.filter(x=>x[0]===5).length<=Math.ceil(2500/33));
+ now+=33;c.tick();assert.equal(outputs.filter(x=>x[0]===5).slice(-1)[0][1][0],1);
+});
+console.log(`${count} engine checks passed including low-latency control/UI regressions.`);

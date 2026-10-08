@@ -2,18 +2,18 @@
 // Every consumer receives the same atomic, filtered five-float frame.
 autowatch = 1;
 inlets = 1;
-outlets = 5;
+outlets = 7;
 var minimum = [0, 18, 18, 18, 70];
 var maximum = [180, 180, 180, 180, 180];
-var tau = 30, dead = 0.003, filtering = 1;
+var tau = 8, dead = 0.003, filtering = 1;
 var hands = [makehand(), makehand()];
 var lastTick = 0;
 var runner = new Task(tick, this);
-runner.interval = 10;
+runner.interval = 5;
 
 function makehand() {
     return { ready: false, target: [0,0,0,0,0], value: [0,0,0,0,0],
-        sent: [0,0,0,0,0], received: 0, pendingBus: false, status: "WAIT" };
+        sent: [0,0,0,0,0], uiDirty: false, uiAt: 0, received: 0, pendingBus: false, status: "WAIT" };
 }
 function finite(v) { return typeof v === "number" && isFinite(v); }
 function clip(v) { return Math.max(0, Math.min(1, v)); }
@@ -79,6 +79,7 @@ function process(now) {
             if (Math.abs(hand.target[i]-hand.value[i])<0.00001) hand.value[i]=hand.target[i];
         }
         emit(h, false);
+        draw(h, false, now);
         // Only real valid input refreshes learning/classification consumers.
         // Changed-only UI/OSC outputs remain on outlets 0/1. Fresh stable frames
         // have separate bus outlets 3/4, paired at this same filter tick.
@@ -94,6 +95,14 @@ function emit(h, force) {
     for (var i=0; i<5; i++) if (Math.abs(hand.value[i]-hand.sent[i])>=0.00001) changed=true;
     if (!changed) return;
     hand.sent=hand.value.slice(); outlet(h, hand.sent);
+    hand.uiDirty=true;
+    if(force)draw(h,true,Date.now());
+}
+// Monitor painting is capped independently; control outlets 0/1 stay immediate.
+function draw(h, force, now) {
+    var hand=hands[h];
+    if(!force&&(!hand.uiDirty||now-hand.uiAt<33))return;
+    hand.uiDirty=false;hand.uiAt=now;outlet(5+h,hand.value.slice());
 }
 function setstatus(h, s) {
     if (hands[h].status!==s) { hands[h].status=s; outlet(2,"status",h,s); }

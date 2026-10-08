@@ -7,6 +7,7 @@ outlets = 7;
 // 5/6 left/right input labels. All state is local to this device instance.
 var inputMode = 0, selected = '', ports = [], opened = false, initialized = false;
 var refreshing = false, refreshAt = 0, awaitingCheck = false, checkAt = 0;
+var collecting = false, pendingFrames = [null,null];
 var buffer = '', discard = true, lastByteAt = 0, times = [0,0];
 var rxBytes = 0, boardStatus = null, boardStatusAt = 0;
 var badFrames = 0, boardFault = '', portFault = '', lastStatus = '', lastUi = 0;
@@ -52,7 +53,7 @@ function mode(v) {
     outlet(2,inputMode?0:1);title();status(true);
 }
 function closePort() {
-    var wasOpen=opened;opened=false;awaitingCheck=false;
+    var wasOpen=opened;opened=false;awaitingCheck=false;collecting=false;pendingFrames=[null,null];
     outlet(0,'poll',0);outlet(0,'close');resetParser();portFault='';
     if(wasOpen)outlet(1,'reset');
 }
@@ -94,7 +95,7 @@ function connect(v) {
     // A port selection failure may revert to the previous name. Check the name
     // before accepting bytes; status only says streaming after a VALID frame.
     awaitingCheck=true;checkAt=now();outlet(0,'port',selected);outlet(0,'open');outlet(0,'getport');
-    if(opened)outlet(0,'poll',5);
+    if(opened)outlet(0,'poll',2);
     status(true);
 }
 function samePort(a,b) {
@@ -148,13 +149,14 @@ function complete(text) {
             for(var i=0;i<4;i++){var s=f[[3,4,6,7][i]];var n=Number(s);if(!/^\d+$/.test(s)||!finite(n)||n>4294967295)ok=false;values.push(n);}
             if(ok){boardStatus=values;boardStatusAt=now();}
         }
-        if(text==='#ERROR,RIGHT_SERIAL_INIT') {boardFault=text;times[1]=0;outlet(1,'lostright');}
+        if(text==='#ERROR,RIGHT_SERIAL_INIT') {boardFault=text;times[1]=0;pendingFrames[1]=null;outlet(1,'lostright');}
         status(false);return;
     }
     var frame=parseFrame(text);
     if(!frame){badFrames++;status(false);return;}
     times[frame.hand]=now();portFault='';if(frame.hand===1)boardFault='';
-    outlet(1,[frame.hand===0?'rawleft':'rawright'].concat(frame.values));
+    if(collecting)pendingFrames[frame.hand]=frame.values;
+    else outlet(1,[frame.hand===0?'rawleft':'rawright'].concat(frame.values));
     status(false);
 }
 function byte(v) {
@@ -175,7 +177,16 @@ function byte(v) {
     buffer+=String.fromCharCode(v);
 }
 function msg_int(v) { byte(v); }
-function list() { var a=args(arguments);for(var i=0;i<a.length;i++)byte(a[i]); }
+function list() {
+    // A native read-count-sized list arrives once per poll. Parse all framing,
+    // but only forward the latest complete valid frame for each hand in it.
+    var a=args(arguments);collecting=true;pendingFrames=[null,null];
+    try {for(var i=0;i<a.length;i++)byte(a[i]);}
+    finally {collecting=false;}
+    for(var h=0;h<2;h++)if(pendingFrames[h])
+        outlet(1,[h===0?'rawleft':'rawright'].concat(pendingFrames[h]));
+    pendingFrames=[null,null];
+}
 function tick() {
     if(refreshing&&now()-refreshAt>1000){refreshing=false;portFault='USB · port list unavailable';}
     if(awaitingCheck&&now()-checkAt>2000){closePort();portFault='USB · port check timeout';}

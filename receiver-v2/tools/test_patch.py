@@ -45,13 +45,26 @@ assert (('audioin',1),('audioout',1)) in lines
 assert ids['osc_port']['saved_attribute_attributes']['valueof']['parameter_type']==0
 assert ids['host_state']['saved_attribute_attributes']['valueof']['parameter_type']==3
 assert ids['osc_enable']['saved_attribute_attributes']['valueof']['parameter_initial']==[0]
-assert ids['engine']['numoutlets']==5
+assert ids['engine']['numoutlets']==7
 assert ids['input_mode']['saved_attribute_attributes']['valueof']['parameter_enum']==['OSC','USB']
 assert '@autoopen 0' in ids['serial']['text'] and '@baud 115200' in ids['serial']['text']
 assert (('usb_controller',0),('serial',0)) in lines
-assert (('serial',0),('usb_controller',0)) in lines
-assert (('serial',1),('serial_info',0)) in lines
-assert (('serial_info',0),('usb_controller',0)) in lines
+assert '@asyncread 1' in ids['serial']['text'] and '@defer 0' in ids['serial']['text']
+for a,o,b,i in [('serial',0,'serial_group',0),('serial',1,'serial_route',0),
+ ('serial_route',0,'serial_read_setup',0),('serial_read_setup',1,'serial_group_clear',0),
+ ('serial_group_clear',0,'serial_group',0),('serial_read_setup',0,'serial_group_size',0),
+ ('serial_group_size',0,'serial_group',1),('serial_group',0,'serial_batch_defer',0),
+ ('serial_batch_defer',0,'usb_controller',0),('serial_route',1,'serial_info',0),
+ ('serial_info',0,'serial_info_defer',0),('serial_info_defer',0,'usb_controller',0)]:
+    assert ((a,o),(b,i)) in lines
+assert ids['serial_group']['text']=='zl group 1 @zlmaxsize 2048'
+assert ids['smooth_ms']['saved_attribute_attributes']['valueof']['parameter_initial']==[8]
+for h,name in enumerate(['left','right']):
+    assert (('engine',5+h),(name+'_monitor_unpack',0)) in lines
+    assert (('engine',5+h),(name+'_art',0)) in lines
+    for ch,finger in enumerate(['pinky','ring','middle','index','thumb']):
+        assert ((name+'_monitor_unpack',ch),(name+'_'+finger+'_set',0)) in lines
+        assert ((name+'_unpack',ch),(name+'_'+finger+'_set',0)) not in lines
 assert (('usb_controller',1),('engine',0)) in lines
 assert (('usb_controller',3),('usb_settings',0)) in lines
 assert (('usb_controller',4),('usb_settings',1)) in lines

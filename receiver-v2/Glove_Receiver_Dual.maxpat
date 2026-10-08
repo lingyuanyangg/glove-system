@@ -209,8 +209,10 @@
           ],
           "text": "js glove_dual_engine.js",
           "numinlets": 1,
-          "numoutlets": 5,
+          "numoutlets": 7,
           "outlettype": [
+            "",
+            "",
             "",
             "",
             "",
@@ -392,6 +394,28 @@
             22
           ],
           "text": "unpack f f f f f"
+        }
+      },
+      {
+        "box": {
+          "id": "left_monitor_unpack",
+          "maxclass": "newobj",
+          "patching_rect": [
+            30,
+            800,
+            555,
+            22
+          ],
+          "text": "unpack f f f f f",
+          "numinlets": 1,
+          "numoutlets": 5,
+          "outlettype": [
+            "float",
+            "float",
+            "float",
+            "float",
+            "float"
+          ]
         }
       },
       {
@@ -27269,6 +27293,28 @@
             22
           ],
           "text": "unpack f f f f f"
+        }
+      },
+      {
+        "box": {
+          "id": "right_monitor_unpack",
+          "maxclass": "newobj",
+          "patching_rect": [
+            690,
+            800,
+            555,
+            22
+          ],
+          "text": "unpack f f f f f",
+          "numinlets": 1,
+          "numoutlets": 5,
+          "outlettype": [
+            "float",
+            "float",
+            "float",
+            "float",
+            "float"
+          ]
         }
       },
       {
@@ -54158,7 +54204,7 @@
               "parameter_mmin": 0,
               "parameter_mmax": 500,
               "parameter_initial": [
-                30
+                8
               ],
               "parameter_initial_enable": 1,
               "parameter_unitstyle": 2
@@ -54651,7 +54697,7 @@
           "maxclass": "newobj",
           "patching_rect": [
             20,
-            2984,
+            3032,
             145,
             22
           ],
@@ -54664,7 +54710,7 @@
           "maxclass": "newobj",
           "patching_rect": [
             20,
-            3008,
+            3056,
             145,
             22
           ],
@@ -54677,7 +54723,7 @@
           "maxclass": "newobj",
           "patching_rect": [
             20,
-            3032,
+            3080,
             145,
             22
           ],
@@ -54690,7 +54736,7 @@
           "maxclass": "newobj",
           "patching_rect": [
             20,
-            3056,
+            3104,
             145,
             22
           ],
@@ -55407,7 +55453,7 @@
             145,
             22
           ],
-          "text": "serial @baud 115200 @autoopen 0 @poll 0 @chunk 0 @defer 1 @xonxoff 0",
+          "text": "serial @baud 115200 @autoopen 0 @poll 0 @asyncread 1 @bufsize 2048 @chunk 0 @defer 0 @xonxoff 0",
           "numinlets": 1,
           "numoutlets": 2,
           "outlettype": [
@@ -55418,7 +55464,7 @@
       },
       {
         "box": {
-          "id": "serial_info",
+          "id": "serial_group",
           "maxclass": "newobj",
           "patching_rect": [
             30,
@@ -55426,7 +55472,141 @@
             145,
             22
           ],
-          "text": "prepend serialinfo"
+          "text": "zl group 1 @zlmaxsize 2048",
+          "numinlets": 2,
+          "numoutlets": 2,
+          "outlettype": [
+            "",
+            ""
+          ]
+        }
+      },
+      {
+        "box": {
+          "id": "serial_route",
+          "maxclass": "newobj",
+          "patching_rect": [
+            275,
+            1290,
+            145,
+            22
+          ],
+          "text": "route read",
+          "numinlets": 1,
+          "numoutlets": 2,
+          "outlettype": [
+            "",
+            ""
+          ]
+        }
+      },
+      {
+        "box": {
+          "id": "serial_read_setup",
+          "maxclass": "newobj",
+          "patching_rect": [
+            520,
+            1290,
+            145,
+            22
+          ],
+          "text": "t i b",
+          "numinlets": 1,
+          "numoutlets": 2,
+          "outlettype": [
+            "int",
+            "bang"
+          ]
+        }
+      },
+      {
+        "box": {
+          "id": "serial_group_clear",
+          "maxclass": "message",
+          "patching_rect": [
+            765,
+            1290,
+            145,
+            22
+          ],
+          "text": "zlclear",
+          "numinlets": 2,
+          "numoutlets": 1,
+          "outlettype": [
+            ""
+          ]
+        }
+      },
+      {
+        "box": {
+          "id": "serial_group_size",
+          "maxclass": "newobj",
+          "patching_rect": [
+            1010,
+            1290,
+            145,
+            22
+          ],
+          "text": "max 1",
+          "numinlets": 2,
+          "numoutlets": 1,
+          "outlettype": [
+            "int"
+          ]
+        }
+      },
+      {
+        "box": {
+          "id": "serial_batch_defer",
+          "maxclass": "newobj",
+          "patching_rect": [
+            30,
+            1345,
+            145,
+            22
+          ],
+          "text": "deferlow",
+          "numinlets": 1,
+          "numoutlets": 1,
+          "outlettype": [
+            ""
+          ]
+        }
+      },
+      {
+        "box": {
+          "id": "serial_info_defer",
+          "maxclass": "newobj",
+          "patching_rect": [
+            275,
+            1345,
+            145,
+            22
+          ],
+          "text": "deferlow",
+          "numinlets": 1,
+          "numoutlets": 1,
+          "outlettype": [
+            ""
+          ]
+        }
+      },
+      {
+        "box": {
+          "id": "serial_info",
+          "maxclass": "newobj",
+          "patching_rect": [
+            520,
+            1345,
+            145,
+            22
+          ],
+          "text": "prepend serialinfo",
+          "numinlets": 1,
+          "numoutlets": 1,
+          "outlettype": [
+            ""
+          ]
         }
       },
       {
@@ -55434,8 +55614,8 @@
           "id": "input_mode_command",
           "maxclass": "newobj",
           "patching_rect": [
-            275,
-            1290,
+            765,
+            1345,
             145,
             22
           ],
@@ -55447,8 +55627,8 @@
           "id": "usb_chooseport_command",
           "maxclass": "newobj",
           "patching_rect": [
-            520,
-            1290,
+            1010,
+            1345,
             145,
             22
           ],
@@ -55460,8 +55640,8 @@
           "id": "usb_refresh_command",
           "maxclass": "newobj",
           "patching_rect": [
-            765,
-            1290,
+            30,
+            1400,
             145,
             22
           ],
@@ -55473,8 +55653,8 @@
           "id": "usb_connect_command",
           "maxclass": "newobj",
           "patching_rect": [
-            1010,
-            1290,
+            275,
+            1400,
             145,
             22
           ],
@@ -55486,8 +55666,8 @@
           "id": "usb_disconnect_command",
           "maxclass": "newobj",
           "patching_rect": [
-            30,
-            1345,
+            520,
+            1400,
             145,
             22
           ],
@@ -55499,8 +55679,8 @@
           "id": "usb_init",
           "maxclass": "message",
           "patching_rect": [
-            275,
-            1345,
+            765,
+            1400,
             145,
             22
           ],
@@ -55512,8 +55692,8 @@
           "id": "usb_init_defer",
           "maxclass": "newobj",
           "patching_rect": [
-            520,
-            1345,
+            1010,
+            1400,
             145,
             22
           ],
@@ -55525,8 +55705,8 @@
           "id": "usb_saved_port",
           "maxclass": "newobj",
           "patching_rect": [
-            765,
-            1345,
+            30,
+            1455,
             145,
             22
           ],
@@ -55756,6 +55936,18 @@
       {
         "patchline": {
           "source": [
+            "engine",
+            5
+          ],
+          "destination": [
+            "left_monitor_unpack",
+            0
+          ]
+        }
+      },
+      {
+        "patchline": {
+          "source": [
             "handroute",
             0
           ],
@@ -55781,7 +55973,7 @@
         "patchline": {
           "source": [
             "engine",
-            0
+            5
           ],
           "destination": [
             "left_art",
@@ -55804,7 +55996,7 @@
       {
         "patchline": {
           "source": [
-            "left_unpack",
+            "left_monitor_unpack",
             0
           ],
           "destination": [
@@ -55876,7 +56068,7 @@
       {
         "patchline": {
           "source": [
-            "left_unpack",
+            "left_monitor_unpack",
             1
           ],
           "destination": [
@@ -55948,7 +56140,7 @@
       {
         "patchline": {
           "source": [
-            "left_unpack",
+            "left_monitor_unpack",
             2
           ],
           "destination": [
@@ -56020,7 +56212,7 @@
       {
         "patchline": {
           "source": [
-            "left_unpack",
+            "left_monitor_unpack",
             3
           ],
           "destination": [
@@ -56092,7 +56284,7 @@
       {
         "patchline": {
           "source": [
-            "left_unpack",
+            "left_monitor_unpack",
             4
           ],
           "destination": [
@@ -56260,6 +56452,18 @@
       {
         "patchline": {
           "source": [
+            "engine",
+            6
+          ],
+          "destination": [
+            "right_monitor_unpack",
+            0
+          ]
+        }
+      },
+      {
+        "patchline": {
+          "source": [
             "handroute",
             1
           ],
@@ -56285,7 +56489,7 @@
         "patchline": {
           "source": [
             "engine",
-            1
+            6
           ],
           "destination": [
             "right_art",
@@ -56308,7 +56512,7 @@
       {
         "patchline": {
           "source": [
-            "right_unpack",
+            "right_monitor_unpack",
             0
           ],
           "destination": [
@@ -56380,7 +56584,7 @@
       {
         "patchline": {
           "source": [
-            "right_unpack",
+            "right_monitor_unpack",
             1
           ],
           "destination": [
@@ -56452,7 +56656,7 @@
       {
         "patchline": {
           "source": [
-            "right_unpack",
+            "right_monitor_unpack",
             2
           ],
           "destination": [
@@ -56524,7 +56728,7 @@
       {
         "patchline": {
           "source": [
-            "right_unpack",
+            "right_monitor_unpack",
             3
           ],
           "destination": [
@@ -56596,7 +56800,7 @@
       {
         "patchline": {
           "source": [
-            "right_unpack",
+            "right_monitor_unpack",
             4
           ],
           "destination": [
@@ -57128,7 +57332,7 @@
             0
           ],
           "destination": [
-            "usb_controller",
+            "serial_group",
             0
           ]
         }
@@ -57137,6 +57341,102 @@
         "patchline": {
           "source": [
             "serial",
+            1
+          ],
+          "destination": [
+            "serial_route",
+            0
+          ]
+        }
+      },
+      {
+        "patchline": {
+          "source": [
+            "serial_route",
+            0
+          ],
+          "destination": [
+            "serial_read_setup",
+            0
+          ]
+        }
+      },
+      {
+        "patchline": {
+          "source": [
+            "serial_read_setup",
+            1
+          ],
+          "destination": [
+            "serial_group_clear",
+            0
+          ]
+        }
+      },
+      {
+        "patchline": {
+          "source": [
+            "serial_group_clear",
+            0
+          ],
+          "destination": [
+            "serial_group",
+            0
+          ]
+        }
+      },
+      {
+        "patchline": {
+          "source": [
+            "serial_read_setup",
+            0
+          ],
+          "destination": [
+            "serial_group_size",
+            0
+          ]
+        }
+      },
+      {
+        "patchline": {
+          "source": [
+            "serial_group_size",
+            0
+          ],
+          "destination": [
+            "serial_group",
+            1
+          ]
+        }
+      },
+      {
+        "patchline": {
+          "source": [
+            "serial_group",
+            0
+          ],
+          "destination": [
+            "serial_batch_defer",
+            0
+          ]
+        }
+      },
+      {
+        "patchline": {
+          "source": [
+            "serial_batch_defer",
+            0
+          ],
+          "destination": [
+            "usb_controller",
+            0
+          ]
+        }
+      },
+      {
+        "patchline": {
+          "source": [
+            "serial_route",
             1
           ],
           "destination": [
@@ -57149,6 +57449,18 @@
         "patchline": {
           "source": [
             "serial_info",
+            0
+          ],
+          "destination": [
+            "serial_info_defer",
+            0
+          ]
+        }
+      },
+      {
+        "patchline": {
+          "source": [
+            "serial_info_defer",
             0
           ],
           "destination": [
