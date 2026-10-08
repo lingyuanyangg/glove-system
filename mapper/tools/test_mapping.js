@@ -2,7 +2,7 @@
 // This checks range arithmetic; it cannot exercise Live API or audio scheduling.
 const fs=require('fs'),path=require('path'),assert=require('assert');
 const root=path.resolve(__dirname,'..');
-const patch=JSON.parse(fs.readFileSync(path.join(root,'Glove_Receiver_Dual.maxpat'))).patcher;
+const patch=JSON.parse(fs.readFileSync(path.join(root,'Glove_Mapper.maxpat'))).patcher;
 function model(mapper){
  const p=mapper.boxes.find(o=>o.box.text==='p Scale').box.patcher;
  const boxes=Object.fromEntries(p.boxes.map(o=>[o.box.id,o.box]));

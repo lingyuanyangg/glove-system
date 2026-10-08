@@ -1,6 +1,6 @@
 # Glove Receiver Dual
 
-A compact, dual-hand Max for Live audio effect based on the original `GloveRecevier` and the **ElastremeSense Manu-5D e-skin data glove kit** project. It receives both hands over USB or OSC, captures independent open/fist calibration, filters finger jitter, maps ten finger values to adjustable Live parameter ranges, and forwards normalized OSC frames. The original normalization is retained as the fallback before calibration.
+A compact, dual-hand Max for Live audio effect based on the original `GloveRecevier` and the **ElastremeSense Manu-5D e-skin data glove kit** project. It receives both hands over USB or OSC, captures independent open/fist calibration, filters finger jitter, displays animated finger curl, and forwards normalized OSC frames. Native Map/Min/Max now live in the separate [Glove Mapper](../mapper/README.md). The original normalization is retained as the fallback before calibration.
 
 [Download the receiver and USB firmware](Glove_Receiver_Dual.zip).
 
@@ -27,7 +27,7 @@ These are five **degree values**, already divided by ten in the firmware; this r
 
 Port enumeration, Open/Close and 2ms polling use Max's native `serial` object; no Node process, Python bridge, driver installer or serial package is bundled. A driver may be needed if the operating system does not expose the board's port. The saved Live Set retains **the port name**, not its menu index. Port recall and device load always start closed; click Open after confirming the device. A waiting-data status is not proof of successful Bluetooth pairing or an open physical port. The corrected USB firmware sends a one-second board diagnostic packet. While waiting, **board OK** confirms a recent status packet and displays UART byte/valid-frame counters for each hand; **board status stale** means no recent status packet. Diagnostic packets never refresh GLeft/GRight or drive mappings. Zero bytes versus incoming bytes without valid hand frames are distinguished in the USB status.
 
-The compact native main UI stays **808 × 169**, within Live's fixed device height. Input selects OSC or USB; **USB…** opens a separate **580 × 80** native settings window for Port, Refresh, Open, Close and status. See [Cycling ’74's device UI guide](https://docs.cycling74.com/userguide/m4l/live_userinterfaces/). Keep one receiver per Set because the GLeft/GRight buses are shared.
+The compact native main UI stays **648 × 169**, within Live's fixed device height. Input selects OSC or USB; **USB…** opens a separate **580 × 80** native settings window for Port, Refresh, Open, Close and status. See [Cycling ’74's device UI guide](https://docs.cycling74.com/userguide/m4l/live_userinterfaces/). Keep one receiver per Set because the GLeft/GRight buses are shared.
 
 ## OSC input and finger order
 
@@ -70,19 +70,17 @@ Completed pairs are stored through a bound `pattr` Live parameter with the Set. 
 
 Calibrate before recording regression or classification examples. If a saved model was trained with different calibration, retrain it using the new input scale. A recorded fist is **0.9**, so existing rules that require a value of exactly 1.0 may need adjustment.
 
-## Mapping and interface
+## Interface and independent Mapper
 
-The device uses native `live.numbox`, `live.text` and `live.comment` controls. Two mirrored vector hand outlines sit below the finger displays. Each display shows its filtered value from **0.000 to 1.000**. The small finger strokes brighten with movement. Each finger has an embedded, compact version of Cycling '74's installed `liveui.map` module.
+The Receiver has no embedded mapping components or `live.remote~` objects. Its native Live presentation is **648 × 169**, reduced from 808 pixels wide. Each hand shows five read-only **0.000–1.000** values above individual curl meters. The meters have a 0.9 calibrated-fist mark. Mirrored vector hands shorten and fold each finger with its normalized curl; faint open outlines provide a reference. These are an illustrative curl view, not a measured joint-angle reconstruction. Number/hand drawing remains limited to approximately 30Hz.
 
-Click **Map**, then click a mappable Live parameter. The button shows an abbreviated target name. Click **×** to release that mapping. Each finger shows native **Min** and **Max** controls below Map, expressed as **0–100% of the target parameter's native range**, initially 0% and 100%. They are saved independently with the mapping and Set. Min can exceed Max for an inverted response, and equal values fix the target at one point.
+Filter/Input/USB settings occupy the first bottom row; OSC destination/output occupies the second. Independent Calibrate and USB windows retain their controls and dimensions.
 
-For example, Min = 20% and Max = 80% gives 20% at open (0.0), **74% at fist (0.9)** and 80% at the headroom limit (1.0). To reach a particular value at the captured fist, account for its 0.9 input. These are target ranges: they do not alter finger displays, Max buses or OSC values.
+Load [**Glove Mapper**](../mapper/README.md) for ten native Map/Min/Max assignments. It listens to `GLeft` / `GRight` and the Receiver's change-driven `GLeftControl` / `GRightControl` side buses. Signals update without waiting for monitor drawing. The learning buses continue to represent fresh physical input only.
 
-The embedded native mapper scales the input signal into the target's actual units. Ten `live.remote~ @normalized 0 @smoothing 0.` objects consume that scaled signal; they require Live's audio engine to run. This restores the native Min/Max processing that the earlier direct normalized connection bypassed. Existing mapping parameter names and persistence configuration are preserved. Host reload, parameter reassignment, duplicate-device and mapping-persistence behavior must be checked in Live before performance use.
+Existing Receiver assignments do not automatically transfer to a new separate device; reassign them in Mapper. Previous installed files have been backed up. A loaded old Set keeps its embedded old patch until replaced. Review/re-enter input, destination and calibration settings when replacing the instance; matching parameter names are retained, but replacement-state migration has not been verified in Live.
 
-The displays are read-only monitors rather than exposed automation parameters. For a software test, send normalized `/GLeft` or `/GRight` packets to the corresponding input port.
-
-**WAIT** means no data has arrived; **LIVE** means valid incoming data; **HOLD** means no valid packet for one second. During HOLD, the last value remains active and any in-progress smoothing finishes. HOLD does not unmap parameters.
+**WAIT** means no data has arrived; **LIVE** means valid incoming data; **HOLD** means no valid packet for one second. HOLD retains the last values.
 
 ## Jitter suppression
 
@@ -93,7 +91,7 @@ The displays are read-only monitors rather than exposed automation parameters. F
 
 The first valid frame initializes immediately. Smooth = 0 bypasses time smoothing while retaining deadband. Stabilize off bypasses both stages. Deadband = 0 accepts every change. Recommended tuning: increase the deadband when single raw servo steps remain visible; increase smoothing for steadier control, or reduce it for a faster response.
 
-The filtered frame is the single source for the display, native parameter mappings, `send GLeft` / `send GRight`, and OSC forwarding. Every frame has five values from the same processing tick. Mapping and OSC outputs remain change-driven on control outlets 0/1. Number displays and hand drawing use separate monitor outlets 5/6, limited to approximately 30 refreshes/second, always showing the latest filtered value; this limit does not gate the native mappings or learning buses. The GLeft/GRight buses also deliver the filtered frame whenever new valid physical data arrives, even if the pose is stationary. Both buses are emitted from the same filter tick when both hands have pending input. This keeps regression/classification consumers fresh while holding a pose; no new input means no synthetic bus heartbeat. Multiple input frames arriving within one tick coalesce to the latest state. Pending frames older than 100ms at the filter tick do not refresh consumers. A one-off software packet is therefore suitable for display testing, but sustained training/Run needs a real stream.
+The filtered frame is the single source for the display, independent Mapper, `send GLeft` / `send GRight`, and OSC forwarding. Every frame has five values from the same processing tick. Mapping and OSC outputs remain change-driven on control outlets 0/1. Number displays and hand drawing use separate monitor outlets 5/6, limited to approximately 30 refreshes/second, always showing the latest filtered value; this limit does not gate the native mappings or learning buses. The GLeft/GRight buses also deliver the filtered frame whenever new valid physical data arrives, even if the pose is stationary. Both buses are emitted from the same filter tick when both hands have pending input. This keeps regression/classification consumers fresh while holding a pose; no new input means no synthetic bus heartbeat. Multiple input frames arriving within one tick coalesce to the latest state. Pending frames older than 100ms at the filter tick do not refresh consumers. A one-off software packet is therefore suitable for display testing, but sustained training/Run needs a real stream.
 
 ## OSC forwarding
 
@@ -110,17 +108,16 @@ Official object references: [live.map](https://docs.cycling74.com/reference/live
 
 ## Source and rebuild
 
-`Glove_Receiver_Dual.maxpat` is the editable source. The AMXD contains the same patcher payload. Mapping subpatchers are embedded, so no separate `unitPart`, CNMAT decoder, or additional mapping abstraction is required.
+`Glove_Receiver_Dual.maxpat` is the editable source. The AMXD contains the same patcher payload. No mapping subpatcher, `unitPart` or CNMAT decoder is required by this Receiver. The separate Mapper embeds its native mapping modules.
 
 ```sh
 python3 tools/build.py
 node tools/test_engine.js
 node tools/test_usb.js
-node tools/test_mapping.js
 python3 tools/test_patch.py
 ```
 
-The builder uses the official `liveui.map.maxpat` from a locally installed Max for Live package. The hand drawing is original vector JavaScript, not an external image. See `VALIDATION.md` for the actual verification performed and host limitations.
+The Receiver builder uses native Max objects only. The hand drawing is original animated vector JavaScript. See `VALIDATION.md` for the actual verification performed and host limitations.
 
 ## Layout previews
 
@@ -143,7 +140,7 @@ Re-upload the corrected USB firmware from this release: the earlier UNO R4 WiFi 
 - Filtering runs at a nominal 5ms interval. The new Smooth default is 8ms, while Deadband remains 0.003. Under the offline model, a step reaches 95% at the 25ms tick, compared with 90ms for the previous 30ms time constant with 10ms ticks. These numbers describe the filter only, not measured glove-to-Live latency.
 - Live mappings and fresh GLeft/GRight streams do not wait for the approximately 30Hz number/hand monitor redraw. First valid values still initialize immediately. With Smooth = 0, values update immediately on accepted input while deadband remains active.
 
-Reload the updated AMXD, open USB… settings and reopen the selected port. **An existing Set may restore Smooth = 30ms; change it to 8ms (or 0ms for minimum filter delay) manually.** Existing parameter names and mapping persistence are retained. This receiver-only revision does not require re-uploading the already-working corrected USB firmware, and it does not change glove Bluetooth or Arduino frame rates. The supplied firmware caps output at 50 frames/second per hand; host scheduling, audio buffering and Bluetooth transport still contribute latency.
+Reload the updated AMXD, open USB… settings and reopen the selected port. **An existing Set may restore Smooth = 30ms; change it to 8ms (or 0ms for minimum filter delay) manually.** Existing Receiver settings names are retained; mapping persistence now belongs to the standalone Mapper. This receiver-only revision does not require re-uploading the already-working corrected USB firmware, and it does not change glove Bluetooth or Arduino frame rates. The supplied firmware caps output at 50 frames/second per hand; host scheduling, audio buffering and Bluetooth transport still contribute latency.
 
 Official behavior: [serial read counts, background reading and polling](https://docs.cycling74.com/reference/serial/), [zl.group](https://docs.cycling74.com/reference/zl.group/), [FIFO deferral](https://docs.cycling74.com/reference/deferlow/), and [JavaScript thread priority](https://docs.cycling74.com/userguide/javascript/).
 
@@ -153,3 +150,7 @@ Official behavior: [serial read counts, background reading and polling](https://
 **USB… → Swap L/R** exchanges the two physical input slots before calibration/filtering. It affects monitors, maps, GLeft/GRight, OSC and physical-source loss together. The toggle is saved with the Set and defaults off. Calibration endpoints stay with their physical input slots; mapping targets stay with the logical hand. Input labels follow the selected routing. UART counters remain in physical slot L/R order.
 
 The shared Max filter settings and ticks are the same for both hands. The main Arduino input difference is Serial1 hardware for Left versus SoftwareSerial for Right. Updated software-input firmware drains bounded current queues before USB output and protects the shared Right ring counter. An optional [ready-to-upload hardware UART sketch](../arduino/glove_usb_dual_hardware/glove_usb_dual_hardware.ino) uses Right module TXD → **D12**; it requires changing that wire before upload. Read its guide. Receiver updates alone cannot change the Arduino input implementation. Simultaneous input errors and actual hand-to-Live latency must be checked on hardware before calling the issue resolved.
+
+## Receiver / Mapper split — 2026-10-08
+
+The current release removes all ten native Map/Min/Max modules from Receiver and adds a separate 388 × 169 Glove Mapper. Receiver is 648 × 169 with animated finger curl, open-pose reference outlines and individual progress meters. USB/OSC, raw inspection, calibration and filtering algorithms are unchanged. Control side buses retain intermediate smoothing updates without introducing synthetic freshness to training buses.

@@ -17,7 +17,7 @@ def walk(p):
         v=b.get('saved_attribute_attributes',{}).get('valueof')
         if b.get('parameter_enable') and v:params.append(v['parameter_longname'])
         if 'patcher' in b:walk(b['patcher'])
-walk(p);assert len(native_maps)==10
+walk(p);assert len(native_maps)==0
 assert all(b['saved_object_attributes']['_persistence']==1 for b in native_maps)
 assert len(params)==len(set(params)), 'Live parameter names must be globally unique'
 ids={o['box']['id']:o['box'] for o in p['boxes']}
@@ -25,7 +25,6 @@ lines={(tuple(l['patchline']['source']),tuple(l['patchline']['destination'])) fo
 for h,name in enumerate(['left','right']):
     assert ids[name+'_udp']['text']=='udpreceive '+str([7000,6000][h])
     assert (('engine',3+h),(name+'_send',0)) in lines
-    assert (('engine',h),(name+'_unpack',0)) in lines
     assert (('engine',h),(name+'_osc_gate',1)) in lines
     assert ids[name+'_send']['text']=='s G'+name.capitalize()
     assert ids[name+'_osc_prefix']['text']=='prepend /G'+name.capitalize()
@@ -34,23 +33,8 @@ for h,name in enumerate(['left','right']):
     assert (('usb_controller',2),(name+'_input_gate',0)) in lines
     for ch,finger in enumerate(['pinky','ring','middle','index','thumb']):
         n=name+'_'+finger
-        assert ids[n+'_map']['embed']==1
-        assert ((''+name+'_unpack',ch),(n+'_signal',0)) in lines
-        assert ((n+'_map',0),(n+'_remote',0)) in lines
-        assert ((n+'_signal',0),(n+'_remote',0)) not in lines
-        assert ((n+'_map',1),(n+'_remote',1)) in lines
-        assert '@normalized 0' in ids[n+'_remote']['text']
         assert ids[n]['ignoreclick']==1
-        mapper=ids[n+'_map']['patcher']
-        mids={o['box']['id']:o['box'] for o in mapper['boxes']}
-        mlines={(tuple(l['patchline']['source']),tuple(l['patchline']['destination'])) for l in mapper['lines']}
-        for end in ['obj-45','obj-46']:
-            v=mids[end]['saved_attribute_attributes']['valueof']
-            assert mids[end]['presentation']==1 and v['parameter_mmin']==0 and v['parameter_mmax']==100
-        assert (('obj-46',0),('obj-77',1)) in mlines
-        assert (('obj-45',0),('obj-77',2)) in mlines
-        assert (('obj-77',0),('obj-38',0)) in mlines
-        assert (('obj-3',4),('obj-6',0)) in mlines and (('obj-6',0),('obj-77',3)) in mlines
+        assert n+'_map' not in ids and n+'_remote' not in ids and n+'_signal' not in ids
 assert (('audioin',0),('audioout',0)) in lines
 assert (('audioin',1),('audioout',1)) in lines
 assert ids['osc_port']['saved_attribute_attributes']['valueof']['parameter_type']==0
@@ -75,7 +59,7 @@ for h,name in enumerate(['left','right']):
     assert (('engine',5+h),(name+'_art',0)) in lines
     for ch,finger in enumerate(['pinky','ring','middle','index','thumb']):
         assert ((name+'_monitor_unpack',ch),(name+'_'+finger+'_set',0)) in lines
-        assert ((name+'_unpack',ch),(name+'_'+finger+'_set',0)) not in lines
+        assert name+'_unpack' not in ids
 assert (('usb_controller',1),('engine',0)) in lines
 assert (('usb_controller',3),('usb_settings',0)) in lines
 assert (('usb_controller',4),('usb_settings',1)) in lines
@@ -89,7 +73,7 @@ for n in ['glove_dual_engine.js','glove_hands.js','glove_usb_serial.js']:
     assert (root/n).is_file()
 visible=[b for b in ids.values() if b.get('presentation') and b['maxclass']!='jsui']
 for b in visible:
-    x,y,w,h=b['presentation_rect'];assert x>=0 and y>=0 and x+w<=808 and y+h<=169,b['id']
+    x,y,w,h=b['presentation_rect'];assert x>=0 and y>=0 and x+w<=648 and y+h<=169,b['id']
 for i,b in enumerate(visible):
     x,y,w,h=b['presentation_rect']
     for a in visible[i+1:]:
@@ -142,6 +126,6 @@ for h,name in enumerate(['left','right']):
         for a in pv[i+1:]:
             xx,yy,ww,hh=a['presentation_rect']
             assert min(x+w,xx+ww)-max(x,xx)<=0 or min(y+height,yy+hh)-max(y,yy)<=0,(b['id'],a['id'])
-print('PASS: AMXD payload, recursive patch links, unique parameters, 10 persistent native maps,')
-print('      visible native Min/Max, calibration capture/recall wiring, popup bounds, gated OSC + USB,')
-print('      fresh-frame buses, stereo passthrough and 808 × 169 layout bounds/overlap.')
+print('PASS: AMXD payload, recursive patch links, unique parameters, no mapping or remote objects,')
+print('      independent mapping bus outputs, calibration capture/recall wiring, popup bounds, gated OSC + USB,')
+print('      fresh-frame buses, stereo passthrough and 648 × 169 layout bounds/overlap.')

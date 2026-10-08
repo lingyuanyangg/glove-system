@@ -1,12 +1,12 @@
 # Receiver v2 validation — 2026-10-08
 
-## Passed
+## Current release checks
 
 - Executed the **actual shipped `glove_dual_engine.js`** inside a Node VM with stubs for Max's `Task`, `outlet`, `arrayfromargs` and a controlled clock. **26 checks** pass: 15 filtering/freshness/latency checks, seven calibration regressions, two raw-inspection checks and two source-routing checks.
-- Read every embedded patcher recursively and checked object IDs and connections. Verified ten embedded `live.map @strict 1` objects with persistent mapping enabled, globally unique Live parameter names and ten `live.remote~ @normalized 0` targets fed by the native mapper's signal outlet. Visible Min/Max use the target's actual range and retain the original saved parameter names.
-- Checked both UDP receive ports and both gated raw/normalized route paths, USB-native serial/controller/menu connections, independent engine outlets feeding each five-value Max bus, monitor unpacker, control unpacker and OSC gate, and both OSC prefixes.
+- Read every embedded patcher recursively and checked object IDs and connections. Verified that Receiver contains **zero** live.map/live.remote~ objects. Ten persistent native mapping components now belong to the separate Mapper, with their own structural and range checks.
+- Checked both UDP receive ports and both gated raw/normalized route paths, USB-native serial/controller/menu connections, independent engine outlets feeding each five-value Max bus, monitor unpacker, independent Mapper control bus and OSC gate, and both OSC prefixes.
 - Checked independent left/right stereo `plugin~` → `plugout~` connections.
-- Checked all main presentation controls fit **808 × 169** pixels; the independent USB settings window fits **580 × 80** pixels and each calibration window fits **440 × 222**. Presentation controls have no rectangular overlap; hand art is an intentional background. Exported the hand graphics from the actual jsui source and visually reviewed the main/calibration previews.
+- Checked all main presentation controls fit **648 × 169** pixels; the independent USB settings window fits **580 × 80** pixels and each calibration window fits **440 × 222**. Presentation controls have no rectangular overlap; hand art is an intentional background. Exported the hand graphics from the actual jsui source and visually reviewed the main/calibration previews.
 - Verified the AMXD audio-effect header and payload length, and parsed its JSON payload to confirm exact equality with the editable `.maxpat` source.
 - Preserved original published device/model/helper hashes; the original release audit still passes.
 
@@ -93,3 +93,11 @@ The user reports greater Right lag and a thumb value near 0.3, and confirms pose
 
 
 Swap L/R tests cover both raw and normalized routing, correct fresh bus outlets, physical Right-fault propagation, input labels, preserved physical-source calibration and recall ordering. The toggle is neutral/off by default. A generated, ready-to-upload hardware variant matches the shared source except for the selected mode and wiring comments and also compiles independently (55716 flash bytes / 8768 static RAM bytes). No new physical-port opening or flashing was performed.
+
+## Receiver / Mapper split — 2026-10-08
+
+Removed all ten mapping subpatchers, signals and remotes from Receiver. Presentation now fits 648 × 169 with no control overlap. Replaced the static outline with five independent animated curl capsules per hand, an open reference silhouette and 0–1 meters with a 0.9 fist marker. USB/controller/engine code is unchanged; 26 engine and 38 USB regressions still pass. The native mapping arithmetic checks moved to mapper/tools.
+
+Added separate change-driven GLeftControl/GRightControl sends from existing engine control outlets, preserving smoothing ticks for the independent Mapper without changing GLeft/GRight physical-frame freshness. The Mapper's graph check covers both paths.
+
+For this revision, Live UI access succeeded. Loaded both final installed devices on the existing empty fourth audio track. Synthetic normalized OSC values appeared correctly in both devices, with spatially mirrored Right artwork and responsive per-finger meters/curl. HOLD was observed after incoming packets stopped. The Mapper's native Pan assignment, correct target range scaling and × release were exercised; see mapper/VALIDATION.md. Temporary mapping was removed, Pan restored to 0/C and synthetic values cleared. Both devices remain loaded with USB closed; the user's Set was not saved. Actual glove/USB operation, calibration captures, saved Set state migration/recall and audio fidelity were not tested in this revision. Earlier entries above describe historical versions and host-access limitations at those dates.

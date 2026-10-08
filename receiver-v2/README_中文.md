@@ -1,6 +1,6 @@
 # Glove Receiver Dual USB 更新
 
-现在同一个接收器支持 OSC 与 USB 两种输入。主界面保持 808 × 169，底部有 Input 和 USB…；点击 USB… 打开独立原生设置窗口，包含 Port、Refresh、Open、Close 和状态。左右手分别增加 Calibrate，每根手指的 Map 下方增加原生 Min / Max。
+现在同一个接收器支持 OSC 与 USB 两种输入。主界面现为 648 × 169，底部有 Input 和 USB…；点击 USB… 打开独立原生设置窗口，包含 Port、Refresh、Open、Close 和状态。左右手分别增加 Calibrate，十组 Map / Min / Max 已移动到独立的 [Glove Mapper](../mapper/README_中文.md)。
 
 ## 张手 / 握拳校准
 
@@ -22,13 +22,13 @@ USB 和 `/servos` 使用角度校准；`/GLeft`、`/GRight` 可以单独采集�
 
 数字显示、Ableton Mapping、GLeft / GRight 和 OSC 输出都使用同一组校准后的值。校准完成后等待下一帧真实输入，不向学习设备重放旧采样。先校准再进行分类/回归训练；之前用另一组校准训练的模型应重新训练。握拳现在为 0.9，依赖精确 1.0 的旧手势阈值可能需要调整。
 
-## Mapping Min / Max
+## 紧凑 Receiver 与独立 Mapper
 
-每根手指的 Map 下方都有 **Min / Max**，单位是目标参数整个范围的百分比，取值 0–100%，默认 0% / 100%。支持 Min 大于 Max 的反向映射，两个值相同则固定输出。
+Receiver 已删除所有 Map / Min / Max 和 live.remote~，只负责接收、校准、防抖、显示及 OSC 转发。界面宽度从 808 缩到 648，高度保持 169。十个 0–1 数字下方增加弯曲进度条与 0.9 握拳刻度；双手线条随每根手指的值收缩、弯曲，淡色张手轮廓作为参考。手形是弯曲度示意，不是关节角度重建。
 
-例如 Min = 20%、Max = 80%：张手 0 对应 20%，握拳 0.9 对应 **74%**，继续上浮到 1 对应 80%。Min / Max 只影响映射目标，不改变显示值、GLeft / GRight 或 OSC。端点与原生 Mapping 参数一起保存在 Set 中。
+加载独立 `Glove_Mapper.amxd` 后自动使用左右手数据，每根手指仍有原生 Map、×、Min 和 Max。控制更新不等待数字/手形绘制。USB、校准及防抖算法不变。
 
-本次恢复原生 liveui.map 的范围信号输出，使用 `live.remote~ @normalized 0` 接收目标参数的实际单位。需要 Live 音频引擎运行。旧版本绕过了组件内部范围处理，本次修正这条连接；旧参数名称及 mapping 持久化配置保留。
+旧 Receiver 的映射不会自动迁移到另一个设备，需要在 Mapper 中重新指定。旧版安装文件夹已备份。旧 Set 内的已加载实例需替换才会采用新的界面；替换时检查输入、OSC 目的地和校准设置，实例替换后的状态自动迁移尚未实测。
 
 ## 使用 USB
 
