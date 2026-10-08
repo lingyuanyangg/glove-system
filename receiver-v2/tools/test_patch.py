@@ -82,7 +82,7 @@ assert (('usb_controller',4),('usb_settings',1)) in lines
 assert '@bindto usb_controller' in ids['usb_saved_port']['text']
 assert '@bindto engine' in ids['calibration_state']['text']
 assert ids['calibration_state']['saved_attribute_attributes']['valueof']['parameter_type']==3
-assert ids['statusroute']['text']=='route status calstatus'
+assert ids['statusroute']['text']=='route status calstatus caldata routing'
 assert (('statusroute',1),('calroute',0)) in lines
 for n in ['glove_dual_engine.js','glove_hands.js','glove_usb_serial.js']:
     assert any(d['name']==n for d in p['dependency_cache'])
@@ -105,6 +105,12 @@ for i,target in enumerate(['usb_ports','usb_status']):
 for i,source in enumerate(['usb_ports','usb_refresh','usb_connect','usb_close']):
     assert ((source,0),('usb_out_'+str(i),0)) in ulines
     assert (('usb_settings',i),('usb_'+['chooseport','refresh','connect','disconnect'][i]+'_command',0)) in lines
+assert (('swap_hands',0),('usb_out_4',0)) in ulines
+assert (('usb_settings',4),('swap_command',0)) in lines
+assert (('swap_command',0),('engine',0)) in lines and ids['swap_command']['text']=='prepend swaphands'
+assert (('statusroute',3),('swap_title',0)) in lines
+assert (('swap_title',0),('usb_controller',0)) in lines
+assert uids['swap_hands']['saved_attribute_attributes']['valueof']['parameter_initial']==[0]
 uv=[b for b in uids.values() if b.get('presentation')]
 for i,b in enumerate(uv):
     x,y,w,h=b['presentation_rect'];assert x>=0 and y>=0 and x+w<=580 and y+h<=80
@@ -122,6 +128,8 @@ for h,name in enumerate(['left','right']):
     assert ((name+'_calibration',0),('engine',0)) in lines
     assert ((name+'_cal_control',0),(name+'_calibration',0)) in lines
     assert (('calroute',h),(name+'_cal_statusset',0)) in lines
+    assert (('caldataroute',h),(name+'_calibration',0)) in lines
+    assert (('statusroute',2),('caldataroute',0)) in lines
     assert ids[name+'_cal_press']['text']=='t b b'
     for pose in ['open','fist','clear']:
         assert pi['cal_'+pose+'_bang']['text']=='t b'
@@ -130,7 +138,7 @@ for h,name in enumerate(['left','right']):
         assert (('cal_'+pose+'_command',0),('cal_output',0)) in pl
     pv=[b for b in pi.values() if b.get('presentation')]
     for i,b in enumerate(pv):
-        x,y,w,height=b['presentation_rect'];assert 0<=x and 0<=y and x+w<=440 and y+height<=125
+        x,y,w,height=b['presentation_rect'];assert 0<=x and 0<=y and x+w<=440 and y+height<=222
         for a in pv[i+1:]:
             xx,yy,ww,hh=a['presentation_rect']
             assert min(x+w,xx+ww)-max(x,xx)<=0 or min(y+height,yy+hh)-max(y,yy)<=0,(b['id'],a['id'])

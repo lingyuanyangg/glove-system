@@ -48,7 +48,9 @@ The right hand initially uses the same fallback range. Verify its physical senso
 
 ## Open / fist calibration
 
-Each hand has its own **Calibrate** button and native **440 × 125** settings window. Connect the gloves first, then calibrate each hand independently:
+Each hand has its own **Calibrate** button and native **440 × 222** settings window. Its read-only inspection table shows all five **Input** values before receiver calibration or filtering, plus the captured Open/Fist endpoints. USB input is in degrees, already divided by ten by Arduino. A **fresh / stale** label describes arrival at Max, not the original Bluetooth sample time. The table refreshes at up to 5Hz independently of control. Before calibration, a normalized thumb value near 0.3 can simply mean an input angle near 103° under the fallback `(angle - 70) / 110`; it does not establish sensor error.
+
+Connect the gloves first, then calibrate each hand independently:
 
 1. Open the hand naturally. Hold it still for at least **0.3 seconds**, then click **Open → 0**.
 2. Make a comfortable fist. Hold it still for at least **0.3 seconds**, then click **Fist → 0.9**. Both captures must succeed. The window reports the active calibration.
@@ -144,3 +146,10 @@ Re-upload the corrected USB firmware from this release: the earlier UNO R4 WiFi 
 Reload the updated AMXD, open USB… settings and reopen the selected port. **An existing Set may restore Smooth = 30ms; change it to 8ms (or 0ms for minimum filter delay) manually.** Existing parameter names and mapping persistence are retained. This receiver-only revision does not require re-uploading the already-working corrected USB firmware, and it does not change glove Bluetooth or Arduino frame rates. The supplied firmware caps output at 50 frames/second per hand; host scheduling, audio buffering and Bluetooth transport still contribute latency.
 
 Official behavior: [serial read counts, background reading and polling](https://docs.cycling74.com/reference/serial/), [zl.group](https://docs.cycling74.com/reference/zl.group/), [FIFO deferral](https://docs.cycling74.com/reference/deferlow/), and [JavaScript thread priority](https://docs.cycling74.com/userguide/javascript/).
+
+
+## Input routing and Right latency
+
+**USB… → Swap L/R** exchanges the two physical input slots before calibration/filtering. It affects monitors, maps, GLeft/GRight, OSC and physical-source loss together. The toggle is saved with the Set and defaults off. Calibration endpoints stay with their physical input slots; mapping targets stay with the logical hand. Input labels follow the selected routing. UART counters remain in physical slot L/R order.
+
+The shared Max filter settings and ticks are the same for both hands. The main Arduino input difference is Serial1 hardware for Left versus SoftwareSerial for Right. Updated software-input firmware drains bounded current queues before USB output and protects the shared Right ring counter. An optional [ready-to-upload hardware UART sketch](../arduino/glove_usb_dual_hardware/glove_usb_dual_hardware.ino) uses Right module TXD → **D12**; it requires changing that wire before upload. Read its guide. Receiver updates alone cannot change the Arduino input implementation. Simultaneous input errors and actual hand-to-Live latency must be checked on hardware before calling the issue resolved.

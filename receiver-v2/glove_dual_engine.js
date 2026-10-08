@@ -6,9 +6,11 @@ outlets = 7;
 var minimum = [0, 18, 18, 18, 70];
 var maximum = [180, 180, 180, 180, 180];
 var tau = 8, dead = 0.003, filtering = 1;
+var swapped = 0; // Calibration records stay with physical input slots.
 var hands = [makehand(), makehand()];
 var calibrated = [null, null];
 var poses = [makeposes(), makeposes()];
+var inspected = [{at:0,cache:{}},{at:0,cache:{}}];
 var lastTick = 0;
 var runner = new Task(tick, this);
 runner.interval = 5;
@@ -26,6 +28,12 @@ function loadbang() { start(); report(); calreport(); }
 function notifydeleted() { stop(); }
 function smooth(v) { if (finite(v)) tau = Math.max(0, Math.min(500, v)); }
 function deadband(v) { if (finite(v)) dead = Math.max(0, Math.min(0.1, v)); }
+function inputslot(h) { return swapped ? 1-h : h; }
+function swaphands(v) {
+    if (v!==0 && v!==1) return;
+    if (swapped!==v) { swapped=v;reset(); }
+    else outlet(2,"routing",swapped);
+}
 function enabled(v) {
     filtering = v ? 1 : 0;
     if (!filtering) {
@@ -39,12 +47,13 @@ function rawright() { receive(1, arrayfromargs(arguments), false); }
 function normleft() { receive(0, arrayfromargs(arguments), true); }
 function normright() { receive(1, arrayfromargs(arguments), true); }
 function receive(index, args, normalized) {
+    var slot=index;index=inputslot(index);
     if (args.length !== 5) { outlet(2, "invalid", index); return; }
     var values = [], i, hand = hands[index], now = Date.now();
     for (i=0; i<5; i++) {
         if (!finite(args[i])) { outlet(2, "invalid", index); return; }
     }
-    var kind = normalized ? "norm" : "raw", state = poses[index], cal = calibrated[index];
+    var kind = normalized ? "norm" : "raw", state = poses[index], cal = calibrated[slot];
     if (state.kind !== kind) { poses[index] = state = makeposes(); state.kind = kind; }
     state.recent.push({ at: now, values: args.slice() });
     while (state.recent.length && (now-state.recent[0].at>250 || state.recent.length>128)) state.recent.shift();
@@ -83,6 +92,7 @@ function process(now) {
     var dt = Math.max(0, now-lastTick); lastTick=now;
     var a = !filtering || tau===0 ? 1 : 1-Math.exp(-dt/tau);
     for (var h=0; h<2; h++) {
+        calinspect(h,false,now);
         var hand=hands[h]; if (!hand.ready) continue;
         for (var i=0; i<5; i++) {
             hand.value[i] += a*(hand.target[i]-hand.value[i]);
@@ -119,13 +129,14 @@ function setstatus(h, s) {
 }
 function report() {
     for (var h=0; h<2; h++) outlet(2,"status",h,hands[h].status);
+    outlet(2,"routing",swapped);
 }
-function lostleft() { lost(0); }
-function lostright() { lost(1); }
+function lostleft() { lost(inputslot(0)); }
+function lostright() { lost(inputslot(1)); }
 function lost(h) { hands[h].pendingBus=false;hands[h].received=0;poses[h]=makeposes();setstatus(h,"HOLD"); }
 // Re-send current frames when OSC forwarding is enabled or its destination changes.
 function flush() { for (var h=0; h<2; h++) if (hands[h].ready) emit(h,true); }
-function reset() { hands=[makehand(),makehand()]; poses=[makeposes(),makeposes()]; lastTick=Date.now(); report(); calreport(); }
+function reset() { hands=[makehand(),makehand()]; poses=[makeposes(),makeposes()]; inspected=[{at:0,cache:{}},{at:0,cache:{}}]; lastTick=Date.now(); report(); calreport(); }
 // Only the capture action averages recent input; ordinary motion gets no extra delay.
 function capture(h, pose) {
     if ((h!==0 && h!==1) || (pose!=="open" && pose!=="fist")) return;
@@ -145,7 +156,7 @@ function capture(h, pose) {
         for (i=0;i<5;i++) if (Math.abs(fist[i]-open[i])<(s.kind==="raw"?5:0.025)) {
             calmessage(h,"Pose span too small: "+["Pinky","Ring","Middle","Index","Thumb"][i]+". Retry this pose.");return;
         }
-        calibrated[h]={kind:s.kind,open:open.slice(),fist:fist.slice()};
+        calibrated[inputslot(h)]={kind:s.kind,open:open.slice(),fist:fist.slice()};
         s.open=null;s.fist=null;
         // Do not replay the captured pose as a fresh learning frame.
         hands[h]=makehand();outlet(2,"status",h,"WAIT");
@@ -153,19 +164,34 @@ function capture(h, pose) {
         calmessage(h,"Calibrated ("+s.kind+"): Open 0.000 / Fist 0.900.");
     } else {
         s[pose]=mean;
-        calmessage(h,(pose==="open"?"Open captured. Now hold fist and click Fist.":"Fist captured. Now open hand and click Open.")+ (calibrated[h]?" Previous pair active.":""));
+        calmessage(h,(pose==="open"?"Open captured. Now hold fist and click Fist.":"Fist captured. Now open hand and click Open.")+ (calibrated[inputslot(h)]?" Previous pair active.":""));
     }
 }
 function clearcal(h) {
     if (h!==0 && h!==1) return;
-    calibrated[h]=null;poses[h]=makeposes();hands[h]=makehand();
+    calibrated[inputslot(h)]=null;poses[h]=makeposes();hands[h]=makehand();
     outlet(2,"status",h,"WAIT");
     if (typeof notifyclients==="function") notifyclients();
     calmessage(h,"Default range restored. Capture Open and Fist.");
 }
-function calmessage(h,s) { outlet(2,"calstatus",h,s); }
+function calmessage(h,s) { outlet(2,"calstatus",h,s);calinspect(h,true,Date.now()); }
 function calreport() {
-    for (var h=0;h<2;h++) calmessage(h,calibrated[h]?"Calibrated ("+calibrated[h].kind+"): Open 0.000 / Fist 0.900.":"Default range. Capture Open and Fist.");
+    for (var h=0;h<2;h++) {var pair=calibrated[inputslot(h)];calmessage(h,pair?"Calibrated ("+pair.kind+"): Open 0.000 / Fist 0.900.":"Default range. Capture Open and Fist.");}
+}
+// Read-only input inspection: before calibration, deadband and smoothing.
+// Cached diagnostics are capped at 5Hz and never enter control/learning outlets.
+function calinspect(h,force,now) {
+    var view=inspected[h];if(!force&&now-view.at<200)return;view.at=now;
+    var s=poses[h],last=s.recent.length?s.recent[s.recent.length-1]:null,cal=calibrated[inputslot(h)];
+    var rows={input:last?last.values:null,open:s.open||(cal?cal.open:null),fist:s.fist||(cal?cal.fist:null)};
+    var kind=s.kind||(cal?cal.kind:"raw");
+    function show(key,value) {if(force||view.cache[key]!==value){view.cache[key]=value;outlet(2,"caldata",h,key,value);}}
+    show("input_label",last?(kind==="raw"?"Input: raw degrees":"Input: normalized")+ (now-last.at<=150?" · fresh":" · stale")+(cal&&cal.kind!==kind?" · stored pair: "+cal.kind:""):"Input: no data");
+    show("open_label",s.open?"Open new":"Open saved");show("fist_label",s.fist?"Fist new":"Fist saved");
+    for(var row in rows)if(rows.hasOwnProperty(row))for(var i=0;i<5;i++) {
+        var rowKind=row==="input"||s[row]?kind:cal?cal.kind:kind;
+        show(row+i,rows[row]?rows[row][i].toFixed(rowKind==="raw"?1:3):"—");
+    }
 }
 // Bound pattr saves endpoints, never recent samples, connection state or held data.
 function getvalueof() { return JSON.stringify({version:1,hands:calibrated}); }

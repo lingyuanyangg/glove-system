@@ -100,9 +100,10 @@ box('colors',text='live.colors',rect=[680,300,75,22])
 box('query_colors','message','everything',rect=[680,268,70,22])
 wire('device','query_colors');wire('colors','query_colors',1);wire('query_colors','colors');wire('colors','art')
 wire('engine','art',2)
-box('statusroute',text='route status calstatus',rect=[290,368,140,22]);wire('engine','statusroute',2)
+box('statusroute',text='route status calstatus caldata routing',rect=[290,368,210,22]);wire('engine','statusroute',2)
 box('handroute',text='route 0 1',rect=[290,404,70,22]);wire('statusroute','handroute')
 box('calroute',text='route 0 1');wire('statusroute','calroute',1)
+box('caldataroute',text='route 0 1');wire('statusroute','caldataroute',2)
 box('calreport',cls='message',text='calreport');wire('device','calreport');wire('calreport','engine')
 for h,(name,port,origin,mirrored) in enumerate([('left',7000,8,False),('right',6000,414,True)]):
     labelname=name.capitalize()
@@ -147,7 +148,7 @@ for h,(name,port,origin,mirrored) in enumerate([('left',7000,8,False),('right',6
     box(name+'_cal_open',cls='message',text='open');wire(name+'_cal_press',name+'_cal_open')
     box(name+'_cal_control',text='pcontrol');wire(name+'_cal_open',name+'_cal_control')
     main_patch=p
-    p=patch();p.update(rect=[120,160,440,125],devicewidth=440)
+    p=patch();p.update(rect=[120,160,440,222],devicewidth=440)
     label('cal_title',labelname.upper()+' HAND  /  CALIBRATION',[10,7,420,18],11)
     label('cal_hint','Hold each pose still for 0.3 seconds before capturing.',[10,29,420,16],10)
     for id,title,x,command in [('open','Open → 0',10,f'capture {h} open'),
@@ -159,7 +160,21 @@ for h,(name,port,origin,mirrored) in enumerate([('left',7000,8,False),('right',6
         wire('cal_'+id+'_command','cal_output')
     label('cal_status','Default range. Capture Open and Fist.',[10,80,420,17],10)
     label('cal_headroom','Fist = 0.900; extra bend may rise to 1.000.',[10,102,420,16],10)
-    box('cal_input','inlet',numinlets=0,numoutlets=1);wire('cal_input','cal_status')
+    label('input_label','Input: no data',[10,124,420,16],10)
+    label('raw_row_label','Input',[10,161,65,17],9)
+    label('open_label','Open saved',[10,181,75,17],9)
+    label('fist_label','Fist saved',[10,201,75,17],9)
+    for ch,finger in enumerate(['PINKY','RING','MIDDLE','INDEX','THUMB']):
+        label('inspect_finger_'+str(ch),finger,[95+64*ch,145,62,12],8)
+        for row,y in [('input',161),('open',181),('fist',201)]:
+            label(row+str(ch),'—',[95+64*ch,y,62,17],10)
+    inspect_keys=['input_label','open_label','fist_label']+[row+str(ch) for row in ['input','open','fist'] for ch in range(5)]
+    box('cal_input','inlet',numinlets=0,numoutlets=1)
+    box('cal_data_route',text='route '+' '.join(inspect_keys),numinlets=1,numoutlets=len(inspect_keys)+1,outlettype=['']*(len(inspect_keys)+1))
+    wire('cal_input','cal_data_route')
+    for i,key in enumerate(inspect_keys):
+        box(key+'_set',text='prepend set');wire('cal_data_route',key+'_set',i);wire(key+'_set',key)
+    wire('cal_data_route','cal_status',len(inspect_keys))
     box('cal_output','outlet',numinlets=1,numoutlets=0)
     calibration_patch=p;p=main_patch
     popup=name+'_calibration'
@@ -169,6 +184,7 @@ for h,(name,port,origin,mirrored) in enumerate([('left',7000,8,False),('right',6
         if isinstance(v,list):p['parameters'][popup+'::'+k]=v
     wire(name+'_cal_control',popup);wire(popup,'engine')
     box(name+'_cal_statusset',text='prepend set');wire('calroute',name+'_cal_statusset',h);wire(name+'_cal_statusset',popup)
+    wire('caldataroute',popup,h)
 
 box('calibration_state',text='pattr hand_calibration @bindto engine @initial none',
     varname='hand_calibration',parameter_enable=1,
@@ -237,24 +253,27 @@ box('usb_ports','umenu',pres=[40,8,286,18],varname='usb_ports',
 button('usb_refresh','Refresh',[334,8,57,18],mode=0)
 button('usb_connect','Open',[399,8,50,18],mode=0)
 button('usb_close','Close',[457,8,50,18],mode=0)
+button('swap_hands','Swap L/R',[515,8,57,18],default=0)
 label('usb_hint','115200 · 8N1 · Close Arduino Serial Monitor before Open',[8,33,564,16])
 label('usb_status','OSC · USB closed',[8,55,564,18],10)
 for i,target in enumerate(['usb_ports','usb_status']):
     box('usb_in_'+str(i),'inlet',rect=[20+i*60,110,25,25],numinlets=0,numoutlets=1)
     wire('usb_in_'+str(i),target)
-for i,source in enumerate(['usb_ports','usb_refresh','usb_connect','usb_close']):
+for i,source in enumerate(['usb_ports','usb_refresh','usb_connect','usb_close','swap_hands']):
     box('usb_out_'+str(i),'outlet',rect=[20+i*60,280,25,25],numinlets=1,numoutlets=0)
     wire(source,'usb_out_'+str(i))
 for i,b in enumerate([o['box'] for o in p['boxes'] if o['box'].get('presentation')]):
     b['patching_rect']=[20+(i%3)*190,150+(i//3)*32, min(b['presentation_rect'][2],180),b['presentation_rect'][3]]
 usb_patch=p;p=main_patch
 box('usb_settings',text='p USB_Settings',patcher=usb_patch,
-    numinlets=2,numoutlets=4,outlettype=['int','','',''],varname='usb_settings')
+    numinlets=2,numoutlets=5,outlettype=['int','','','','int'],varname='usb_settings')
 for k,v in usb_patch['parameters'].items():
     if isinstance(v,list):p['parameters']['usb_settings::'+k]=v
 wire('usb_setup_control','usb_settings')
 box('usb_controller',text='js glove_usb_serial.js',varname='usb_controller',
     numinlets=1,numoutlets=7,outlettype=['','','','','','',''])
+box('swap_command',text='prepend swaphands');wire('usb_settings','swap_command',4);wire('swap_command','engine')
+box('swap_title',text='prepend routeswap');wire('statusroute','swap_title',3);wire('swap_title','usb_controller')
 box('serial',text='serial @baud 115200 @autoopen 0 @poll 0 @asyncread 1 @bufsize 2048 @chunk 0 @defer 0 @xonxoff 0',
     numinlets=1,numoutlets=2,outlettype=['int',''])
 wire('usb_controller','serial')

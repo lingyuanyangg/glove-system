@@ -1,43 +1,43 @@
 {
   "Glove_Receiver_Dual.amxd": {
-    "bytes": 525211,
-    "sha256": "9bdd872eb496c39a6f51f6b4d74e88022716059f80b6500d65b7745ec4195d37"
+    "bytes": 547099,
+    "sha256": "eb9b733c8da51b53fff7e10a82aa4124a2adefb45e998aae32ee5f860fa7fd36"
   },
   "Glove_Receiver_Dual.maxpat": {
-    "bytes": 1958391,
-    "sha256": "fc4aa0a11a5703f046597610be1acc5f778f4ad5abd507a36daed5de58735592"
+    "bytes": 2033053,
+    "sha256": "98c4785876cf3549ce55eb3c8b0ac1d7554920293cbbfaec35332beebde30563"
   },
   "README.md": {
-    "bytes": 16824,
-    "sha256": "a1e55d489278287daaf92914bb88b7c81f137d76a8d574bfb023aed99f185fa1"
+    "bytes": 18505,
+    "sha256": "62a8acc32b7d540efbcfef35a393ae7bf1a13d080ea77acaaf6893c3e50c2947"
   },
   "README_中文.md": {
-    "bytes": 7682,
-    "sha256": "c9d6a2adacc1197e6cd012897c5fe675658570cec3a96a36656a911f7e2f31bf"
+    "bytes": 10337,
+    "sha256": "72f1e08ab063db70d0d1f485322fdcd26dfc77948346a562445f406035f2e6fb"
   },
   "VALIDATION.md": {
-    "bytes": 11930,
-    "sha256": "84976895f0ca5b6dc9aace9286b354233b2f580082ffa46e07c9e9afae89e789"
+    "bytes": 14365,
+    "sha256": "fafd9c37386f904b575752ffe35a211fbe704d0b14e804c3d1a638373d65ba84"
   },
   "calibration-preview.png": {
-    "bytes": 25446,
-    "sha256": "fbae706b5c84552884e33484918d35be89c21cf7a151ff5a171e09c4af4cc9a5"
+    "bytes": 37784,
+    "sha256": "c5e72fe5006c16ccbdb0b261d7c8fe091dc65460395e1dcc009de70283182a43"
   },
   "calibration-preview.svg": {
-    "bytes": 1260,
-    "sha256": "73cf7f3b6b7c86260bec322f0eedb6876e2bb5ec52c1d0f2ab22484dadbaff18"
+    "bytes": 3609,
+    "sha256": "4f811699dcfd55fd72dc2e7fa251c8ed35eba17f2dacdfebf3a9c2866c765860"
   },
   "glove_dual_engine.js": {
-    "bytes": 9411,
-    "sha256": "fce889ce2ec097a1e1ce0717308714373cca95c002649f678598ab5439921da1"
+    "bytes": 11160,
+    "sha256": "c19a3f41e55b1cf105c18a36b1f77c1dea85e68a36535c421d5ca1f375dd3dfb"
   },
   "glove_hands.js": {
     "bytes": 2862,
     "sha256": "c948d10b2408866ec21eb8502820a1211574a1abca1289c43d0010b5fe31f75d"
   },
   "glove_usb_serial.js": {
-    "bytes": 9228,
-    "sha256": "3baafc74ed7a97ee207a5a60a5d85f51d66c2418e0d6b5ca1f9b965fc072853c"
+    "bytes": 10212,
+    "sha256": "8a2a0f071b2fe7c6186e2d02868885f66108c0c20348eff76f36195e357e7597"
   },
   "hands.svg": {
     "bytes": 3079,
@@ -52,39 +52,39 @@
     "sha256": "5f9d90ae680e2c3112314cbf9a68e48275ac09b5b390cc9866c8fff2c605827a"
   },
   "tools/build.py": {
-    "bytes": 22329,
-    "sha256": "1b8b8c53083d12fa5abbbb773672602041167ed5f332d1e84d888d1afe5f4ba8"
+    "bytes": 23723,
+    "sha256": "7fd113bc41339d36761eaa8502ddf2dd495d15bb7f35ea6c9cd2937e5a168d4a"
   },
   "tools/export_layout.js": {
     "bytes": 3981,
-    "sha256": "60d5c13ddc0f04dc44a6f2ff24e92f2b53262d4d3b4090c4f8b5c3a4f3ac18ef"
+    "sha256": "e1a6368340881623a91db991372c426330c48af3c3c6158b1df479bb2e1b8a03"
   },
   "tools/send_demo.py": {
     "bytes": 1237,
     "sha256": "9a4fccc29c867562d95bac52397c426a70db7a9db0d6784486d2e2c90a60c916"
   },
   "tools/test_engine.js": {
-    "bytes": 11377,
-    "sha256": "d585c657eb9ddf9a21532b545eab650d80991ee41b50687495bb12a40345cea9"
+    "bytes": 14269,
+    "sha256": "c7f73530437b4538a665e3910669c60916bed8bec5c8415d2b10d2817f450bbc"
   },
   "tools/test_mapping.js": {
     "bytes": 3504,
     "sha256": "d3265cc82685418f7ac629cad0083def73421dda62fa0176b4d7f6f86aa142d1"
   },
   "tools/test_patch.py": {
-    "bytes": 8509,
-    "sha256": "40e70880aeba2e8827c13b94e0c1228b5ea188798a320b431b5a324dc3986879"
+    "bytes": 9062,
+    "sha256": "6a2c17a05ce23a2fe1fbf4323aa2d0dcb58c8a24a3378759c78e85b8a5ab4720"
   },
   "tools/test_usb.js": {
-    "bytes": 13819,
-    "sha256": "5bee9ed46fd55630a5d6b215bd3d8043075c8a628a295f4695ec6698694d22c6"
+    "bytes": 15980,
+    "sha256": "790e18377d4446d0d6c30c27581dbbe5472437015cc5f6f78db786570ad3242b"
   },
   "usb-settings-preview.png": {
-    "bytes": 17240,
-    "sha256": "3db5a9163121b1f556d2749b91a6af46bd0cc40aac9f5898c7613147d5239122"
+    "bytes": 18163,
+    "sha256": "a32b794493174077d439f36cda27699b632c09925bab5b8f69bc5351163063cc"
   },
   "usb-settings-preview.svg": {
-    "bytes": 1267,
-    "sha256": "1df6f5b5e205a55a5dfd35c0866487adf928936e4df410bc5784493cf4d6ddc8"
+    "bytes": 1462,
+    "sha256": "c0245f6c807cb154e730fa821cd2c10d68cd291abc3f224622cc468ee27bc5cd"
   }
 }

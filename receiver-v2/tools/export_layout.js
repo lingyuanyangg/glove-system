@@ -47,7 +47,7 @@ fs.writeFileSync(path.join(root,'layout-preview.svg'),`<svg xmlns="http://www.w3
 svg=['<rect width="580" height="80" fill="#383838"/>'];
 widgets(p.boxes.find(o=>o.box.id==='usb_settings').box.patcher);
 fs.writeFileSync(path.join(root,'usb-settings-preview.svg'),`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 580 80" width="1160" height="160">${svg.join('')}</svg>`);
-svg=['<rect width="440" height="125" fill="#383838"/>'];
+svg=['<rect width="440" height="222" fill="#383838"/>'];
 widgets(p.boxes.find(o=>o.box.id==='left_calibration').box.patcher);
-fs.writeFileSync(path.join(root,'calibration-preview.svg'),`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 440 125" width="880" height="250">${svg.join('')}</svg>`);
+fs.writeFileSync(path.join(root,'calibration-preview.svg'),`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 440 222" width="880" height="444">${svg.join('')}</svg>`);
 console.log('Exported main, calibration and USB window layout previews from shipped code.');

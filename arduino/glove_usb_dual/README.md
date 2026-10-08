@@ -25,10 +25,28 @@ Close Arduino Serial Monitor, load the updated [Glove Receiver Dual](../../recei
 
 Right software-serial initialization failure lights the onboard LED and reports `#ERROR,RIGHT_SERIAL_INIT;` without stopping Left. The LED is not a Bluetooth pairing indicator.
 
-UNO R4 WiFi compilation and 32 simulated sketch checks (24 protocol checks plus eight UNO R4 WiFi bridge regressions) passed; see [VALIDATION.md](VALIDATION.md). Physical simultaneous UART timing, pairing, USB, servos and Max/Live integration still require hardware testing. [Chinese instructions](README_中文.md).
+Both right-input configurations compile on UNO R4 WiFi, and 41 simulated sketch checks pass (29 protocol/queue/interrupt checks, eight bridge checks and four hardware-option checks); see [VALIDATION.md](VALIDATION.md). Physical simultaneous UART timing, pairing, USB, servos and Max/Live integration still require hardware testing. [Chinese instructions](README_中文.md).
 
 ## 2026-10-08 transmission fix and diagnostics
 
 Re-upload this corrected firmware if an earlier USB release produced no bytes. The earlier availableForWrite() gate prevented all output on UNO R4 WiFi core 1.6.0; compiling the sketch alone did not expose the issue.
 
-Every second the board now sends `#STATUS,USB2,L,<UART bytes>,<valid frames>,R,<UART bytes>,<valid frames>;` even without glove data. These are diagnostic counters, never finger values. The updated receiver shows them while waiting: zero UART bytes points to the glove/receiver/pin/power link; increasing UART bytes with no valid frames points to baud/framing. Valid L/R frames still follow the original format. No new hand data means no fabricated hand heartbeat.
+Every second the board now sends `#STATUS,USB3,L,<bytes>,<valid>,<bad>,<queue peak>,R,<bytes>,<valid>,<bad>,<queue peak>;` even without glove data. These are diagnostic counters, never finger values. The updated receiver shows them while waiting: zero UART bytes points to the glove/receiver/pin/power link; increasing UART bytes with no valid frames points to baud/framing. Valid L/R frames still follow the original format. No new hand data means no fabricated hand heartbeat.
+
+
+## Right-hand queue handling and hardware UART option
+
+The default `RIGHT_USE_HARDWARE_UART=0` retains D11 RX / D10 TX. Before USB transmission, the loop drains the queues present at entry, bounded by their ring capacities and interleaved in 32-byte slices. It retains the newest complete frame from each burst instead of transmitting after just 64 bytes. The drain is bounded even for a continuous source; this is not an end-to-end latency measurement or a guarantee of loss-free input.
+
+SoftwareSerial in core 1.6.0 uses a shared ring-size counter updated in DMA RX and foreground reads. A short interrupt-preserving critical section protects only the right byte read, with the prior PRIMASK restored. Parsing, servo updates and USB writes run outside it. The core's stop-bit/parity error path does not reject all erroneous received bytes, and the wire protocol has no checksum, so legal-looking corrupted values can remain undetected.
+
+For an input path that avoids SoftwareSerial's timer/DMA sampling and ring implementation, set **`RIGHT_USE_HARDWARE_UART` to 1**. **Before uploading**, move Right module TXD to **D12** (hardware RX); optional module RXD goes to **D11** (hardware TX, use compatible levels). Left stays on D0/D1. The code constructs a separate SCI0 UART on D11 TX / D12 RX; it does not repurpose the ESP32 bridge UART or Serial1. Do not upload this mode while module TXD is still connected to D11. Keep mode 0 to use the original wiring.
+
+The USB3 status packet reports cumulative bytes, accepted frames, rejected frames and the peak queue size observed since boot. The receiver shows UART bad / queue peak alongside live activity. A software queue peak near 1023 suggests it approached capacity; it is not a count of dropped bytes. Native-buffer overrun and valid-looking corruption are not fully observable through these counters. USB2 receivers can still use L/R frames but do not display these new diagnostics.
+
+Use the receiver's Calibrate **Input** row to inspect actual degree values before normalization. In particular, 103 degrees produces 0.3 with the old thumb fallback. Verify finger/channel correspondence and raw motion before capturing calibration. The kit also has a separate acquisition-board calibration described in the supplied manual; Max endpoint calibration cannot fix upstream pairing, sensor seating or damaged data. A diagnostic cross-check is to disconnect Left from D0 and test the Right receiver on that same hardware input: lag following the receiver implicates upstream glove/Bluetooth; lag isolated to D11 implicates that input path. Physical testing is still required before attributing the fault.
+
+Primary sources: [core 1.6.0 SoftwareSerial](https://github.com/arduino/ArduinoCore-renesas/blob/1.6.0/libraries/SoftwareSerial/src/SoftwareSerial.cpp), [its RingBuffer](https://github.com/arduino/ArduinoCore-renesas/blob/1.6.0/libraries/SoftwareSerial/src/RingBuffer.h), [UNO R4 WiFi pin mux](https://github.com/arduino/ArduinoCore-renesas/blob/1.6.0/variants/UNOWIFIR4/pinmux.inc), and [UART implementation](https://github.com/arduino/ArduinoCore-renesas/blob/1.6.0/cores/arduino/Serial.cpp).
+
+
+A [ready-to-upload hardware variant](../glove_usb_dual_hardware/glove_usb_dual_hardware.ino) is also included with the mode already set to 1. Its wiring guide is in that folder. The generated source differs only in the mode constant and wiring comments; both versions use the same parser, queue and USB logic.

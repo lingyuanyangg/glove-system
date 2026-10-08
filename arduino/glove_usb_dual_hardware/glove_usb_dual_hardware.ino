@@ -1,8 +1,8 @@
 // Dual Manu-5D receiver for Arduino UNO R4 WiFi, Arduino core 1.6.0.
 // LEFT:  module TXD -> D0 (Serial1 RX); module RXD <- D1 (optional).
-// RIGHT: module TXD -> D11 (SoftwareSerial RX); module RXD <- D10 (optional).
-// D10 cannot be SoftwareSerial RX with this board/core: it lacks the RX IRQ.
-// Optional RIGHT_USE_HARDWARE_UART=1: RIGHT TXD -> D12, RXD <- D11 (optional).
+// RIGHT: module TXD -> D12 (hardware RX); module RXD <- D11 (optional).
+// This variant uses SCI0 on D11 TX / D12 RX, with no SoftwareSerial.
+// Use glove_usb_dual.ino for the original D11 RX / D10 TX wiring.
 // Power both supplied receiver modules from 3.3 V, share GND, match UART levels.
 // USB output: L,180.0,160.0,150.0,149.0,134.5;\n (or R,...).
 // Input: exactly 11 integers, comma-separated, terminated by ';'.
@@ -12,7 +12,7 @@
 
 #include <Arduino.h>
 #ifndef RIGHT_USE_HARDWARE_UART
-#define RIGHT_USE_HARDWARE_UART 0 // 0: existing D11 RX; 1: hardware D12 RX.
+#define RIGHT_USE_HARDWARE_UART 1 // 0: existing D11 RX; 1: hardware D12 RX.
 #endif
 #if RIGHT_USE_HARDWARE_UART != 0 && RIGHT_USE_HARDWARE_UART != 1
 #error "RIGHT_USE_HARDWARE_UART must be 0 (D11 software RX) or 1 (D12 hardware RX)."

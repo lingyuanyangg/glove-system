@@ -56,3 +56,25 @@ ArduinoCore-renesas 1.6.0 maps D11 to P411, which has PIN_INTERRUPT channel 4; D
 - [Print default buffer API](https://github.com/arduino/ArduinoCore-API/blob/master/api/Print.h)
 
 The receiver's USB settings opener now uses trigger bang, because native live.text in button mode emits bang, not the integer 1. Its serial diagnostic parser does not update hand freshness from board status packets.
+
+
+## Right-hand queue and hardware UART revision — 2026-10-08
+
+The user reports Right lag relative to Left and limited displayed thumb range before Max pose calibration. These symptoms are not sufficient to determine whether the upstream sensor, Bluetooth link, parser or scaling is responsible. No raw glove measurements or on-board timing benchmark is claimed.
+
+The existing software-input option now drains each entry-time UART queue before transmitting, bounded by actual core ring capacities and interleaved in 32-byte slices, retaining the latest complete pose. The prior 64-byte budget could transmit a pose while newer data remained unread; buffering during short blocking bridge writes is a possible contributor, not a verified sole cause. The Right foreground read also protects the SoftwareSerial RingBuffer shared counter against a DMA ISR update, restoring the previous interrupt mask; interrupts remain enabled outside that short read. No installed core source was modified.
+
+An optional `RIGHT_USE_HARDWARE_UART=1` instantiates SCI0 on D11 TX / D12 RX, selected from the installed UNOWIFIR4 pinmux and UART implementation. It requires moving the Right module TXD to D12 before upload. Default mode 0 retains D11 RX / D10 TX. Both builds retain default servo behavior and do not reuse either Serial1 or the USB bridge UART.
+
+Actual-target compilation with UNO R4 Boards 1.6.0 / Servo 1.2.1 succeeds:
+
+| Configuration | Flash bytes / 262144 | Static RAM bytes / 32768 |
+| --- | ---: | ---: |
+| Default D11 software input | 59944 | 8076 |
+| Optional D12 hardware UART | 55716 | 8768 |
+
+The supplied standalone C++ peers pass **41 checks**: 29 software/queue/protocol checks, eight NO_USB bridge checks and four hardware-option checks. New coverage includes a Right burst longer than 64 bytes producing only its latest complete pose, both queues serviced before output, bounded work on a continuous/oversized queue, bad-frame counting, short read protection and restoration of an already-masked interrupt state, explicit hardware pins/baud and hardware-init failure. These peers verify code behavior; they do not simulate actual DMA sample timing, interrupt latency, physical queue overflow or voltage levels.
+
+USB3 adds cumulative bad-frame and observed peak-queue counters to the status packet. Max accepts both USB2 and USB3. Peak queue size is not a measured sample age or exact loss count. The source protocol lacks a checksum and the core software RX may retain bytes even with stop/parity errors; legal-looking corrupted values can therefore pass the strict parser.
+
+Before accepting the fix, test both hands simultaneously under normal load, inspect Right raw open/fist values and finger order, compare bad-frame growth and queue peaks, and use a controlled D0 hardware-path comparison or the optional hardware mode. Recheck physical timing, raw range, calibration, mapped parameters and saved Set behavior. No upload, pin change, servo operation or new serial-port opening was performed during this revision.

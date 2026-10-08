@@ -95,7 +95,7 @@ test('200Hz control input paints only the latest value at about 30Hz',()=>{
  assert(outputs.filter(x=>x[0]===5).length<=Math.ceil(2500/33));
  now+=33;c.tick();assert.equal(outputs.filter(x=>x[0]===5).slice(-1)[0][1][0],1);
 });
-function calibrationReset(){c.setvalueof('none');reset();c.enabled(0);}
+function calibrationReset(){c.swaphands(0);c.setvalueof('none');reset();c.enabled(0);}
 function pose(h,values,normalized=false){for(let i=0;i<18;i++){now+=20;c[normalized?(h?'normright':'normleft'):(h?'rawright':'rawleft')](...values);c.tick();}}
 test('independent per-finger calibration supports either sensor direction and 0.1 headroom',()=>{
  calibrationReset();const open=[20,30,40,150,160],fist=[120,130,140,50,60];
@@ -153,4 +153,41 @@ test('calibration averages captures only; next live frame and low-latency filter
  now+=1;c.rawleft(120,120,120,120,120);for(let i=0;i<5;i++){now+=5;c.tick();}
  assert(c.hands[0].value[0]>.85);assert(c.hands[0].value[0]<.9);
 });
-console.log(`${count} engine checks passed including calibration and low-latency control/UI regressions.`);
+test('raw diagnostics expose the original thumb angle behind a 0.3 default display',()=>{
+ calibrationReset();c.rawright(90,99,99,99,103);c.calreport();
+ close(latest(1)[4],.3);
+ assert(outputs.some(v=>v[0]===2&&v[1]==='caldata'&&v[2]===1&&v[3]==='input4'&&v[4]==='103.0'));
+ assert(outputs.some(v=>v[1]==='caldata'&&v[3]==='input_label'&&v[4].includes('raw degrees')));
+ pose(1,[20,20,20,20,80]);c.capture(1,'open');pose(1,[120,120,120,120,110]);c.capture(1,'fist');
+ assert(outputs.some(v=>v[1]==='caldata'&&v[2]===1&&v[3]==='open4'&&v[4]==='80.0'));
+ assert(outputs.some(v=>v[1]==='caldata'&&v[2]===1&&v[3]==='fist4'&&v[4]==='110.0'));
+});
+test('inspection is read-only, flags stale data, retains endpoints on reconnect and caps output at 5Hz',()=>{
+ const pending=c.hands[1].pendingBus,received=c.hands[1].received;c.calreport();
+ assert.equal(c.hands[1].pendingBus,pending);assert.equal(c.hands[1].received,received);
+ outputs=[];for(let i=0;i<39;i++){now+=5;c.calinspect(1,false,now);}
+ assert.equal(outputs.length,0);now+=5;c.calinspect(1,false,now);
+ assert(outputs.some(v=>v[3]==='input_label'&&v[4].includes('stale')));
+ c.reset();assert(outputs.some(v=>v[3]==='input_label'&&v[4]==='Input: no data'));
+ outputs=[];c.calreport();assert(outputs.some(v=>v[3]==='fist4'&&v[4]==='110.0'));
+ assert(!outputs.some(v=>v[0]===3||v[0]===4));
+});
+test('Swap L/R exchanges complete raw/normalized routes and faults, without synthetic learning frames',()=>{
+ calibrationReset();c.rawleft(90,99,99,99,125);c.rawright(180,180,180,180,180);c.tick();outputs=[];c.swaphands(1);c.tick();
+ assert(!outputs.some(v=>v[0]===3||v[0]===4));assert(!c.hands[0].ready&&!c.hands[1].ready);
+ c.rawleft(90,99,99,99,125);c.rawright(180,180,180,180,180);c.tick();
+ c.hands[0].value.forEach(v=>close(v,1));c.hands[1].value.forEach(v=>close(v,.5));
+ assert(outputs.some(v=>v[0]===3&&v[1][4]===1));assert(outputs.some(v=>v[0]===4&&v[1][4]===.5));
+ c.lostright();assert.equal(c.hands[0].status,'HOLD');assert.equal(c.hands[1].status,'LIVE');
+ c.normleft(.2,.2,.2,.2,.2);c.hands[1].value.forEach(v=>close(v,.2));c.swaphands(0);
+});
+test('calibration stays with physical input across swapping and Set recall order',()=>{
+ calibrationReset();pose(0,[20,20,20,20,20]);c.capture(0,'open');pose(0,[120,120,120,120,120]);c.capture(0,'fist');
+ const saved=c.getvalueof();c.swaphands(1);assert.equal(c.getvalueof(),saved);c.setvalueof(saved);
+ c.rawleft(120,120,120,120,120);c.hands[1].value.forEach(v=>close(v,.9));
+ pose(1,[30,30,30,30,30]);c.capture(0,'open');pose(1,[130,130,130,130,130]);c.capture(0,'fist');
+ assert.equal(c.calibrated[1].open[0],30);assert.equal(c.calibrated[0].open[0],20);
+ c.clearcal(0);assert.equal(c.calibrated[1],null);assert(c.calibrated[0]);c.swaphands(0);c.setvalueof(saved);
+ c.rawleft(120,120,120,120,120);c.hands[0].value.forEach(v=>close(v,.9));
+});
+console.log(`${count} engine checks passed including routing, calibration, raw diagnostics and low-latency control/UI regressions.`);

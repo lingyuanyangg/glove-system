@@ -2,15 +2,15 @@
 
 ## Passed
 
-- Executed the **actual shipped `glove_dual_engine.js`** inside a Node VM with stubs for Max's `Task`, `outlet`, `arrayfromargs` and a controlled clock. **22 checks** pass: 15 filtering/freshness/latency checks and seven calibration regressions detailed below.
+- Executed the **actual shipped `glove_dual_engine.js`** inside a Node VM with stubs for Max's `Task`, `outlet`, `arrayfromargs` and a controlled clock. **26 checks** pass: 15 filtering/freshness/latency checks, seven calibration regressions, two raw-inspection checks and two source-routing checks.
 - Read every embedded patcher recursively and checked object IDs and connections. Verified ten embedded `live.map @strict 1` objects with persistent mapping enabled, globally unique Live parameter names and ten `live.remote~ @normalized 0` targets fed by the native mapper's signal outlet. Visible Min/Max use the target's actual range and retain the original saved parameter names.
 - Checked both UDP receive ports and both gated raw/normalized route paths, USB-native serial/controller/menu connections, independent engine outlets feeding each five-value Max bus, monitor unpacker, control unpacker and OSC gate, and both OSC prefixes.
 - Checked independent left/right stereo `plugin~` → `plugout~` connections.
-- Checked all main presentation controls fit **808 × 169** pixels; the independent USB settings window fits **580 × 80** pixels and each calibration window fits **440 × 125**. Presentation controls have no rectangular overlap; hand art is an intentional background. Exported the hand graphics from the actual jsui source and visually reviewed the main/calibration previews.
+- Checked all main presentation controls fit **808 × 169** pixels; the independent USB settings window fits **580 × 80** pixels and each calibration window fits **440 × 222**. Presentation controls have no rectangular overlap; hand art is an intentional background. Exported the hand graphics from the actual jsui source and visually reviewed the main/calibration previews.
 - Verified the AMXD audio-effect header and payload length, and parsed its JSON payload to confirm exact equality with the editable `.maxpat` source.
 - Preserved original published device/model/helper hashes; the original release audit still passes.
 
-- Executed the actual USB controller together with the actual engine in a Node VM with simulated Max serial/status/menu/Task peers. **35 checks** passed: closed startup and recall; named port enumeration, selection and refresh; 115200 8N1 Open; OSC isolation; exact decimal framing; split packets and initial synchronization; malformed/overflow/binary/newline rejection and recovery; partial-frame timeout; hand routing and calibration; stationary two-hand training streams; read/write counters; firmware error reporting; lost data; port reordering/removal/open fallback/native errors/watchdogs; mode changes; instance isolation; momentary buttons; Close/disposal. These simulated controller tests do not open an OS serial port. Two additional checks cover native button bang commands and diagnostic counters/stale status without artificial hand freshness.
+- Executed the actual USB controller together with the actual engine in a Node VM with simulated Max serial/status/menu/Task peers. **38 checks** passed: closed startup and recall; named port enumeration, selection and refresh; 115200 8N1 Open; OSC isolation; exact decimal framing; split packets and initial synchronization; malformed/overflow/binary/newline rejection and recovery; partial-frame timeout; hand routing and calibration; stationary two-hand training streams; read/write counters; firmware error reporting; lost data; port reordering/removal/open fallback/native errors/watchdogs; mode changes; instance isolation; momentary buttons; Close/disposal. These simulated controller tests do not open an OS serial port. Two additional checks cover native button bang commands and diagnostic counters/stale status without artificial hand freshness.
 - Confirmed fresh GLeft/GRight output for stationary real-input frames, with no manufactured heartbeat after source loss and no additional change-driven UI/OSC chatter. Overdue, malformed and cancelled pending frames do not refresh those buses.
 
 ## Scope of the checks
@@ -79,3 +79,17 @@ For host acceptance, reload this AMXD, reopen USB, set Smooth to 8ms or 0ms expl
 - **67 logic/graph checks** pass (22 engine + 35 USB + 10 native mapping), plus the recursive patch/AMXD/parameter/layout check. A local backup of the installed pre-calibration receiver was retained. No firmware upload or serial-port interruption was performed.
 
 Real glove calibration accuracy, native widget rendering and saved Set recall remain host acceptance items. Model training must use the same calibration as inference; previously trained models are not automatically converted by this receiver update.
+
+
+## Right-hand transport and raw inspection — 2026-10-08
+
+The user reports greater Right lag and a thumb value near 0.3, and confirms pose calibration has not yet been performed. The owner subsequently resolved the data issue and requested focus on Right latency; no further sensor-range changes were made. No physical input has been captured in this revision and no firmware has been uploaded by the agent.
+
+- The Calibrate popup now exposes all five original incoming values before receiver calibration/deadband/smoothing, plus staged/saved Open/Fist endpoints. Cached diagnostic updates are capped at 5Hz, routed separately and do not drive controls or learning buses. Its fresh/stale label measures Max arrival only, not sensor acquisition time.
+- Two engine checks demonstrate raw Right thumb 103 degrees alongside fallback output 0.3, endpoint inspection, stale/no-data labels, retained saved endpoints, limited refresh and absence of artificial bus frames. Two USB integration checks preserve the same raw value from the serial adapter and validate USB3 bad-frame/queue fields while maintaining USB2 compatibility.
+- USB3 diagnostics report cumulative UART counters and observed queue peaks, also when hand data is live. They cannot detect every valid-looking corrupted frame, native overflow, Bluetooth backlog or end-to-end latency.
+- **74 receiver logic/graph checks** pass: 26 engine + 38 USB + 10 native mapping. Recursive graph/AMXD/parameter/layout checks pass. Both native popup layouts and calibration inspection labels were reviewed in illustrative previews, not Live screenshots.
+- The paired firmware's software-input queue change and optional D12 hardware UART compile results are documented in its own VALIDATION.md. Updating the receiver alone does not update Arduino firmware. A cause is not considered confirmed until actual raw observations and the input-path comparison are performed.
+
+
+Swap L/R tests cover both raw and normalized routing, correct fresh bus outlets, physical Right-fault propagation, input labels, preserved physical-source calibration and recall ordering. The toggle is neutral/off by default. A generated, ready-to-upload hardware variant matches the shared source except for the selected mode and wiring comments and also compiles independently (55716 flash bytes / 8768 static RAM bytes). No new physical-port opening or flashing was performed.

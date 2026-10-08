@@ -196,4 +196,29 @@ test('native port acknowledgements arrive before FIFO data and Close rejects que
  t.info('port',port);t.read(Buffer.from('\n'+left));t.drain();assert(b.engine.hands[0].ready&&!b.c.awaitingCheck);
  t.read(Buffer.from(right));b.c.disconnect(1);t.drain();assert(!b.engine.hands[1].ready&&!b.c.opened);
 });
-console.log(`${count} USB controller/integration checks passed including native input graph regressions.`);
+test('USB3 UART bad-frame and queue diagnostics coexist with live hands, without refreshing buses',()=>{
+ const r=rig();open(r);send('\n'+right,r);sync(r);
+ const before=r.c.times.slice(),received=r.engine.hands[1].received;
+ r.engineOutputs.length=0;time+=200;
+ send('#STATUS,USB3,L,400,10,0,56,R,800,15,3,992;\n',r);r.c.status(true);
+ assert.deepEqual(Array.from(r.c.boardStatus),[400,10,800,15]);assert.deepEqual(Array.from(r.c.boardLink),[0,56,3,992]);
+ assert(r.c.lastStatus.includes('UART bad 0 / 3')&&r.c.lastStatus.includes('queue peak 56 / 992'));
+ assert.deepEqual(Array.from(r.c.times),Array.from(before));assert.equal(r.engine.hands[1].received,received);
+ r.engine.tick();assert(!r.engineOutputs.some(v=>v[0]===3||v[0]===4));
+ const validAt=r.c.boardStatusAt;send('#STATUS,USB3,L,400,10,no,56,R,800,15,3,992;\n',r);assert.equal(r.c.boardStatusAt,validAt);
+ send('#STATUS,USB2,L,401,11,R,801,16;\n',r);assert.equal(r.c.boardLink,null);assert.deepEqual(Array.from(r.c.boardStatus),[401,11,801,16]);
+});
+test('right USB raw thumb keeps its scale into inspection, independently of normalization and Left',()=>{
+ const r=rig();open(r);r.engine.enabled(0);send('\n'+left+'R,90,99,99,99,103;\n',r);sync(r);r.engine.calreport();
+ assert.equal(r.engine.hands[1].target[4],.3);assert.equal(r.engine.hands[0].target[4],.5);
+ assert(r.engineOutputs.some(v=>v[0]===2&&v[1]==='caldata'&&v[2]===1&&v[3]==='input4'&&v[4]==='103.0'));
+});
+test('input labels follow Swap L/R while serial frame tags and diagnostics retain physical slots',()=>{
+ const r=rig();r.c.routeswap(1);assert(r.logs.some(v=>v[0]===5&&v[2].includes('6000')));
+ assert(r.logs.some(v=>v[0]===6&&v[2].includes('7000')));open(r);r.c.routeswap(1);
+ assert(r.logs.some(v=>v[0]===5&&v[2].includes('input R')));assert(r.logs.some(v=>v[0]===6&&v[2].includes('input L')));
+ r.engine.enabled(0);r.engine.swaphands(1);send('\n'+left+right,r);sync(r);
+ assert.equal(r.engine.hands[0].value[0],1);assert.equal(r.engine.hands[1].value[0],.5);
+ send('#ERROR,RIGHT_SERIAL_INIT;\n',r);assert.equal(r.engine.hands[0].status,'HOLD');assert.equal(r.engine.hands[1].status,'LIVE');
+});
+console.log(`${count} USB controller/integration checks passed including native input graph, routing and raw diagnostics regressions.`);
