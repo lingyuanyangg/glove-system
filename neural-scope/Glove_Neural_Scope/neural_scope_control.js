@@ -1,4 +1,4 @@
-// ES5 neural regression, compatible with the supplied Data Knot layer layout.
+// Model validation and serialization only. All training/inference runs in native FluCoMa.
 var GloveNeural = (function () {
     function copy(v) { return JSON.parse(JSON.stringify(v)); }
     function number(v) { return typeof v === 'number' && isFinite(v); }
@@ -7,14 +7,13 @@ var GloveNeural = (function () {
         if (!a || a.length!==n) throw Error('Expected '+n+' numeric values');
         var out=[];for(var i=0;i<n;i++) {if(!number(a[i]))throw Error('Non-finite input');out.push(clamp(a[i],0,1));}return out;
     }
-    function tanh(x) { x=clamp(x,-20,20);var e=Math.exp(2*x);return (e-1)/(e+1); }
     function validate(model,nin,nout) {
         if(!model||!model.layers||model.layers.length<1||model.layers.length>8)throw Error('Invalid neural model');
         var n=nin;
         for(var k=0;k<model.layers.length;k++) {
             var l=model.layers[k];
             if(l.rows!==n||l.cols<1||l.cols>256||l.cols!==Math.floor(l.cols)||
-                [0,3].indexOf(l.activation)<0||!l.biases||l.biases.length!==l.cols||!l.weights||l.weights.length!==l.rows)
+                [0,1,2,3].indexOf(l.activation)<0||!l.biases||l.biases.length!==l.cols||!l.weights||l.weights.length!==l.rows)
                 throw Error('Incompatible neural layer');
             for(var j=0;j<l.cols;j++)if(!number(l.biases[j]))throw Error('Invalid bias');
             for(var i=0;i<l.rows;i++) {
@@ -25,84 +24,6 @@ var GloveNeural = (function () {
         }
         if(n!==nout)throw Error('Model output count does not match scoped parameters');return model;
     }
-    function forward(model,x) {
-        var states=[x.slice()],a=x.slice();
-        for(var k=0;k<model.layers.length;k++) {
-            var l=model.layers[k],next=[];
-            for(var j=0;j<l.cols;j++) {
-                var z=l.biases[j];for(var i=0;i<l.rows;i++)z+=a[i]*l.weights[i][j];
-                var v=l.activation===3?tanh(z):z;if(!number(v))throw Error('Neural output is not finite');next.push(v);
-            }
-            a=next;states.push(a);
-        }
-        return states;
-    }
-    function predict(model,x) {var a=forward(model,x);return a[a.length-1].map(function(v){return clamp(v,0,1);});}
-    function rng(seed) {var s=(seed||2437)>>>0;return function(){s^=s<<13;s^=s>>>17;s^=s<<5;return (s>>>0)/4294967296;};}
-    function create(nin,nout,seed) {
-        var random=rng(seed),sizes=[nin,16,nout],layers=[];
-        for(var k=0;k<2;k++) {
-            var rows=sizes[k],cols=sizes[k+1],scale=Math.sqrt(6/(rows+cols)),w=[],b=[];
-            for(var i=0;i<rows;i++){w[i]=[];for(var j=0;j<cols;j++)w[i][j]=(random()*2-1)*scale;}
-            for(j=0;j<cols;j++)b[j]=0;
-            layers.push({rows:rows,cols:cols,weights:w,biases:b,activation:k===0?3:0});
-        }
-        return {layers:layers};
-    }
-    function zeros(model) {return model.layers.map(function(l){return {w:l.weights.map(function(r){return r.map(function(){return 0;});}),b:l.biases.map(function(){return 0;})};});}
-    function Trainer(samples,nin,nout,epochs) {
-        if(samples.length<2||samples.length>512)throw Error('Capture 2–512 different poses before training');
-        this.samples=copy(samples);this.nin=nin;this.nout=nout;
-        for(var i=0;i<samples.length;i++){vector(samples[i].x,nin);vector(samples[i].y,nout);}
-        this.model=create(nin,nout,5249);this.m=zeros(this.model);this.v=zeros(this.model);
-        this.epochs=Math.floor(clamp(epochs||800,50,5000));this.epoch=0;this.position=0;this.step=0;
-        this.random=rng(2153);this.order=[];for(i=0;i<samples.length;i++)this.order.push(i);
-        this.best=copy(this.model);this.bestLoss=Infinity;this.loss=Infinity;this.done=false;
-    }
-    Trainer.prototype.shuffle=function(){for(var i=this.order.length-1;i>0;i--){var j=Math.floor(this.random()*(i+1)),t=this.order[i];this.order[i]=this.order[j];this.order[j]=t;}};
-    Trainer.prototype.sample=function(s) {
-        var states=forward(this.model,s.x),last=states[states.length-1],delta=[],grads=[],k,i,j;
-        for(j=0;j<this.nout;j++)delta[j]=2*(last[j]-s.y[j])/this.nout;
-        for(k=this.model.layers.length-1;k>=0;k--) {
-            var l=this.model.layers[k],input=states[k],output=states[k+1],d=[];
-            for(j=0;j<l.cols;j++)d[j]=delta[j]*(l.activation===3?1-output[j]*output[j]:1);
-            var prev=[];for(i=0;i<l.rows;i++){prev[i]=0;for(j=0;j<l.cols;j++)prev[i]+=l.weights[i][j]*d[j];}
-            grads[k]={d:d,input:input};delta=prev;
-        }
-        this.step++;var b1=.9,b2=.999,correction1=1-Math.pow(b1,this.step),correction2=1-Math.pow(b2,this.step),rate=.01;
-        for(k=0;k<this.model.layers.length;k++) {
-            l=this.model.layers[k];var m=this.m[k],v=this.v[k],g=grads[k];
-            for(j=0;j<l.cols;j++) {
-                var db=clamp(g.d[j],-5,5);m.b[j]=b1*m.b[j]+(1-b1)*db;v.b[j]=b2*v.b[j]+(1-b2)*db*db;
-                l.biases[j]-=rate*(m.b[j]/correction1)/(Math.sqrt(v.b[j]/correction2)+1e-8);
-                for(i=0;i<l.rows;i++) {
-                    var dw=clamp(g.input[i]*g.d[j],-5,5);m.w[i][j]=b1*m.w[i][j]+(1-b1)*dw;v.w[i][j]=b2*v.w[i][j]+(1-b2)*dw*dw;
-                    l.weights[i][j]-=rate*(m.w[i][j]/correction1)/(Math.sqrt(v.w[i][j]/correction2)+1e-8);
-                }
-            }
-        }
-    };
-    Trainer.prototype.measure=function(){
-        var sum=0;
-        for(var i=0;i<this.samples.length;i++){
-            var a=forward(this.model,this.samples[i].x),y=a[a.length-1];
-            for(var j=0;j<this.nout;j++)sum+=Math.pow(y[j]-this.samples[i].y[j],2);
-        }
-        this.loss=Math.sqrt(sum/(this.samples.length*this.nout));
-        if(this.loss<this.bestLoss){this.bestLoss=this.loss;this.best=copy(this.model);}
-    };
-    // One sample per call; the Max adapter budgets chunks and yields to its scheduler.
-    Trainer.prototype.advance=function(){
-        if(this.done)return true;
-        if(this.position===0)this.shuffle();
-        this.sample(this.samples[this.order[this.position++]]);
-        if(this.position===this.samples.length){
-            this.position=0;this.epoch++;
-            if(this.epoch%10===0||this.epoch===this.epochs)this.measure();
-            if(this.epoch>=this.epochs||this.bestLoss<.001){this.model=copy(this.best);this.loss=this.bestLoss;this.done=true;}
-        }
-        return this.done;
-    };
     function fromDataKnot(doc,nin,nout) {
         if(nin!==5||nout!==10)throw Error('Data Knot import requires Left/Right input and exactly 10 scoped parameters');
         if(!doc||!doc.fits||!doc.fits.input_regressor)throw Error('Not a Data Knot regression file');
@@ -113,10 +34,147 @@ var GloveNeural = (function () {
         }
         return {model:model,samples:samples,loss:null,origin:'Data Knot · imported by user'};
     }
+    function fromFluCoMa(doc,nin,nout) {
+        return {model:copy(validate(doc,nin,nout)),samples:[],loss:null,origin:'FluCoMa · imported by user'};
+    }
     return {copy:copy,number:number,clamp:clamp,vector:vector,validate:validate,
-        forward:forward,predict:predict,Trainer:Trainer,fromDataKnot:fromDataKnot};
+        fromDataKnot:fromDataKnot,fromFluCoMa:fromFluCoMa};
 }());
 if(typeof module!=='undefined')module.exports=GloveNeural;
+
+// Native FluCoMa message lifecycle. No neural math or optimiser runs in JavaScript.
+var GloveFluCoMa = (function () {
+    function Bridge(patcher, namespace, callbacks) {
+        this.patcher=patcher;this.namespace=String(namespace);this.callbacks=callbacks;
+        this.available=false;this.fault=null;this.disposed=false;this.job=null;this.generation=0;
+        this.pending=null;this.operation=null;this.loadedModel=null;this.nextTask=null;this.probeDeadline=0;
+        this.names={input:this.namespace+'-glove-input',output:this.namespace+'-glove-output',x:this.namespace+'-glove-x',y:this.namespace+'-glove-y'};
+    }
+    Bridge.prototype.initialize=function(){
+        this.trainObject=this.patcher.getnamed('mlp-train');this.inferObject=this.patcher.getnamed('mlp-infer');
+        this.xObject=this.patcher.getnamed('data-input');this.yObject=this.patcher.getnamed('data-output');
+        this.inputObject=this.patcher.getnamed('native-input-buffer');this.outputObject=this.patcher.getnamed('native-output-buffer');
+        this.inputBuffer=new Buffer(this.names.input);this.outputBuffer=new Buffer(this.names.output);
+        this.xDict=new Dict(this.namespace+'-glove-x-dict');this.yDict=new Dict(this.namespace+'-glove-y-dict');this.modelDict=new Dict(this.namespace+'-glove-model-dict');
+        this.probeDeadline=new Date().getTime()+3000;this.inferObject.message('cols');
+    };
+    Bridge.prototype.check=function(){if(this.fault)throw Error(this.fault);if(!this.available)throw Error('FluCoMa is not ready; install FluidCorpusManipulation in Max Package Manager');};
+    Bridge.prototype.fail=function(message){
+        this.fault=message;this.available=false;this.pending=null;this.operation=null;
+        if(this.nextTask)this.nextTask.cancel();this.nextTask=null;this.job=null;
+        this.callbacks.error(message);
+    };
+    Bridge.prototype.watch=function(){
+        if(this.disposed||this.fault)return;var now=new Date().getTime();
+        if(!this.available&&this.probeDeadline&&now>this.probeDeadline)this.fail('FluCoMa did not respond; check installation and the Max Console, then reload the device');
+        else if(this.job&&this.job.deadline&&now>this.job.deadline)this.fail('FluCoMa training response timed out; check the Max Console and reload the device');
+        else if(this.operation&&now>this.operation.deadline)this.fail('FluCoMa prediction response timed out; check the Max Console and reload the device');
+    };
+    Bridge.prototype.startTrain=function(samples,nin,nout,epochs){
+        this.check();if(this.job)throw Error('Wait for the previous native training request to finish');
+        if(samples.length<2||samples.length>512)throw Error('Capture 2–512 different poses before training');
+        var x={cols:nin,data:{}},y={cols:nout,data:{}};
+        for(var i=0;i<samples.length;i++){
+            x.data[String(i)]=GloveNeural.vector(samples[i].x,nin);y.data[String(i)]=GloveNeural.vector(samples[i].y,nout);
+            var xy=samples[i].x.concat(samples[i].y);for(var j=0;j<xy.length;j++)if(xy[j]<0||xy[j]>1)throw Error('Training examples must be normalized');
+        }
+        var job={epoch:0,epochs:epochs,nin:nin,nout:nout,samples:samples.length,loss:null,bestLoss:Infinity,best:null,
+            chunk:Math.max(1,Math.min(10,Math.floor(32768/(samples.length*nout*16)))),stage:'datasets',xLoaded:false,yLoaded:false,cancelled:false,deadline:new Date().getTime()+10000};
+        this.job=job;
+        this.trainObject.message('clear');this.trainObject.message('hiddenlayers',16);this.trainObject.message('activation',3);this.trainObject.message('outputactivation',0);
+        this.trainObject.message('learnrate',0.01);this.trainObject.message('momentum',0.9);this.trainObject.message('batchsize',1);this.trainObject.message('validation',0);
+        this.xDict.parse(JSON.stringify(x));this.yDict.parse(JSON.stringify(y));
+        this.xObject.message('load','dictionary',this.xDict.name);this.yObject.message('load','dictionary',this.yDict.name);
+        return job;
+    };
+    Bridge.prototype.scheduleFit=function(){
+        var self=this,job=this.job;if(!job)return;
+        if(job.cancelled){this.job=null;return;}job.stage='scheduled';job.deadline=0;
+        this.nextTask=new Task(function(){self.nextTask=null;try{self.fitChunk();}catch(e){self.fail(e.message);}},this);this.nextTask.schedule(1);
+    };
+    Bridge.prototype.fitChunk=function(){
+        var job=this.job;if(!job)return;if(job.cancelled){this.job=null;return;}
+        job.chunkNow=Math.min(job.chunk,job.epochs-job.epoch);job.stage='fit';job.deadline=new Date().getTime()+10000;
+        this.trainObject.message('maxiter',job.chunkNow);this.trainObject.message('fit',this.names.x,this.names.y);
+    };
+    Bridge.prototype.cancelTrain=function(){
+        var job=this.job;if(!job)return;job.cancelled=true;
+        // Drain an outstanding native response before allowing a new job.
+        if(job.stage==='scheduled'){if(this.nextTask)this.nextTask.cancel();this.nextTask=null;this.job=null;}
+    };
+    Bridge.prototype.invalidate=function(){this.generation++;this.pending=null;};
+    Bridge.prototype.predict=function(model,x,nout,tag){
+        this.check();GloveNeural.validate(model,x.length,nout);
+        this.pending={model:model,x:GloveNeural.vector(x,x.length),nout:nout,tag:tag,generation:this.generation};this.pump();
+    };
+    Bridge.prototype.pump=function(){
+        if(this.operation||!this.pending||this.disposed||this.fault)return;
+        var request=this.pending;this.pending=null;
+        if(this.loadedModel!==request.model){
+            this.operation={kind:'load',request:request,deadline:new Date().getTime()+3000};
+            this.modelDict.parse(JSON.stringify(request.model));this.inferObject.message('load','dictionary',this.modelDict.name);
+        }else this.query(request);
+    };
+    Bridge.prototype.query=function(request){
+        if(request.generation!==this.generation){this.pump();return;}
+        if(this.inputBuffer.framecount()!==request.x.length)this.inputObject.message('sizeinsamps',request.x.length);
+        if(this.outputBuffer.framecount()!==request.nout)this.outputObject.message('sizeinsamps',request.nout);
+        if(this.inputBuffer.framecount()!==request.x.length||this.outputBuffer.framecount()!==request.nout)throw Error('Native glove buffers did not resize');
+        this.inputBuffer.poke(1,0,request.x);this.operation={kind:'predictpoint',request:request,deadline:new Date().getTime()+3000};
+        this.inferObject.message('predictpoint',this.names.input,this.names.output);
+    };
+    Bridge.prototype.receive=function(lane,args){
+        if(this.disposed||this.fault||!args.length)return;
+        try{
+            var method=String(args[0]).toLowerCase(),job=this.job;
+            if(lane==='infer'){
+                if(method==='cols'){this.available=true;this.probeDeadline=0;this.callbacks.status();return;}
+                var op=this.operation;if(!op||method!==op.kind)return;this.operation=null;
+                if(method==='load'){
+                    this.loadedModel=op.request.model;
+                    if(op.request.generation===this.generation){
+                        // A newer glove frame can replace the one waiting for load.
+                        var request=op.request;if(this.pending&&this.pending.model===request.model&&this.pending.generation===request.generation){request=this.pending;this.pending=null;}
+                        this.query(request);
+                    }
+                }else if(method==='predictpoint'&&op.request.generation===this.generation){
+                    if(this.outputBuffer.framecount()!==op.request.nout)throw Error('FluCoMa output buffer has the wrong dimension');
+                    var values=this.outputBuffer.peek(1,0,op.request.nout);if(typeof values==='number')values=[values];
+                    values=GloveNeural.vector(values,op.request.nout);this.callbacks.prediction(values,op.request.tag);
+                }
+                this.pump();return;
+            }
+            if(!job)return;
+            if((lane==='input'||lane==='output')&&method==='load'&&job.stage==='datasets'){
+                if(lane==='input')job.xLoaded=true;else job.yLoaded=true;
+                if(job.xLoaded&&job.yLoaded)this.scheduleFit();return;
+            }
+            if(lane!=='train')return;
+            if(method==='fit'&&job.stage==='fit'){
+                if(job.cancelled){this.job=null;return;}
+                // Max prefixes fit results with both dataset names. Error is last.
+                var error=Number(args[args.length-1]);if(!isFinite(error)||error<0)throw Error('FluCoMa returned an invalid fit error');
+                job.epoch+=job.chunkNow;job.loss=Math.sqrt(error/job.nout);job.stage='dump';job.deadline=new Date().getTime()+3000;this.trainObject.message('dump');return;
+            }
+            if(method==='dump'&&job.stage==='dump'){
+                if(job.cancelled){this.job=null;return;}
+                if(String(args[1])!=='dictionary'||typeof args[2]!=='string')throw Error('Expected a native model dictionary');
+                var dict=new Dict(args[2]),model;try{model=JSON.parse(dict.stringify());}finally{dict.freepeer();}
+                GloveNeural.validate(model,job.nin,job.nout);
+                if(job.loss<job.bestLoss){job.bestLoss=job.loss;job.best=GloveNeural.copy(model);}
+                if(job.epoch>=job.epochs||job.bestLoss<0.001){this.job=null;this.callbacks.trained(job);}
+                else this.scheduleFit();
+            }
+        }catch(e){this.fail(e.message);}
+    };
+    Bridge.prototype.dispose=function(){
+        this.disposed=true;this.invalidate();this.cancelTrain();if(this.nextTask)this.nextTask.cancel();
+        var peers=[this.xDict,this.yDict,this.modelDict,this.inputBuffer,this.outputBuffer];
+        for(var i=0;i<peers.length;i++)if(peers[i])try{peers[i].freepeer();}catch(e){}
+    };
+    return {Bridge:Bridge};
+}());
+if(typeof module!=='undefined')module.exports=GloveFluCoMa;
 
 autowatch=0;
 inlets=1;
@@ -125,7 +183,7 @@ var ownerPatcher=this.patcher,ready=false,uiReady=false,selfID=0,trackID=0;
 var apiCache={},songView=null,devices=[],sessions={},savedSessions={},selected=null,sequence=0,revision=0;
 var mode='left',trackMode='this',follow=true,running=false,smoothing=30,epochs=800;
 var inputLeft=null,inputRight=null,inputRevision=0,lastPredicted=-1;
-var remotes={},remotePool=null,pollTask=null,runTask=null,trainingTask=null,trainer=null,trainingBank=null;
+var remotes={},remotePool=null,pollTask=null,trainer=null,trainingBank=null,backend=null,runEpoch=0;
 var ticks=0,note='Choose a target device',storedPayload='',visibleIDs=[],deviceSignature='',lastUi=0;
 var themeColors={};
 var modelLibrary=[],modelSelection='',pendingExport=null,pendingImport=null;
@@ -169,8 +227,8 @@ function input(){
     if(mode==='right'){if(!inputRight)throw Error('Waiting for GRight; move the right hand once');return inputRight.slice();}
     if(!inputLeft||!inputRight)throw Error('Both mode requires valid GLeft and GRight frames');return inputLeft.concat(inputRight);
 }
-function left(){try{inputLeft=GloveNeural.vector(arrayfromargs(arguments),5);inputRevision++;}catch(e){say('Ignored invalid GLeft frame');}}
-function right(){try{inputRight=GloveNeural.vector(arrayfromargs(arguments),5);inputRevision++;}catch(e){say('Ignored invalid GRight frame');}}
+function left(){try{inputLeft=GloveNeural.vector(arrayfromargs(arguments),5);inputRevision++;if(running&&mode!=='right')perform();}catch(e){say('Ignored invalid GLeft frame');}}
+function right(){try{inputRight=GloveNeural.vector(arrayfromargs(arguments),5);inputRevision++;if(running&&mode!=='left')perform();}catch(e){say('Ignored invalid GRight frame');}}
 function nin(){return mode==='both'?10:5;}
 function schema(rows){return rows.map(function(p){return p.index+':'+p.name+':'+p.lo+':'+p.hi+':'+p.quantized;}).join('|');}
 function bankKey(){return mode+'|'+schema(scoped());}
@@ -239,11 +297,11 @@ function pool(){
     for(var i=0;i<256;i++)remotePool.push({remote:p.getnamed('remote-'+i),sender:p.getnamed('sender-'+i),used:false});return remotePool;
 }
 function releaseAll(){for(var id in remotes){var r=remotes[id];try{r.sender.message('int',0);}catch(e){}r.used=false;}remotes={};}
-function stopRun(){running=false;releaseAll();lastPredicted=-1;}
-function cancelTraining(){if(trainingTask)trainingTask.cancel();trainingTask=null;trainer=null;trainingBank=null;}
+function stopRun(){running=false;runEpoch++;if(backend)backend.invalidate();releaseAll();lastPredicted=-1;}
+function cancelTraining(){if(backend)backend.cancelTrain();trainer=null;trainingBank=null;}
 function startRun(){
     validateTarget();var rows=scoped(),b=bank();if(!rows.length||rows.length>256)throw Error('Scope 1–256 parameters');
-    GloveNeural.validate(b.model,nin(),rows.length);input();stopRun();
+    GloveNeural.validate(b.model,nin(),rows.length);if(!backend)throw Error("FluCoMa is not ready");backend.check();input();stopRun();
     try{
         var channels=pool();
         for(var i=0;i<rows.length;i++){
@@ -258,9 +316,17 @@ function perform(){
     if(!running)return;
     try{
         var s=current();
-        // Check containment and parameter identity before each prediction batch.
         if(contextTrack()!==trackID||containingTrack(s.id)!==trackID||ids(api(s.id),'parameters').join(',')!==s.parameterIDs){stopRun();say('Target topology changed · Run stopped');return;}
-        if(inputRevision===lastPredicted)return;var rows=scoped(),y=GloveNeural.predict(bank().model,input());lastPredicted=inputRevision;
+        if(inputRevision===lastPredicted)return;
+        var rows=scoped(),b=bank();backend.predict(b.model,input(),rows.length,{device:selected,revision:revision,mode:mode,epoch:runEpoch,bank:b});lastPredicted=inputRevision;
+    }catch(e){stopRun();say('Run stopped: '+e.message);emit();}
+}
+function applyPrediction(y,tag){
+    if(!running||tag.epoch!==runEpoch||tag.device!==selected||tag.revision!==revision||tag.mode!==mode)return;
+    try{
+        var session=current();if(contextTrack()!==trackID||containingTrack(session.id)!==trackID||ids(api(session.id),'parameters').join(',')!==session.parameterIDs){stopRun();say('Target topology changed · Run stopped');return;}
+        if(!running||tag.bank!==bank())return;
+        var rows=scoped();if(y.length!==rows.length)throw Error('Prediction dimensions differ');
         for(var i=0;i<rows.length;i++){
             var p=rows[i],v=GloveNeural.clamp(p.lo+(p.hi-p.lo)*y[i],p.min,p.max);
             if(p.quantized){var low=Math.ceil(p.min),high=Math.floor(p.max);if(low>high)throw Error(p.name+' has no discrete step in range');v=GloveNeural.clamp(Math.round(v),low,high);}
@@ -269,6 +335,16 @@ function perform(){
             p.value=v;p.predicted=y[i];
         }
     }catch(e){stopRun();say('Run stopped: '+e.message);emit();}
+}
+function nativeinput(){if(backend)backend.receive('input',arrayfromargs(arguments));}
+function nativeoutput(){if(backend)backend.receive('output',arrayfromargs(arguments));}
+function nativetrain(){if(backend)backend.receive('train',arrayfromargs(arguments));}
+function nativeinfer(){if(backend)backend.receive('infer',arrayfromargs(arguments));}
+function nativeError(message){stopRun();cancelTraining();say('FluCoMa: '+message);emit();}
+function nativeTrained(job){
+    if(trainer!==job||job.cancelled)return;
+    var b=trainingBank;b.model=GloveNeural.copy(job.best);b.loss=job.bestLoss;b.origin='FluCoMa MLP · tanh / linear · SGD';
+    trainer=null;trainingBank=null;say('FluCoMa trained · normalized RMSE '+b.loss.toFixed(5)+' · enable Run');persist();revision++;emit();
 }
 function capture(){
     if(running)throw Error('Turn Run off before setting and capturing an example');
@@ -286,15 +362,9 @@ function capture(){
 }
 function train(){
     stopRun();var rows=scoped(),b=bank();if(!rows.length||rows.length>256)throw Error('Scope 1–256 parameters');
-    trainer=new GloveNeural.Trainer(b.samples,nin(),rows.length,epochs);trainingBank=b;
-    trainingTask=new Task(trainChunk,this);trainingTask.interval=10;trainingTask.repeat();say('Training · 0 / '+epochs+' epochs');
-}
-function trainChunk(){
-    if(!trainer)return;try{
-        var begin=new Date().getTime(),count=0;
-        do{trainer.advance();count++;}while(!trainer.done&&count<32&&new Date().getTime()-begin<6);
-        if(trainer.done){var t=trainer,b=trainingBank;b.model=GloveNeural.copy(t.model);b.loss=t.loss;b.origin='MLP · tanh / linear · Adam';cancelTraining();say('Trained · normalized RMSE '+t.loss.toFixed(5)+' · enable Run');persist();revision++;emit();}
-    }catch(e){cancelTraining();say('Training failed: '+e.message);emit();}
+    if(!backend)throw Error('FluCoMa is not ready');backend.check();
+    trainingBank=b;try{trainer=backend.startTrain(b.samples,nin(),rows.length,epochs);}catch(e){trainingBank=null;throw e;}
+    say('FluCoMa training · 0 / '+epochs+' epochs');
 }
 function modelID(){return 'model-'+new Date().getTime()+'-'+Math.floor(Math.random()*1000000000);}
 function validateRecord(record){
@@ -332,7 +402,7 @@ function compatibility(record){
 function recordCurrent(name){
     name=String(name||'').trim();if(!name||name.length>80)throw Error('Enter a model name (1–80 characters)');
     var s=current(),rows=scoped(),b=bank();GloveNeural.validate(b.model,nin(),rows.length);
-    return validateRecord({format:'glove-neural-scope-model',version:1,id:modelID(),name:name,savedAt:new Date().toISOString(),
+    return validateRecord({format:'glove-neural-scope-model',version:1,backend:'FluCoMa',id:modelID(),name:name,savedAt:new Date().toISOString(),
         mode:mode,inputDimensions:nin(),deviceSignature:s.signature,
         configs:rows.map(function(p){return {index:p.index,name:p.name,lo:p.lo,hi:p.hi,quantized:p.quantized,min:p.min,max:p.max};}),
         bank:GloveNeural.copy({model:b.model,samples:b.samples,loss:b.loss,origin:b.origin})});
@@ -375,7 +445,9 @@ function readmodel(){
         while(file.position<file.eof){var part=file.readstring(4096);if(!part.length)throw Error('Incomplete model file');raw+=part;}file.close();file=null;
         var document=JSON.parse(raw),record;
         if(document.format==='glove-neural-scope-model')record=validateRecord(document);
-        else if(document.fits&&document.fits.input_regressor){
+        else if(document.layers){
+            validateTarget();record=recordCurrentFromImported(GloveNeural.fromFluCoMa(document,nin(),scoped().length),path);
+        }else if(document.fits&&document.fits.input_regressor){
             validateTarget();var b=GloveNeural.fromDataKnot(document,nin(),scoped().length);
             record=recordCurrentFromImported(b,path);say('Imported Data Knot outputs in current scoped table order');
         }else throw Error('Not a supported neural model JSON');
@@ -433,25 +505,25 @@ function pollRows(){
 }
 function tick(){
     if(!ready)return;try{
-        ticks++;if(ticks%5===0||contextTrack()!==trackID)refresh();
+        if(backend)backend.watch();ticks++;if(ticks%5===0||contextTrack()!==trackID)refresh();
         followSelection();
         if(selected&&ids(api(selected),'parameters').join(',')!==current().parameterIDs){stopRun();cancelTraining();loadTarget(selected);say('Parameter list changed · review scope');}
-        pollRows();if(trainer)say('Training · '+trainer.epoch+' / '+trainer.epochs+' epochs'+(isFinite(trainer.loss)?' · RMSE '+trainer.loss.toFixed(5):''));emit();
+        pollRows();if(trainer)say('FluCoMa training · '+trainer.epoch+' / '+trainer.epochs+' epochs'+(GloveNeural.number(trainer.loss)?' · RMSE '+trainer.loss.toFixed(5):''));emit();
     }catch(e){stopRun();cancelTraining();say('Waiting for target: '+e.message);emit();}
 }
 function chunks(s){var out=[];for(var i=0;i<s.length;i+=4096)out.push(s.substring(i,i+4096));return out.length?out:[''];}
 function snapshotSession(s){return {signature:s.signature,configs:s.rows.map(function(p){return {scope:p.scope,min:p.min,max:p.max};}),banks:s.banks};}
 function persist(){
     for(var id in sessions){var s=sessions[id];savedSessions[s.key]=snapshotSession(s);}
-    storedPayload=encodeURIComponent(JSON.stringify({version:2,mode:mode,trackMode:trackMode,follow:follow,smoothing:smoothing,epochs:epochs,sessions:savedSessions,models:modelLibrary,modelSelection:modelSelection}));
+    storedPayload=encodeURIComponent(JSON.stringify({version:3,mode:mode,trackMode:trackMode,follow:follow,smoothing:smoothing,epochs:epochs,sessions:savedSessions,models:modelLibrary,modelSelection:modelSelection}));
     var a=chunks(storedPayload);if(a.length===1)outlet(2,a[0]);else outlet.apply(this,[2,'list'].concat(a));
 }
 function restore(){
     var encoded=Array.prototype.slice.call(arguments).join('');if(!encoded||encoded===storedPayload)return;
     try{
-        var d=JSON.parse(decodeURIComponent(encoded));if(d.version!==1&&d.version!==2)throw Error('Unknown saved state version');
+        var d=JSON.parse(decodeURIComponent(encoded));if(d.version!==1&&d.version!==2&&d.version!==3)throw Error('Unknown saved state version');
         if(['left','right','both'].indexOf(d.mode)<0||['this','selected'].indexOf(d.trackMode)<0)throw Error('Invalid saved input mode');
-        var models=d.version===2?d.models:[];if(!(models instanceof Array)||models.length>128)throw Error('Invalid saved model library');
+        var models=d.version>=2?d.models:[];if(!(models instanceof Array)||models.length>128)throw Error('Invalid saved model library');
         var seen={};for(var k=0;k<models.length;k++){validateRecord(models[k]);if(seen[models[k].id])throw Error('Duplicate saved model identity');seen[models[k].id]=true;}
         stopRun();cancelTraining();storedPayload=encoded;savedSessions=d.sessions||{};sessions={};selected=null;
         modelLibrary=GloveNeural.copy(models);modelSelection=seen[d.modelSelection]?d.modelSelection:'';
@@ -466,7 +538,8 @@ function bang(){
         var self=new LiveAPI(null,'this_device');selfID=Number(self.id);if(!selfID)throw Error('Load this AMXD in Ableton Live');
         ready=true;refresh();followSelection();
         if(pollTask)pollTask.cancel();pollTask=new Task(tick,this);pollTask.interval=200;pollTask.repeat();
-        if(runTask)runTask.cancel();runTask=new Task(perform,this);runTask.interval=33;runTask.repeat();emit();
+        if(!backend){backend=new GloveFluCoMa.Bridge(ownerPatcher,String(jsarguments[1]),{prediction:applyPrediction,trained:nativeTrained,error:nativeError,status:function(){emit();}});backend.initialize();}
+        emit();
     }catch(e){ready=false;say(e.message);emit();}
 }
 function command(encoded){
@@ -517,7 +590,7 @@ function emit(){
     if(!uiReady)return;var s=selected?sessions[selected]:null,b=s?bank():null,rows=s?s.rows:[],order=0;
     for(var i=0;i<rows.length;i++)rows[i].output=rows[i].scope?++order:null;
     var state={ready:ready,revision:revision,selected:selected,devices:devices,mode:mode,trackMode:trackMode,follow:follow,
-        running:running,smoothing:smoothing,epochs:epochs,training:!!trainer,epoch:trainer?trainer.epoch:0,
+        running:running,smoothing:smoothing,epochs:epochs,training:!!trainer,epoch:trainer?trainer.epoch:0,engine:'FluCoMa',engineReady:!!(backend&&backend.available&&!backend.fault),
         note:note,left:inputLeft,right:inputRight,rows:rows,samples:b?b.samples.length:0,trained:!!(b&&b.model),
         loss:b?b.loss:null,origin:b?b.origin:'No model',outputs:order,trackName:trackName(),colors:themeColors,
         modelSelection:modelSelection,models:modelLibrary.map(function(r){var reason=compatibility(r);return {id:r.id,name:r.name,mode:r.mode,outputs:r.configs.length,savedAt:r.savedAt,compatible:!reason,reason:reason};})};
@@ -525,4 +598,4 @@ function emit(){
     for(i=0;i<a.length;i++)outlet(0,'statepacket',seq,i,a.length,a[i]);
 }
 function trackName(){try{return ready&&trackID?String(one(api(trackID),'name')):'';}catch(e){return '';}}
-function notifydeleted(){if(pollTask)pollTask.cancel();if(runTask)runTask.cancel();cancelTraining();stopRun();}
+function notifydeleted(){if(pollTask)pollTask.cancel();cancelTraining();stopRun();if(backend)backend.dispose();}

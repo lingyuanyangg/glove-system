@@ -2,7 +2,7 @@ from pathlib import Path
 import json,struct,zipfile
 ROOT=Path(__file__).resolve().parents[1]
 D=ROOT/'Glove_Neural_Scope';D.mkdir(exist_ok=True)
-(D/'neural_scope_control.js').write_text((ROOT/'tools/neural_core.js').read_text()+'\n'+(ROOT/'tools/live_adapter.js').read_text())
+(D/'neural_scope_control.js').write_text('\n'.join((ROOT/'tools'/name).read_text() for name in ['model_format.js','flucoma_bridge.js','live_adapter.js']))
 APP=dict(major=9,minor=1,revision=5,architecture='arm64',modernui=1)
 p=dict(fileversion=1,appversion=APP,classnamespace='box',rect=[70,70,1060,750],openinpresentation=1,
        openrect=[0,0,1060,169],devicewidth=1060,bgcolor=[.09,.11,.115,1],default_fontname='Arial',default_fontsize=11,boxes=[],lines=[])
@@ -12,7 +12,14 @@ def box(id,text=None,cls='newobj',rect=None,**attrs):
     b.update(attrs);p['boxes'].append({'box':b});return b
 def link(a,b,o=0,i=0):p['lines'].append({'patchline':dict(source=[a,o],destination=[b,i])})
 box('web',cls='jweb',rect=[0,0,1060,169],presentation=1,presentation_rect=[0,0,1060,169],numinlets=1,numoutlets=1,rendermode=1)
-box('controller','js neural_scope_control.js',numinlets=1,numoutlets=4,outlettype=['','','',''])
+box('controller','js neural_scope_control.js #0',numinlets=1,numoutlets=4,outlettype=['','','',''])
+for name,text in [('mlp-train','fluid.mlpregressor~ #0-glove-trainer @hiddenlayers 16 @activation 3 @outputactivation 0 @learnrate 0.01 @momentum 0.9 @batchsize 1 @validation 0 @maxiter 10'),('mlp-infer','fluid.mlpregressor~ #0-glove-inference'),('data-input','fluid.dataset~ #0-glove-x'),('data-output','fluid.dataset~ #0-glove-y')]:
+    box(name,text,numinlets=1,numoutlets=2,outlettype=['',''])
+    prefix={'mlp-train':'nativetrain','mlp-infer':'nativeinfer','data-input':'nativeinput','data-output':'nativeoutput'}[name]
+    box(name+'-prefix','prepend '+prefix);box(name+'-defer','deferlow')
+    link(name,name+'-prefix');link(name,name+'-prefix',1);link(name+'-prefix',name+'-defer');link(name+'-defer','controller')
+box('native-input-buffer','buffer~ #0-glove-input @samps 5',numinlets=1,numoutlets=2)
+box('native-output-buffer','buffer~ #0-glove-output @samps 1',numinlets=1,numoutlets=2)
 box('route-dialog','route import export');link('controller','route-dialog',3)
 for kind,object_name,prefix in [('import','opendialog .json','readmodel'),('export','savedialog','writemodel')]:
     box(kind+'-dialog',object_name,numinlets=1,numoutlets=2)
@@ -53,7 +60,7 @@ for n in range(256):
 box('remote-pool','p remote_pool',patcher=pool)
 box('audio-in','plugin~',numinlets=1,numoutlets=2,outlettype=['signal','signal']);box('audio-out','plugout~',numinlets=2,numoutlets=0);link('audio-in','audio-out');link('audio-in','audio-out',1,1)
 p['parameters']={'bank':['Glove Neural Training Bank','Training Bank',0],'parameterbanks':{},'inherited_shortname':1}
-p['dependency_cache']=[dict(name=f,type='TEXT',implicit=1) for f in ['neural_scope_control.js','neural_scope_ui.html']]
+p['dependency_cache']=[dict(name='fluid.mlpregressor~.mxo',type='iLaX'),dict(name='fluid.dataset~.mxo',type='iLaX')]+[dict(name=f,type='TEXT',implicit=1) for f in ['neural_scope_control.js','neural_scope_ui.html']]
 raw=json.dumps({'patcher':p},indent=2,ensure_ascii=False).encode();(D/'Glove Neural Scope.maxpat').write_bytes(raw)
 payload=json.dumps({'patcher':p},separators=(',',':'),ensure_ascii=False).encode()+b'\0'
 (D/'Glove Neural Scope.amxd').write_bytes(b'ampf'+struct.pack('<I',4)+b'aaaa'+b'meta'+struct.pack('<II',4,0)+b'ptch'+struct.pack('<I',len(payload))+payload)

@@ -22,12 +22,24 @@ lines={(tuple(l['patchline']['source']),tuple(l['patchline']['destination'])) fo
 assert (('audio-in',0),('audio-out',0)) in lines and (('audio-in',1),('audio-out',1)) in lines
 b=(D/'Glove Neural Scope.amxd').read_bytes();assert b[:4]==b'ampf' and b[8:12]==b'aaaa' and b[24:28]==b'ptch'
 assert len(b)-32==struct.unpack('<I',b[28:32])[0];assert json.loads(b[32:].rstrip(b'\0'))=={'patcher':p}
-assert (D/'neural_scope_control.js').read_text()==(ROOT/'tools/neural_core.js').read_text()+'\n'+(ROOT/'tools/live_adapter.js').read_text()
-for dep in p['dependency_cache']:assert '/' not in dep['name'] and (D/dep['name']).exists()
+assert (D/'neural_scope_control.js').read_text()=='\n'.join((ROOT/'tools'/name).read_text() for name in ['model_format.js','flucoma_bridge.js','live_adapter.js'])
+for dep in p['dependency_cache']:
+    assert '/' not in dep['name']
+    if dep.get('type')=='TEXT':assert (D/dep['name']).exists()
 assert not (D/'gloveRegressor10.json').exists()
 assert ids['controller']['numoutlets']==4
 assert ids['import-dialog']['text']=='opendialog .json'
 assert ids['export-dialog']['text']=='savedialog'
 assert (('controller',3),('route-dialog',0)) in lines
-print('PASS recursive patch links, 256 fixed remotes, stereo, dual bus inputs, Live theme and Blob bridges,')
-print('     compact dimensions, portable assets, no bundled preset, native import/export dialogs and exact AMXD/source equality')
+assert ids['controller']['text']=='js neural_scope_control.js #0'
+for name in ['mlp-train','mlp-infer']:
+    assert ids[name]['text'].startswith('fluid.mlpregressor~ #0-')
+    assert ((name,0),(name+'-prefix',0)) in lines and ((name,1),(name+'-prefix',0)) in lines
+for name in ['data-input','data-output']:assert ids[name]['text'].startswith('fluid.dataset~ #0-')
+for name in ['native-input-buffer','native-output-buffer']:assert ids[name]['text'].startswith('buffer~ #0-')
+assert all('#0-' in ids[name]['text'] for name in ['mlp-train','mlp-infer','data-input','data-output','native-input-buffer','native-output-buffer'])
+source=(D/'neural_scope_control.js').read_text()
+for removed in ['GloveNeural.predict','GloveNeural.Trainer','function forward(','runTask.interval=33','function trainChunk(']:assert removed not in source
+print('PASS recursive patch links, 256 fixed remotes, stereo, dual buses, theme/Blob bridges,')
+print('     native FluCoMa train/infer/datasets/buffers, namespace isolation, callbacks, no JS neural math,')
+print('     compact dimensions, portable companions, dialogs, absent preset and AMXD/source equality')

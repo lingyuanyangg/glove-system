@@ -27,6 +27,8 @@ Servo signal pins, in input order, are **D6, D5, D4, D3, D2**. Use a power suppl
 
 ## Max for Live
 
+The rebuilt [Glove Neural Scope](../neural-scope/README.md) now uses native FluCoMa training and inference. Install **FluidCorpusManipulation 1.0.9 or later** in Max Package Manager; Data Knot is optional for this new device. Reload the device after updating its AMXD, JS and HTML.
+
 Keep `max/devices/` intact: the `.amxd` devices need `unitPart.maxpat`, the former default regression JSON has been removed. The original `reressorMapping2` still contains its historical read message; load a user-trained model explicitly or use the new [Glove Neural Scope](../neural-scope/README.md) model selector. Add this directory to Max's File Preferences search path if a helper or model fails to resolve. The extracted patches in `max/source/` contain the same dependencies; add `max/devices/` to the path when editing them.
 
 Install these external packages:

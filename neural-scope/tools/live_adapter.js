@@ -5,7 +5,7 @@ var ownerPatcher=this.patcher,ready=false,uiReady=false,selfID=0,trackID=0;
 var apiCache={},songView=null,devices=[],sessions={},savedSessions={},selected=null,sequence=0,revision=0;
 var mode='left',trackMode='this',follow=true,running=false,smoothing=30,epochs=800;
 var inputLeft=null,inputRight=null,inputRevision=0,lastPredicted=-1;
-var remotes={},remotePool=null,pollTask=null,runTask=null,trainingTask=null,trainer=null,trainingBank=null;
+var remotes={},remotePool=null,pollTask=null,trainer=null,trainingBank=null,backend=null,runEpoch=0;
 var ticks=0,note='Choose a target device',storedPayload='',visibleIDs=[],deviceSignature='',lastUi=0;
 var themeColors={};
 var modelLibrary=[],modelSelection='',pendingExport=null,pendingImport=null;
@@ -49,8 +49,8 @@ function input(){
     if(mode==='right'){if(!inputRight)throw Error('Waiting for GRight; move the right hand once');return inputRight.slice();}
     if(!inputLeft||!inputRight)throw Error('Both mode requires valid GLeft and GRight frames');return inputLeft.concat(inputRight);
 }
-function left(){try{inputLeft=GloveNeural.vector(arrayfromargs(arguments),5);inputRevision++;}catch(e){say('Ignored invalid GLeft frame');}}
-function right(){try{inputRight=GloveNeural.vector(arrayfromargs(arguments),5);inputRevision++;}catch(e){say('Ignored invalid GRight frame');}}
+function left(){try{inputLeft=GloveNeural.vector(arrayfromargs(arguments),5);inputRevision++;if(running&&mode!=='right')perform();}catch(e){say('Ignored invalid GLeft frame');}}
+function right(){try{inputRight=GloveNeural.vector(arrayfromargs(arguments),5);inputRevision++;if(running&&mode!=='left')perform();}catch(e){say('Ignored invalid GRight frame');}}
 function nin(){return mode==='both'?10:5;}
 function schema(rows){return rows.map(function(p){return p.index+':'+p.name+':'+p.lo+':'+p.hi+':'+p.quantized;}).join('|');}
 function bankKey(){return mode+'|'+schema(scoped());}
@@ -119,11 +119,11 @@ function pool(){
     for(var i=0;i<256;i++)remotePool.push({remote:p.getnamed('remote-'+i),sender:p.getnamed('sender-'+i),used:false});return remotePool;
 }
 function releaseAll(){for(var id in remotes){var r=remotes[id];try{r.sender.message('int',0);}catch(e){}r.used=false;}remotes={};}
-function stopRun(){running=false;releaseAll();lastPredicted=-1;}
-function cancelTraining(){if(trainingTask)trainingTask.cancel();trainingTask=null;trainer=null;trainingBank=null;}
+function stopRun(){running=false;runEpoch++;if(backend)backend.invalidate();releaseAll();lastPredicted=-1;}
+function cancelTraining(){if(backend)backend.cancelTrain();trainer=null;trainingBank=null;}
 function startRun(){
     validateTarget();var rows=scoped(),b=bank();if(!rows.length||rows.length>256)throw Error('Scope 1–256 parameters');
-    GloveNeural.validate(b.model,nin(),rows.length);input();stopRun();
+    GloveNeural.validate(b.model,nin(),rows.length);if(!backend)throw Error("FluCoMa is not ready");backend.check();input();stopRun();
     try{
         var channels=pool();
         for(var i=0;i<rows.length;i++){
@@ -138,9 +138,17 @@ function perform(){
     if(!running)return;
     try{
         var s=current();
-        // Check containment and parameter identity before each prediction batch.
         if(contextTrack()!==trackID||containingTrack(s.id)!==trackID||ids(api(s.id),'parameters').join(',')!==s.parameterIDs){stopRun();say('Target topology changed · Run stopped');return;}
-        if(inputRevision===lastPredicted)return;var rows=scoped(),y=GloveNeural.predict(bank().model,input());lastPredicted=inputRevision;
+        if(inputRevision===lastPredicted)return;
+        var rows=scoped(),b=bank();backend.predict(b.model,input(),rows.length,{device:selected,revision:revision,mode:mode,epoch:runEpoch,bank:b});lastPredicted=inputRevision;
+    }catch(e){stopRun();say('Run stopped: '+e.message);emit();}
+}
+function applyPrediction(y,tag){
+    if(!running||tag.epoch!==runEpoch||tag.device!==selected||tag.revision!==revision||tag.mode!==mode)return;
+    try{
+        var session=current();if(contextTrack()!==trackID||containingTrack(session.id)!==trackID||ids(api(session.id),'parameters').join(',')!==session.parameterIDs){stopRun();say('Target topology changed · Run stopped');return;}
+        if(!running||tag.bank!==bank())return;
+        var rows=scoped();if(y.length!==rows.length)throw Error('Prediction dimensions differ');
         for(var i=0;i<rows.length;i++){
             var p=rows[i],v=GloveNeural.clamp(p.lo+(p.hi-p.lo)*y[i],p.min,p.max);
             if(p.quantized){var low=Math.ceil(p.min),high=Math.floor(p.max);if(low>high)throw Error(p.name+' has no discrete step in range');v=GloveNeural.clamp(Math.round(v),low,high);}
@@ -149,6 +157,16 @@ function perform(){
             p.value=v;p.predicted=y[i];
         }
     }catch(e){stopRun();say('Run stopped: '+e.message);emit();}
+}
+function nativeinput(){if(backend)backend.receive('input',arrayfromargs(arguments));}
+function nativeoutput(){if(backend)backend.receive('output',arrayfromargs(arguments));}
+function nativetrain(){if(backend)backend.receive('train',arrayfromargs(arguments));}
+function nativeinfer(){if(backend)backend.receive('infer',arrayfromargs(arguments));}
+function nativeError(message){stopRun();cancelTraining();say('FluCoMa: '+message);emit();}
+function nativeTrained(job){
+    if(trainer!==job||job.cancelled)return;
+    var b=trainingBank;b.model=GloveNeural.copy(job.best);b.loss=job.bestLoss;b.origin='FluCoMa MLP · tanh / linear · SGD';
+    trainer=null;trainingBank=null;say('FluCoMa trained · normalized RMSE '+b.loss.toFixed(5)+' · enable Run');persist();revision++;emit();
 }
 function capture(){
     if(running)throw Error('Turn Run off before setting and capturing an example');
@@ -166,15 +184,9 @@ function capture(){
 }
 function train(){
     stopRun();var rows=scoped(),b=bank();if(!rows.length||rows.length>256)throw Error('Scope 1–256 parameters');
-    trainer=new GloveNeural.Trainer(b.samples,nin(),rows.length,epochs);trainingBank=b;
-    trainingTask=new Task(trainChunk,this);trainingTask.interval=10;trainingTask.repeat();say('Training · 0 / '+epochs+' epochs');
-}
-function trainChunk(){
-    if(!trainer)return;try{
-        var begin=new Date().getTime(),count=0;
-        do{trainer.advance();count++;}while(!trainer.done&&count<32&&new Date().getTime()-begin<6);
-        if(trainer.done){var t=trainer,b=trainingBank;b.model=GloveNeural.copy(t.model);b.loss=t.loss;b.origin='MLP · tanh / linear · Adam';cancelTraining();say('Trained · normalized RMSE '+t.loss.toFixed(5)+' · enable Run');persist();revision++;emit();}
-    }catch(e){cancelTraining();say('Training failed: '+e.message);emit();}
+    if(!backend)throw Error('FluCoMa is not ready');backend.check();
+    trainingBank=b;try{trainer=backend.startTrain(b.samples,nin(),rows.length,epochs);}catch(e){trainingBank=null;throw e;}
+    say('FluCoMa training · 0 / '+epochs+' epochs');
 }
 function modelID(){return 'model-'+new Date().getTime()+'-'+Math.floor(Math.random()*1000000000);}
 function validateRecord(record){
@@ -212,7 +224,7 @@ function compatibility(record){
 function recordCurrent(name){
     name=String(name||'').trim();if(!name||name.length>80)throw Error('Enter a model name (1–80 characters)');
     var s=current(),rows=scoped(),b=bank();GloveNeural.validate(b.model,nin(),rows.length);
-    return validateRecord({format:'glove-neural-scope-model',version:1,id:modelID(),name:name,savedAt:new Date().toISOString(),
+    return validateRecord({format:'glove-neural-scope-model',version:1,backend:'FluCoMa',id:modelID(),name:name,savedAt:new Date().toISOString(),
         mode:mode,inputDimensions:nin(),deviceSignature:s.signature,
         configs:rows.map(function(p){return {index:p.index,name:p.name,lo:p.lo,hi:p.hi,quantized:p.quantized,min:p.min,max:p.max};}),
         bank:GloveNeural.copy({model:b.model,samples:b.samples,loss:b.loss,origin:b.origin})});
@@ -255,7 +267,9 @@ function readmodel(){
         while(file.position<file.eof){var part=file.readstring(4096);if(!part.length)throw Error('Incomplete model file');raw+=part;}file.close();file=null;
         var document=JSON.parse(raw),record;
         if(document.format==='glove-neural-scope-model')record=validateRecord(document);
-        else if(document.fits&&document.fits.input_regressor){
+        else if(document.layers){
+            validateTarget();record=recordCurrentFromImported(GloveNeural.fromFluCoMa(document,nin(),scoped().length),path);
+        }else if(document.fits&&document.fits.input_regressor){
             validateTarget();var b=GloveNeural.fromDataKnot(document,nin(),scoped().length);
             record=recordCurrentFromImported(b,path);say('Imported Data Knot outputs in current scoped table order');
         }else throw Error('Not a supported neural model JSON');
@@ -313,25 +327,25 @@ function pollRows(){
 }
 function tick(){
     if(!ready)return;try{
-        ticks++;if(ticks%5===0||contextTrack()!==trackID)refresh();
+        if(backend)backend.watch();ticks++;if(ticks%5===0||contextTrack()!==trackID)refresh();
         followSelection();
         if(selected&&ids(api(selected),'parameters').join(',')!==current().parameterIDs){stopRun();cancelTraining();loadTarget(selected);say('Parameter list changed · review scope');}
-        pollRows();if(trainer)say('Training · '+trainer.epoch+' / '+trainer.epochs+' epochs'+(isFinite(trainer.loss)?' · RMSE '+trainer.loss.toFixed(5):''));emit();
+        pollRows();if(trainer)say('FluCoMa training · '+trainer.epoch+' / '+trainer.epochs+' epochs'+(GloveNeural.number(trainer.loss)?' · RMSE '+trainer.loss.toFixed(5):''));emit();
     }catch(e){stopRun();cancelTraining();say('Waiting for target: '+e.message);emit();}
 }
 function chunks(s){var out=[];for(var i=0;i<s.length;i+=4096)out.push(s.substring(i,i+4096));return out.length?out:[''];}
 function snapshotSession(s){return {signature:s.signature,configs:s.rows.map(function(p){return {scope:p.scope,min:p.min,max:p.max};}),banks:s.banks};}
 function persist(){
     for(var id in sessions){var s=sessions[id];savedSessions[s.key]=snapshotSession(s);}
-    storedPayload=encodeURIComponent(JSON.stringify({version:2,mode:mode,trackMode:trackMode,follow:follow,smoothing:smoothing,epochs:epochs,sessions:savedSessions,models:modelLibrary,modelSelection:modelSelection}));
+    storedPayload=encodeURIComponent(JSON.stringify({version:3,mode:mode,trackMode:trackMode,follow:follow,smoothing:smoothing,epochs:epochs,sessions:savedSessions,models:modelLibrary,modelSelection:modelSelection}));
     var a=chunks(storedPayload);if(a.length===1)outlet(2,a[0]);else outlet.apply(this,[2,'list'].concat(a));
 }
 function restore(){
     var encoded=Array.prototype.slice.call(arguments).join('');if(!encoded||encoded===storedPayload)return;
     try{
-        var d=JSON.parse(decodeURIComponent(encoded));if(d.version!==1&&d.version!==2)throw Error('Unknown saved state version');
+        var d=JSON.parse(decodeURIComponent(encoded));if(d.version!==1&&d.version!==2&&d.version!==3)throw Error('Unknown saved state version');
         if(['left','right','both'].indexOf(d.mode)<0||['this','selected'].indexOf(d.trackMode)<0)throw Error('Invalid saved input mode');
-        var models=d.version===2?d.models:[];if(!(models instanceof Array)||models.length>128)throw Error('Invalid saved model library');
+        var models=d.version>=2?d.models:[];if(!(models instanceof Array)||models.length>128)throw Error('Invalid saved model library');
         var seen={};for(var k=0;k<models.length;k++){validateRecord(models[k]);if(seen[models[k].id])throw Error('Duplicate saved model identity');seen[models[k].id]=true;}
         stopRun();cancelTraining();storedPayload=encoded;savedSessions=d.sessions||{};sessions={};selected=null;
         modelLibrary=GloveNeural.copy(models);modelSelection=seen[d.modelSelection]?d.modelSelection:'';
@@ -346,7 +360,8 @@ function bang(){
         var self=new LiveAPI(null,'this_device');selfID=Number(self.id);if(!selfID)throw Error('Load this AMXD in Ableton Live');
         ready=true;refresh();followSelection();
         if(pollTask)pollTask.cancel();pollTask=new Task(tick,this);pollTask.interval=200;pollTask.repeat();
-        if(runTask)runTask.cancel();runTask=new Task(perform,this);runTask.interval=33;runTask.repeat();emit();
+        if(!backend){backend=new GloveFluCoMa.Bridge(ownerPatcher,String(jsarguments[1]),{prediction:applyPrediction,trained:nativeTrained,error:nativeError,status:function(){emit();}});backend.initialize();}
+        emit();
     }catch(e){ready=false;say(e.message);emit();}
 }
 function command(encoded){
@@ -397,7 +412,7 @@ function emit(){
     if(!uiReady)return;var s=selected?sessions[selected]:null,b=s?bank():null,rows=s?s.rows:[],order=0;
     for(var i=0;i<rows.length;i++)rows[i].output=rows[i].scope?++order:null;
     var state={ready:ready,revision:revision,selected:selected,devices:devices,mode:mode,trackMode:trackMode,follow:follow,
-        running:running,smoothing:smoothing,epochs:epochs,training:!!trainer,epoch:trainer?trainer.epoch:0,
+        running:running,smoothing:smoothing,epochs:epochs,training:!!trainer,epoch:trainer?trainer.epoch:0,engine:'FluCoMa',engineReady:!!(backend&&backend.available&&!backend.fault),
         note:note,left:inputLeft,right:inputRight,rows:rows,samples:b?b.samples.length:0,trained:!!(b&&b.model),
         loss:b?b.loss:null,origin:b?b.origin:'No model',outputs:order,trackName:trackName(),colors:themeColors,
         modelSelection:modelSelection,models:modelLibrary.map(function(r){var reason=compatibility(r);return {id:r.id,name:r.name,mode:r.mode,outputs:r.configs.length,savedAt:r.savedAt,compatible:!reason,reason:reason};})};
@@ -405,4 +420,4 @@ function emit(){
     for(i=0;i<a.length;i++)outlet(0,'statepacket',seq,i,a.length,a[i]);
 }
 function trackName(){try{return ready&&trackID?String(one(api(trackID),'name')):'';}catch(e){return '';}}
-function notifydeleted(){if(pollTask)pollTask.cancel();if(runTask)runTask.cancel();cancelTraining();stopRun();}
+function notifydeleted(){if(pollTask)pollTask.cancel();cancelTraining();stopRun();if(backend)backend.dispose();}

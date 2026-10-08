@@ -4,6 +4,8 @@ A Max for Live audio effect that learns glove gestures → parameters of a targe
 
 ## Install and operate
 
+Requires **FluidCorpusManipulation / FluCoMa 1.0.9 or later**, installed through Max Package Manager. The local package used to inspect the protocol is 1.0.9. Data Knot is not required by this device. Native externals are resolved from the installed package and are not redistributed in this ZIP.
+
 Keep `Glove Neural Scope.amxd`, `neural_scope_control.js` and `neural_scope_ui.html` together. Load the audio effect on an audio track, or after an instrument on a MIDI track. Stereo audio passes through.
 
 Use the **Glove Receiver Dual** as the source: this device reads the normalized Max buses `GLeft` and `GRight` and does not bind another UDP receiver. Left/Right uses five values; Both concatenates Left then Right into ten values. Each hand is ordered **pinky, ring, middle, index, thumb**. Both requires valid data from both hands; no zero-padding is used. After loading, move the fingers once to obtain a first frame. Stable and disconnected sources both retain their last valid frame because these buses have no connection heartbeat.
@@ -16,7 +18,11 @@ Use the **Glove Receiver Dual** as the source: this device reads the normalized 
 
 ## Neural processing and compatibility
 
-New training uses an embedded ES5 multilayer perceptron: **5 or 10 → 16 tanh units → N linear outputs**, where N is the scoped parameter count. Adam updates the weights with MSE gradients. The best measured training checkpoint is retained. Each predicted value is clipped to 0–1, converted to the parameter's complete native range, then clamped to its custom Min/Max bounds. Quantized parameters round to valid integer steps.
+Training and prediction run in native **`fluid.mlpregressor~`** objects. Two isolated instances separate training from active inference; paired **`fluid.dataset~`** objects hold captured glove/sound examples. Each device instance uses its own `#0` namespace for models, datasets, buffers and dictionaries. JavaScript only validates saved metadata, coordinates native messages and manages Live parameters; it contains no neural trainer, backpropagation or prediction math.
+
+New training uses **5 or 10 → 16 tanh units → N linear outputs**, where N is the scoped parameter count. FluCoMa uses **SGD with momentum**, with learning rate 0.01, momentum 0.9, batch size 1 and validation 0. Training is split into scheduled native fit calls of 1–10 epochs, reduced for larger example/output counts. Each fit call is synchronous; the scheduler yields between calls. Cancellation discards the unfinished job and retains the previous saved model, after any pending native response drains. The best completed checkpoint is retained. FluCoMa's returned error sums output errors per example; the interface reports normalized **RMSE = sqrt(error / N)**. It measures training examples, not unseen-gesture accuracy. [FluCoMa MLP/SGD source at tag 1.0.9](https://github.com/flucoma/flucoma-core/tree/1.0.9/include/flucoma/algorithms/public).
+
+Valid glove frames trigger `predictpoint` through native input/output buffers. There is **no fixed 33 ms prediction polling interval**. Only one request is in flight; bursts coalesce to the newest pending frame, and Stop/target changes invalidate old responses. Predictions wait for the native model-load acknowledgement. Native output values are clipped to 0–1, converted to each parameter's full range, clamped to custom Min/Max and quantized when required. Output smoothing remains 30 ms by default. No end-to-end latency improvement is claimed without a Live/hardware test.
 
 ## Saved model selector
 
@@ -24,7 +30,7 @@ After training, enter **Model name** and press **Save**. This creates an indepen
 
 Snapshots live in the **Live Set**: save the Set to retain them. Use **Export** to save the selected snapshot to a JSON file; use **Import** to bring previously exported models into another Set. A compatible import is loaded with Run off; an incompatible import stays in the selector until the matching hand mode and target are chosen. Native [opendialog](https://docs.cycling74.com/reference/opendialog/) and [savedialog](https://docs.cycling74.com/reference/savedialog/) choose files; the [Max File API](https://docs.cycling74.com/apiref/js/file/) reads/writes JSON. Cancelled dialogs leave snapshots intact. Use **×** to remove the selected named snapshot; this does not erase the active training bank. Up to 128 named snapshots can be stored per device.
 
-No preset model is bundled or loaded automatically. The old default JSON has been removed. Import additionally accepts a **user-selected Data Knot regression JSON** with a five-input/ten-output model, using Left or Right and exactly ten scoped outputs. Those files contain no Live parameter identities, so outputs bind in the current scoped table order. Both needs a ten-input model. New training uses the embedded engine and needs no Data Knot/FluCoMa package installation.
+No preset model is bundled or loaded automatically. Earlier device snapshots and version-one/version-two Set state retain their weights, examples, names and parameter configurations; their layer matrices are loaded directly into FluCoMa without retraining. Native buffers use float samples, so results need not be bit-identical to the old JavaScript calculation. The old default JSON has been removed. Import additionally accepts a **user-selected Data Knot regression JSON** with a five-input/ten-output model, using Left or Right and exactly ten scoped outputs. Those files contain no Live parameter identities, so outputs bind in the current scoped table order. Both needs a ten-input model. Import also accepts raw **FluCoMa MLP JSON** with input/output dimensions matching the current hand mode and scoped count. Raw files bind outputs in scoped table order. FluCoMa is required; Data Knot is optional for creating additional files.
 
 Each target, input mode and scoped parameter structure has an independent sample/model bank. Switching scope does not erase previous banks. Adding/removing examples invalidates the current trained model. Custom Min/Max are output clamps in Live's internal units, not a rescaling of the learned sound. Hover Live value for the host's formatted units.
 
@@ -40,14 +46,14 @@ The 1060 × 169 compact interface uses flat gray controls and orange state indic
 
 ## Validation and source
 
-Offline neural, adapter, packet/theme/model-selector and AMXD structural checks pass. This release has **not been validated in the native Live host or with physical gloves**. Local browser preview was denied and Live UI access was unavailable. See [VALIDATION.md](VALIDATION.md) for exact checks and acceptance steps.
+Standalone native FluCoMa core, adapter/protocol, model-format, packet/theme/model-selector and AMXD structural checks pass. This release has **not been validated in the native Live host or with physical gloves**. Local browser preview was denied and Live UI access was unavailable. See [VALIDATION.md](VALIDATION.md) for exact checks and acceptance steps.
 
 ```sh
 python3 tools/build.py
-node tools/test_neural.js
+node tools/test_format.js
 node tools/test_adapter.js
 node tools/test_ui.js
 python3 tools/test_patch.py
 ```
 
-`tools/neural_core.js` and `tools/live_adapter.js` compose the shipped controller. The only runtime companions are the controller JS and local HTML; no default model JSON is required. `Glove Neural Scope.maxpat` is editable source; its parsed patcher equals the AMXD payload. The package targets Max 9 and a Live edition with Max for Live. Scope Lab and the original devices remain unchanged.
+`tools/model_format.js`, `tools/flucoma_bridge.js` and `tools/live_adapter.js` compose the shipped controller. The only runtime companions are the controller JS and local HTML; no default model JSON is required. `Glove Neural Scope.maxpat` is editable source; its parsed patcher equals the AMXD payload. The package targets Max 9 and a Live edition with Max for Live. Scope Lab and the original devices remain unchanged.

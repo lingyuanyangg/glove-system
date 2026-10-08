@@ -1,5 +1,5 @@
 {
-  "kind": "Shipped Max adapter executed against a simulated Live Object Model",
+  "kind": "Shipped Max adapter and FluCoMa bridge executed against a simulated Live Object Model and native message protocol; no native training measured",
   "checks": [
     {
       "name": "Portable UI load, track discovery, self exclusion and selected-device follow",
@@ -18,7 +18,7 @@
       "pass": true
     },
     {
-      "name": "Actual adapter training completes; Run drives native units and Stop releases",
+      "name": "Native training protocol completes; Run drives native units and Stop releases",
       "pass": true
     },
     {
@@ -127,6 +127,38 @@
     },
     {
       "name": "Large named model snapshot uses bounded Blob/UI chunks and round-trips through JSON",
+      "pass": true
+    },
+    {
+      "name": "Native inference runs on glove frames, coalesces load-time bursts and ignores stopped responses",
+      "pass": true
+    },
+    {
+      "name": "Native dataset load acknowledgements gate fit and cancellation drains pending callbacks",
+      "pass": true
+    },
+    {
+      "name": "Native cancellation during fit preserves the previous model and rejects a premature new job",
+      "pass": true
+    },
+    {
+      "name": "Missing native external disables training and Run with an installation diagnostic",
+      "pass": true
+    },
+    {
+      "name": "Invalid native prediction and response timeout release all Live mappings",
+      "pass": true
+    },
+    {
+      "name": "Raw FluCoMa MLP JSON imports through the selector with sigmoid and ReLU activations",
+      "pass": true
+    },
+    {
+      "name": "Native fit uses bounded epochs and reads loss after dataset-name tokens",
+      "pass": true
+    },
+    {
+      "name": "Version-two named snapshots preserve weights and examples for native inference",
       "pass": true
     }
   ]

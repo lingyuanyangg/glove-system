@@ -9,6 +9,7 @@
     "Named model selection and save/load/export availability",
     "Incompatible model load rejection while export remains available",
     "Training state disables model selection and load",
-    "Unique UI IDs and complete selector controls without a legacy preset button"
+    "Unique UI IDs and complete selector controls without a legacy preset button",
+    "Missing FluCoMa disables Train and Run"
   ]
 }

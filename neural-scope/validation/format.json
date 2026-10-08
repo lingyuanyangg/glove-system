@@ -1,0 +1,29 @@
+{
+  "kind": "Model schema/serialization checks; no neural math in JavaScript",
+  "checks": [
+    {
+      "name": "FluCoMa layer format validates and serializes without changing weights",
+      "pass": true
+    },
+    {
+      "name": "All four native FluCoMa activation codes are accepted",
+      "pass": true
+    },
+    {
+      "name": "Layer, input and output dimensional mismatches are rejected",
+      "pass": true
+    },
+    {
+      "name": "Non-finite weights, invalid activation and malformed input are rejected",
+      "pass": true
+    },
+    {
+      "name": "User-selected Data Knot JSON retains weights and paired examples",
+      "pass": true
+    },
+    {
+      "name": "JavaScript utility exposes no neural trainer or predictor",
+      "pass": true
+    }
+  ]
+}

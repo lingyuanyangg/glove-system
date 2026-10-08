@@ -66,7 +66,7 @@
             155,
             22
           ],
-          "text": "js neural_scope_control.js",
+          "text": "js neural_scope_control.js #0",
           "numinlets": 1,
           "numoutlets": 4,
           "outlettype": [
@@ -79,12 +79,236 @@
       },
       {
         "box": {
-          "id": "route-dialog",
-          "varname": "route-dialog",
+          "id": "mlp-train",
+          "varname": "mlp-train",
           "maxclass": "newobj",
           "patching_rect": [
             350,
             220,
+            155,
+            22
+          ],
+          "text": "fluid.mlpregressor~ #0-glove-trainer @hiddenlayers 16 @activation 3 @outputactivation 0 @learnrate 0.01 @momentum 0.9 @batchsize 1 @validation 0 @maxiter 10",
+          "numinlets": 1,
+          "numoutlets": 2,
+          "outlettype": [
+            "",
+            ""
+          ]
+        }
+      },
+      {
+        "box": {
+          "id": "mlp-train-prefix",
+          "varname": "mlp-train-prefix",
+          "maxclass": "newobj",
+          "patching_rect": [
+            515,
+            220,
+            155,
+            22
+          ],
+          "text": "prepend nativetrain"
+        }
+      },
+      {
+        "box": {
+          "id": "mlp-train-defer",
+          "varname": "mlp-train-defer",
+          "maxclass": "newobj",
+          "patching_rect": [
+            680,
+            220,
+            155,
+            22
+          ],
+          "text": "deferlow"
+        }
+      },
+      {
+        "box": {
+          "id": "mlp-infer",
+          "varname": "mlp-infer",
+          "maxclass": "newobj",
+          "patching_rect": [
+            845,
+            220,
+            155,
+            22
+          ],
+          "text": "fluid.mlpregressor~ #0-glove-inference",
+          "numinlets": 1,
+          "numoutlets": 2,
+          "outlettype": [
+            "",
+            ""
+          ]
+        }
+      },
+      {
+        "box": {
+          "id": "mlp-infer-prefix",
+          "varname": "mlp-infer-prefix",
+          "maxclass": "newobj",
+          "patching_rect": [
+            20,
+            264,
+            155,
+            22
+          ],
+          "text": "prepend nativeinfer"
+        }
+      },
+      {
+        "box": {
+          "id": "mlp-infer-defer",
+          "varname": "mlp-infer-defer",
+          "maxclass": "newobj",
+          "patching_rect": [
+            185,
+            264,
+            155,
+            22
+          ],
+          "text": "deferlow"
+        }
+      },
+      {
+        "box": {
+          "id": "data-input",
+          "varname": "data-input",
+          "maxclass": "newobj",
+          "patching_rect": [
+            350,
+            264,
+            155,
+            22
+          ],
+          "text": "fluid.dataset~ #0-glove-x",
+          "numinlets": 1,
+          "numoutlets": 2,
+          "outlettype": [
+            "",
+            ""
+          ]
+        }
+      },
+      {
+        "box": {
+          "id": "data-input-prefix",
+          "varname": "data-input-prefix",
+          "maxclass": "newobj",
+          "patching_rect": [
+            515,
+            264,
+            155,
+            22
+          ],
+          "text": "prepend nativeinput"
+        }
+      },
+      {
+        "box": {
+          "id": "data-input-defer",
+          "varname": "data-input-defer",
+          "maxclass": "newobj",
+          "patching_rect": [
+            680,
+            264,
+            155,
+            22
+          ],
+          "text": "deferlow"
+        }
+      },
+      {
+        "box": {
+          "id": "data-output",
+          "varname": "data-output",
+          "maxclass": "newobj",
+          "patching_rect": [
+            845,
+            264,
+            155,
+            22
+          ],
+          "text": "fluid.dataset~ #0-glove-y",
+          "numinlets": 1,
+          "numoutlets": 2,
+          "outlettype": [
+            "",
+            ""
+          ]
+        }
+      },
+      {
+        "box": {
+          "id": "data-output-prefix",
+          "varname": "data-output-prefix",
+          "maxclass": "newobj",
+          "patching_rect": [
+            20,
+            308,
+            155,
+            22
+          ],
+          "text": "prepend nativeoutput"
+        }
+      },
+      {
+        "box": {
+          "id": "data-output-defer",
+          "varname": "data-output-defer",
+          "maxclass": "newobj",
+          "patching_rect": [
+            185,
+            308,
+            155,
+            22
+          ],
+          "text": "deferlow"
+        }
+      },
+      {
+        "box": {
+          "id": "native-input-buffer",
+          "varname": "native-input-buffer",
+          "maxclass": "newobj",
+          "patching_rect": [
+            350,
+            308,
+            155,
+            22
+          ],
+          "text": "buffer~ #0-glove-input @samps 5",
+          "numinlets": 1,
+          "numoutlets": 2
+        }
+      },
+      {
+        "box": {
+          "id": "native-output-buffer",
+          "varname": "native-output-buffer",
+          "maxclass": "newobj",
+          "patching_rect": [
+            515,
+            308,
+            155,
+            22
+          ],
+          "text": "buffer~ #0-glove-output @samps 1",
+          "numinlets": 1,
+          "numoutlets": 2
+        }
+      },
+      {
+        "box": {
+          "id": "route-dialog",
+          "varname": "route-dialog",
+          "maxclass": "newobj",
+          "patching_rect": [
+            680,
+            308,
             155,
             22
           ],
@@ -97,8 +321,8 @@
           "varname": "import-dialog",
           "maxclass": "newobj",
           "patching_rect": [
-            515,
-            220,
+            845,
+            308,
             155,
             22
           ],
@@ -113,8 +337,8 @@
           "varname": "import-path",
           "maxclass": "newobj",
           "patching_rect": [
-            680,
-            220,
+            20,
+            352,
             155,
             22
           ],
@@ -127,8 +351,8 @@
           "varname": "import-defer",
           "maxclass": "newobj",
           "patching_rect": [
-            845,
-            220,
+            185,
+            352,
             155,
             22
           ],
@@ -141,8 +365,8 @@
           "varname": "import-cancel",
           "maxclass": "message",
           "patching_rect": [
-            20,
-            264,
+            350,
+            352,
             155,
             22
           ],
@@ -155,8 +379,8 @@
           "varname": "import-cancel-defer",
           "maxclass": "newobj",
           "patching_rect": [
-            185,
-            264,
+            515,
+            352,
             155,
             22
           ],
@@ -169,8 +393,8 @@
           "varname": "export-dialog",
           "maxclass": "newobj",
           "patching_rect": [
-            350,
-            264,
+            680,
+            352,
             155,
             22
           ],
@@ -185,8 +409,8 @@
           "varname": "export-path",
           "maxclass": "newobj",
           "patching_rect": [
-            515,
-            264,
+            845,
+            352,
             155,
             22
           ],
@@ -199,8 +423,8 @@
           "varname": "export-defer",
           "maxclass": "newobj",
           "patching_rect": [
-            680,
-            264,
+            20,
+            396,
             155,
             22
           ],
@@ -213,8 +437,8 @@
           "varname": "export-cancel",
           "maxclass": "message",
           "patching_rect": [
-            845,
-            264,
+            185,
+            396,
             155,
             22
           ],
@@ -227,8 +451,8 @@
           "varname": "export-cancel-defer",
           "maxclass": "newobj",
           "patching_rect": [
-            20,
-            308,
+            350,
+            396,
             155,
             22
           ],
@@ -241,8 +465,8 @@
           "varname": "bank",
           "maxclass": "newobj",
           "patching_rect": [
-            185,
-            308,
+            515,
+            396,
             155,
             22
           ],
@@ -274,8 +498,8 @@
           "varname": "restore-prefix",
           "maxclass": "newobj",
           "patching_rect": [
-            350,
-            308,
+            680,
+            396,
             155,
             22
           ],
@@ -288,8 +512,8 @@
           "varname": "defer-restore",
           "maxclass": "newobj",
           "patching_rect": [
-            515,
-            308,
+            845,
+            396,
             155,
             22
           ],
@@ -302,8 +526,8 @@
           "varname": "host",
           "maxclass": "newobj",
           "patching_rect": [
-            680,
-            308,
+            20,
+            440,
             155,
             22
           ],
@@ -316,8 +540,8 @@
           "varname": "defer-host",
           "maxclass": "newobj",
           "patching_rect": [
-            845,
-            308,
+            185,
+            440,
             155,
             22
           ],
@@ -330,8 +554,8 @@
           "varname": "colors",
           "maxclass": "newobj",
           "patching_rect": [
-            20,
-            352,
+            350,
+            440,
             155,
             22
           ],
@@ -346,8 +570,8 @@
           "varname": "query-colors",
           "maxclass": "message",
           "patching_rect": [
-            185,
-            352,
+            515,
+            440,
             155,
             22
           ],
@@ -360,8 +584,8 @@
           "varname": "theme-prefix",
           "maxclass": "newobj",
           "patching_rect": [
-            350,
-            352,
+            680,
+            440,
             155,
             22
           ],
@@ -374,8 +598,8 @@
           "varname": "defer-theme",
           "maxclass": "newobj",
           "patching_rect": [
-            515,
-            352,
+            845,
+            440,
             155,
             22
           ],
@@ -388,8 +612,8 @@
           "varname": "load",
           "maxclass": "newobj",
           "patching_rect": [
-            680,
-            352,
+            20,
+            484,
             155,
             22
           ],
@@ -402,8 +626,8 @@
           "varname": "defer-load",
           "maxclass": "newobj",
           "patching_rect": [
-            845,
-            352,
+            185,
+            484,
             155,
             22
           ],
@@ -416,8 +640,8 @@
           "varname": "load-ui",
           "maxclass": "message",
           "patching_rect": [
-            20,
-            396,
+            350,
+            484,
             155,
             22
           ],
@@ -430,8 +654,8 @@
           "varname": "route-ui",
           "maxclass": "newobj",
           "patching_rect": [
-            185,
-            396,
+            515,
+            484,
             155,
             22
           ],
@@ -444,8 +668,8 @@
           "varname": "command-prefix",
           "maxclass": "newobj",
           "patching_rect": [
-            350,
-            396,
+            680,
+            484,
             155,
             22
           ],
@@ -458,8 +682,8 @@
           "varname": "defer-ui",
           "maxclass": "newobj",
           "patching_rect": [
-            515,
-            396,
+            845,
+            484,
             155,
             22
           ],
@@ -472,8 +696,8 @@
           "varname": "receive-left",
           "maxclass": "newobj",
           "patching_rect": [
-            680,
-            396,
+            20,
+            528,
             155,
             22
           ],
@@ -486,8 +710,8 @@
           "varname": "prefix-left",
           "maxclass": "newobj",
           "patching_rect": [
-            845,
-            396,
+            185,
+            528,
             155,
             22
           ],
@@ -500,8 +724,8 @@
           "varname": "defer-left",
           "maxclass": "newobj",
           "patching_rect": [
-            20,
-            440,
+            350,
+            528,
             155,
             22
           ],
@@ -514,8 +738,8 @@
           "varname": "receive-right",
           "maxclass": "newobj",
           "patching_rect": [
-            185,
-            440,
+            515,
+            528,
             155,
             22
           ],
@@ -528,8 +752,8 @@
           "varname": "prefix-right",
           "maxclass": "newobj",
           "patching_rect": [
-            350,
-            440,
+            680,
+            528,
             155,
             22
           ],
@@ -542,8 +766,8 @@
           "varname": "defer-right",
           "maxclass": "newobj",
           "patching_rect": [
-            515,
-            440,
+            845,
+            528,
             155,
             22
           ],
@@ -556,8 +780,8 @@
           "varname": "to-editor",
           "maxclass": "newobj",
           "patching_rect": [
-            680,
-            440,
+            20,
+            572,
             155,
             22
           ],
@@ -570,8 +794,8 @@
           "varname": "from-editor",
           "maxclass": "newobj",
           "patching_rect": [
-            845,
-            440,
+            185,
+            572,
             155,
             22
           ],
@@ -584,8 +808,8 @@
           "varname": "editor",
           "maxclass": "newobj",
           "patching_rect": [
-            20,
-            484,
+            350,
+            572,
             155,
             22
           ],
@@ -711,8 +935,8 @@
           "varname": "editor-control",
           "maxclass": "newobj",
           "patching_rect": [
-            185,
-            484,
+            515,
+            572,
             155,
             22
           ],
@@ -725,8 +949,8 @@
           "varname": "remote-pool",
           "maxclass": "newobj",
           "patching_rect": [
-            350,
-            484,
+            680,
+            572,
             155,
             22
           ],
@@ -12024,8 +12248,8 @@
           "varname": "audio-in",
           "maxclass": "newobj",
           "patching_rect": [
-            515,
-            484,
+            845,
+            572,
             155,
             22
           ],
@@ -12044,8 +12268,8 @@
           "varname": "audio-out",
           "maxclass": "newobj",
           "patching_rect": [
-            680,
-            484,
+            20,
+            616,
             155,
             22
           ],
@@ -12056,6 +12280,198 @@
       }
     ],
     "lines": [
+      {
+        "patchline": {
+          "source": [
+            "mlp-train",
+            0
+          ],
+          "destination": [
+            "mlp-train-prefix",
+            0
+          ]
+        }
+      },
+      {
+        "patchline": {
+          "source": [
+            "mlp-train",
+            1
+          ],
+          "destination": [
+            "mlp-train-prefix",
+            0
+          ]
+        }
+      },
+      {
+        "patchline": {
+          "source": [
+            "mlp-train-prefix",
+            0
+          ],
+          "destination": [
+            "mlp-train-defer",
+            0
+          ]
+        }
+      },
+      {
+        "patchline": {
+          "source": [
+            "mlp-train-defer",
+            0
+          ],
+          "destination": [
+            "controller",
+            0
+          ]
+        }
+      },
+      {
+        "patchline": {
+          "source": [
+            "mlp-infer",
+            0
+          ],
+          "destination": [
+            "mlp-infer-prefix",
+            0
+          ]
+        }
+      },
+      {
+        "patchline": {
+          "source": [
+            "mlp-infer",
+            1
+          ],
+          "destination": [
+            "mlp-infer-prefix",
+            0
+          ]
+        }
+      },
+      {
+        "patchline": {
+          "source": [
+            "mlp-infer-prefix",
+            0
+          ],
+          "destination": [
+            "mlp-infer-defer",
+            0
+          ]
+        }
+      },
+      {
+        "patchline": {
+          "source": [
+            "mlp-infer-defer",
+            0
+          ],
+          "destination": [
+            "controller",
+            0
+          ]
+        }
+      },
+      {
+        "patchline": {
+          "source": [
+            "data-input",
+            0
+          ],
+          "destination": [
+            "data-input-prefix",
+            0
+          ]
+        }
+      },
+      {
+        "patchline": {
+          "source": [
+            "data-input",
+            1
+          ],
+          "destination": [
+            "data-input-prefix",
+            0
+          ]
+        }
+      },
+      {
+        "patchline": {
+          "source": [
+            "data-input-prefix",
+            0
+          ],
+          "destination": [
+            "data-input-defer",
+            0
+          ]
+        }
+      },
+      {
+        "patchline": {
+          "source": [
+            "data-input-defer",
+            0
+          ],
+          "destination": [
+            "controller",
+            0
+          ]
+        }
+      },
+      {
+        "patchline": {
+          "source": [
+            "data-output",
+            0
+          ],
+          "destination": [
+            "data-output-prefix",
+            0
+          ]
+        }
+      },
+      {
+        "patchline": {
+          "source": [
+            "data-output",
+            1
+          ],
+          "destination": [
+            "data-output-prefix",
+            0
+          ]
+        }
+      },
+      {
+        "patchline": {
+          "source": [
+            "data-output-prefix",
+            0
+          ],
+          "destination": [
+            "data-output-defer",
+            0
+          ]
+        }
+      },
+      {
+        "patchline": {
+          "source": [
+            "data-output-defer",
+            0
+          ],
+          "destination": [
+            "controller",
+            0
+          ]
+        }
+      },
       {
         "patchline": {
           "source": [
@@ -12631,6 +13047,14 @@
       "inherited_shortname": 1
     },
     "dependency_cache": [
+      {
+        "name": "fluid.mlpregressor~.mxo",
+        "type": "iLaX"
+      },
+      {
+        "name": "fluid.dataset~.mxo",
+        "type": "iLaX"
+      },
       {
         "name": "neural_scope_control.js",
         "type": "TEXT",
