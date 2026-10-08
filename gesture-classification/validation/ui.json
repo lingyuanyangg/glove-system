@@ -1,0 +1,15 @@
+{
+  "kind": "Actual HTML functions executed with a minimal simulated DOM; no browser/Live render",
+  "checks": [
+    "Six inline original hand illustrations and matching controls",
+    "Left mirrors the hand; Right and Both show their own orientation/pairs",
+    "Missing native engine disables Run and Train",
+    "Recording and training states prevent overlapping actions",
+    "Confirmed/candidate cards and button targets are visibly distinguished",
+    "Named model selection enforces hand mode while export stays available",
+    "Fragmented, out-of-order, duplicate and stale packets are handled",
+    "Malformed complete state does not replace the interface",
+    "Light and dark Live themes derive readable card/background borders",
+    "Card recording/action commands and model/file controls use the bridge"
+  ]
+}

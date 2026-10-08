@@ -4,6 +4,8 @@ Review date: **2026-10-06**.
 
 The new dual-hand receiver's **2026-10-07** algorithm, patch structure and layout checks are recorded in [Receiver v2 validation](../receiver-v2/VALIDATION.md). The record below applies to the original release. The former default model was removed on 2026-10-07 at the project owner's request; its inspection results below are historical. The new FluCoMa backend's 2026-10-08 native-core and protocol checks are recorded in [Glove Neural Scope validation](../neural-scope/VALIDATION.md).
 
+The **2026-10-08 Glove Gesture classifier** adds six original hand illustrations, Left/Right/Both training banks, native FluCoMa classification, six native Map controls, temporal/distance filtering and named model import/export. Its standalone native algorithm, simulated controller/UI and patch results are recorded in [classification validation](../gesture-classification/VALIDATION.md). Actual glove accuracy, button behavior and mapping recall in Live remain untested.
+
 The project owner identified the glove hardware as the **ElastremeSense Manu-5D e-skin data glove kit**. This identification has been added to the documentation; it does not change the firmware or constitute a hardware compatibility test.
 
 ## Checks completed

@@ -1,0 +1,15 @@
+{
+  "kind": "Pure temporal/data/model checks; no neural optimizer in JavaScript",
+  "checks": [
+    "Left/Right use five features and Both uses ten",
+    "Reject missing, non-finite and non-normalized glove values",
+    "Hold confirms once and held gestures never retrigger",
+    "Short label jitter is ignored; stable Other releases a held gesture",
+    "Cooldown delays a new gesture and re-entry is possible after exit",
+    "Observation gaps do not count toward stable Hold and reset emits exit",
+    "Distance rejection uses RMS normalized features and the predicted class",
+    "Native classifier format validates encoder labels, dimensions and weights",
+    "Snapshots require gesture-specific identity and rejection examples",
+    "Capture limits and independent bank defaults"
+  ]
+}

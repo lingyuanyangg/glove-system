@@ -1,0 +1,25 @@
+{
+  "kind": "Official FluCoMa 1.0.9 MLP/SGD/LabelSetEncoder native algorithms; synthetic data only",
+  "native_max_host_tested": false,
+  "checks": [
+    {
+      "name": "Five-input, seven-label held-out synthetic classification",
+      "accuracy": 1,
+      "pass": true
+    },
+    {
+      "name": "Ten-input, seven-label held-out synthetic classification",
+      "accuracy": 1,
+      "pass": true
+    },
+    {
+      "name": "Label order and restored matrix/bias predictions agree in both input modes",
+      "pass": true
+    }
+  ],
+  "dependencies": {
+    "flucoma_core": "1.0.9",
+    "eigen": "3.4.0",
+    "foonathan_memory": "0.7-3"
+  }
+}

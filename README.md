@@ -2,11 +2,13 @@
 
 A five-channel glove interface for musical performance in Ableton Live, based on the **ElastremeSense Manu-5D e-skin data glove kit**. The system combines Arduino servo control, OSC over Wi-Fi, continuous parameter mapping, gesture-triggered MIDI notes, and a learned mapping from five glove values to ten control outputs.
 
-This repository contains the Arduino bridge firmware, four original Max for Live devices, a rebuilt dual-hand receiver, a new glove neural-mapping device, readable Max patch sources, and a named neural-model selector. The firmware receives glove data from an **external serial source**; the glove sensor acquisition firmware and Bluetooth transmitter are outside this release.
+This repository contains the Arduino bridge firmware, four original Max for Live devices, a rebuilt dual-hand receiver, glove neural-mapping and gesture-classification devices, readable Max patch sources, and named model selectors. The firmware receives glove data from an **external serial source**; the glove sensor acquisition firmware and Bluetooth transmitter are outside this release.
 
 The new [**Glove Receiver Dual**](receiver-v2/README.md) adds right-hand reception on UDP **6000**, ten native Live mapping controls, two vector hand drawings, adjustable deadband and time smoothing, shared `GLeft` / `GRight` buses, and configurable OSC forwarding to `/GLeft` / `/GRight`. Left-hand reception remains on **7000**. Its audio path passes stereo through unchanged. The algorithm and patch structure are verified; operation and mapping recall in Live still require host testing.
 
 The new [**Glove Neural Scope**](neural-scope/README.md) learns Left, Right or Both glove gestures to selected device parameters on its own track or Live's selected track. It combines neural regression with Scope Lab-style target discovery and parameter ranges, a compact Ableton-style gray/orange interface, independent training banks, saved-model selection with JSON import/export, native FluCoMa training/inference, native parameter control and 30 ms output smoothing. [Download the portable device package](neural-scope/Glove%20Neural%20Scope.zip). Its offline checks pass; native Live acceptance is still pending.
+
+[**Glove Gesture**](gesture-classification/README.md) classifies Left, Right or Both hand poses using native FluCoMa `fluid.mlpclassifier~`. Six original hand illustrations represent Open, Fist, Index, V, Middle and OK. Record your examples and Other/transition poses, Train, then map stable entries to two-state Live device buttons through six native Map components. Actions include Toggle, Pulse, Hold, On and Off, with temporal/distance filtering and named model import/export. [Download the classification device](gesture-classification/Glove%20Gesture.zip). Native algorithms and offline protocol checks pass; real-glove accuracy and Live integration still require testing.
 
 ```mermaid
 flowchart LR
@@ -22,6 +24,8 @@ flowchart LR
     F -->|GLeft| M[5-input / 10-output regression]
     F -->|GLeft + GRight| N[Left / Right / Both neural mapping]
     N --> P[Selected device parameters]
+    F -->|GLeft + GRight| C[Left / Right / Both gesture classification]
+    C --> T[Stable gesture entry → mapped device buttons]
     F -->|OSC /GLeft + /GRight · configurable IP and port| X[External application]
 ```
 
@@ -29,6 +33,7 @@ flowchart LR
 
 | File | Role |
 | --- | --- |
+| [`Glove Gesture.amxd`](gesture-classification/Glove_Gesture/Glove%20Gesture.amxd) | Train six illustrated gestures plus Other using Left/Right/Both input; stable triggers operate native-mapped device buttons. Keep its JS and HTML companions together. |
 | [`Glove Neural Scope.amxd`](neural-scope/Glove_Neural_Scope/Glove%20Neural%20Scope.amxd) | Learns 5- or 10-input glove gestures to up to 256 selected-device parameters. Keep its JS, HTML and model companions alongside it. Native Live testing remains pending. |
 | [`Glove_Receiver_Dual.amxd`](receiver-v2/Glove_Receiver_Dual.amxd) | New dual-hand audio effect: left 7000, right 6000; ten 0–1 displays and native mappings; jitter filtering; Max buses and optional OSC output. Keep its two companion JavaScript files alongside it. |
 | [`arduino/glove/glove.ino`](arduino/glove/glove.ino) | Reads five comma-separated integers from `Serial1`, controls five servos, and sends one `/servos` OSC message per processed frame. |
@@ -48,7 +53,7 @@ Original device filenames, including `Recevier` and `reressor`, are retained for
 - Five servos, a suitable servo power supply, and the mechanical glove assembly. Servo specifications, sensor wiring, and mechanical drawings are not included.
 - Ableton Live with Max for Live available. The supplied patches were saved with **Max 9.1.3 / 9.1.5**; this is file metadata, not a tested compatibility guarantee.
 - **CNMAT MMJ Depot** for the message-rate `delta` abstraction used by `Glovebang`.
-- **Data Knot** and **FluCoMa** for the original `reressorMapping2` regression device. These packages are external dependencies and are not bundled. The new Glove Neural Scope requires **FluCoMa / FluidCorpusManipulation 1.0.9 or later**, while Data Knot is optional.
+- **Data Knot** and **FluCoMa** for the original `reressorMapping2` regression device. These packages are external dependencies and are not bundled. Glove Neural Scope and Glove Gesture use **FluCoMa / FluidCorpusManipulation 1.0.9**, the version checked locally, while Data Knot is optional for these new devices.
 
 See [installation and troubleshooting](docs/SETUP.md) for dependency links and configuration details.
 
@@ -60,7 +65,8 @@ See [installation and troubleshooting](docs/SETUP.md) for dependency links and c
 4. Ensure the left Arduino sends to this computer's LAN IPv4 address on UDP **7000**. Configure the right-hand bridge to send to **6000**. Each hand sends `/servos` with five arguments; finger order is pinky, ring, middle, index, thumb.
 5. Click a finger's **Map** control, then click a Live parameter. Adjust **Smooth** and **Deadband** to suppress sensor jitter. Configure output **IP** and **Port**, click **Apply**, and enable **OSC Out** if forwarding is needed.
 6. For the new neural mapper, unpack `neural-scope/Glove Neural Scope.zip` and keep all runtime companions together. Install FluCoMa / FluidCorpusManipulation 1.0.9 or later in Max Package Manager. Load the effect after an instrument or on an audio track. Choose Left/Right/Both, select a target and scope, Capture distinct poses with their target sound, Train, then Run. Stop releases all mappings. Enter a model name and Save to keep a snapshot in MODEL; Load recalls it, and Import/Export transfers JSON files between Sets. No default regression JSON is bundled. See the [guide](neural-scope/README.md).
-7. For gesture notes or original regression, keep `max/devices/` together and install the relevant packages above. `Glovebang` and `reressorMapping2` consume the filtered left-hand `GLeft` list. Verify calibration before evaluating gestures or training a model.
+7. For classification, unpack `gesture-classification/Glove Gesture.zip` and keep its companions together. Choose Left/Right/Both, record each enabled gesture and Other several times, Train, then test Run before mapping. Click a gesture's native Map and a two-state device parameter button; choose Toggle/Pulse/Hold/On/Off. See the [classification guide](gesture-classification/README.md).
+8. For gesture notes or original regression, keep `max/devices/` together and install the relevant packages above. `Glovebang` and `reressorMapping2` consume the filtered left-hand `GLeft` list. Verify calibration before evaluating gestures or training a model.
 
 The legacy `GloveRecevier` has no wired audio pass-through; use a dedicated track if choosing that version. The new Dual receiver passes stereo audio through. `GLeft` and `GRight` are shared across the Max environment, so use one receiver per set and avoid binding two devices to the same UDP port. See the [Dual receiver guide](receiver-v2/README.md) for filtering, input validation and output behavior.
 
@@ -101,6 +107,8 @@ Exact pin assignments, normalization formulas, channel numbering, gesture logic,
 The sanitized sketch compiled successfully for UNO R4 WiFi using Arduino UNO R4 Boards **1.6.0**, Servo **1.2.1**, and CNMAT OSC **1.3.7**. The device payloads were inspected; the former model was reviewed before its requested removal, and the release includes the missing parameter mapping helper. See the [validation record](docs/VALIDATION.md) for reproducible checks.
 
 Hardware movement, network delivery, MIDI output, Live parameter assignment, and saved-set recall have **not been tested in this review**. The new receiver passes ten engine checks and recursive patch, mapping, envelope and layout checks; see its [validation record](receiver-v2/VALIDATION.md). Glove Neural Scope also passes standalone native FluCoMa core, simulated host/native-message protocol, model format, UI transport/theme and patch checks; see its [validation record](neural-scope/VALIDATION.md). The original implementation's parser, connection and mapping limitations remain documented separately.
+
+Glove Gesture passes synthetic native classification, controller/protocol, temporal/model, UI-function and patch checks. Its six SVG illustrations were rasterized and visually inspected. See the [classification validation record](gesture-classification/VALIDATION.md); these checks do not establish real-glove recognition accuracy or actual Live button behavior.
 
 ## Dependencies and credits
 
