@@ -10,6 +10,8 @@ The new [**Glove Neural Scope**](neural-scope/README.md) learns Left, Right or B
 
 [**Glove Gesture**](gesture-classification/README.md) classifies Left, Right or Both hand poses using native FluCoMa `fluid.mlpclassifier~`. The compact main UI shows one selected or detected pose, with training dropdowns for Open, Fist, Index, V, Middle and OK. Both mode selects the left and right poses independently and learns any of 36 ordered combinations. Record your examples and Other/transition poses, Train, then map stable entries to two-state Live device buttons in a separate Mapping window with 48 independent native target slots. Actions include Toggle, Pulse, Hold, On and Off, with temporal/distance filtering and named model import/export. [Download the classification device](gesture-classification/Glove%20Gesture.zip). Native algorithms and offline protocol checks pass; real-glove accuracy and Live integration still require testing.
 
+[**Glove MIDI Trigger**](midi-trigger/README.md) is a native MIDI effect with ten independent finger lanes. Each lane selects bend-acceleration strikes or curl-gated sustained notes, fixed or scale-constrained random pitch, inclusive random note limits, and velocity endpoints. Eight-second calibration and sensitivity are global; hold intensity sends Poly Aftertouch. Put it before an instrument on a MIDI track and keep its JS companion beside the device. [Download the portable MIDI device](midi-trigger/Glove_MIDI_Trigger.zip). Offline engine, patch and packaging checks pass; native Live / real-glove acceptance is pending.
+
 ```mermaid
 flowchart LR
     G[ElastremeSense Manu-5D e-skin data glove kit] --> I[External acquisition / serial source]
@@ -20,7 +22,9 @@ flowchart LR
     R --> F[Deadband + time smoothing]
     F -->|GLeft/GRight + continuous control buses| L[Glove Mapper · native Map/Min/Max]
     F -->|Normalized five-value list · GLeft| D[Direct parameter mapping]
-    F -->|GLeft| B[Gesture-triggered MIDI]
+    F -->|GLeft| B[Original gesture-triggered MIDI]
+    F -->|Fresh GLeft + GRight| MT[Glove MIDI Trigger · Accel / Toggle]
+    MT --> MI[MIDI instrument · note + poly pressure]
     F -->|GLeft| M[5-input / 10-output regression]
     F -->|GLeft + GRight| N[Left / Right / Both neural mapping]
     N --> P[Selected device parameters]
@@ -33,6 +37,7 @@ flowchart LR
 
 | File | Role |
 | --- | --- |
+| [`Glove_MIDI_Trigger.amxd`](midi-trigger/Glove_MIDI_Trigger.amxd) | Independent left/right finger MIDI strikes and held notes, global acceleration calibration, fixed/random scale pitches and per-finger note/velocity ranges. Keep glove_midi_trigger.js beside it. |
 | [`Glove Gesture.amxd`](gesture-classification/Glove_Gesture/Glove%20Gesture.amxd) | Train six illustrated gestures plus Other using Left/Right/Both input; stable triggers operate native-mapped device buttons. Keep its JS and HTML companions together. |
 | [`Glove Neural Scope.amxd`](neural-scope/Glove_Neural_Scope/Glove%20Neural%20Scope.amxd) | Learns 5- or 10-input glove gestures to up to 256 selected-device parameters. Keep its JS, HTML and model companions alongside it. Native Live testing remains pending. |
 | [`glove_usb_dual.ino`](arduino/glove_usb_dual/glove_usb_dual.ino) | Optional UNO R4 WiFi dual-UART-to-USB firmware: left D0/D1, right RX D11 / TX D10; tagged L/R angle frames. See its wiring guide before connecting. |
@@ -69,7 +74,8 @@ See [installation and troubleshooting](docs/SETUP.md) for dependency links and c
 6. Load `mapper/Glove_Mapper.amxd` with `glove_mapper.js` beside it. Click a finger's **Map** control there, then click a Live parameter. Adjust **Smooth** and **Deadband** to suppress sensor jitter. Configure output **IP** and **Port**, click **Apply**, and enable **OSC Out** if forwarding is needed.
 7. For the new neural mapper, unpack `neural-scope/Glove Neural Scope.zip` and keep all runtime companions together. Install FluCoMa / FluidCorpusManipulation 1.0.9 or later in Max Package Manager. Load the effect after an instrument or on an audio track. Choose Left/Right/Both, select a target and scope, Capture distinct poses with their target sound, Train, then Run. Stop releases all mappings. Enter a model name and Save to keep a snapshot in MODEL; Load recalls it, and Import/Export transfers JSON files between Sets. No default regression JSON is bundled. See the [guide](neural-scope/README.md).
 8. For classification, unpack `gesture-classification/Glove Gesture.zip` and keep its companions together. Choose Left/Right/Both, record each enabled gesture and Other several times, Train, then test Run before mapping. Open Mapping and click a gesture or combination's Map and a two-state device parameter button; choose Toggle/Pulse/Hold/On/Off. See the [classification guide](gesture-classification/README.md).
-9. For gesture notes or original regression, keep `max/devices/` together and install the relevant packages above. `Glovebang` and `reressorMapping2` consume the filtered left-hand `GLeft` list. Verify calibration before evaluating gestures or training a model.
+9. For the new MIDI device, load `midi-trigger/Glove_MIDI_Trigger.amxd` before an instrument on a MIDI track, with `glove_midi_trigger.js` beside it. Return fingers to neutral, then Calibrate 8 s with representative strikes; configure Accel/Toggle, Fixed/Random, Root/Scale, Low/High and V Min/V Max for each finger. See the [MIDI guide](midi-trigger/README.md).
+10. For original gesture notes or original regression, keep `max/devices/` together and install the relevant packages above. `Glovebang` and `reressorMapping2` consume the filtered left-hand `GLeft` list. Verify calibration before evaluating gestures or training a model.
 
 The legacy `GloveRecevier` has no wired audio pass-through; use a dedicated track if choosing that version. The new Dual receiver passes stereo audio through. `GLeft` and `GRight` are shared across the Max environment, so use one receiver per set and avoid binding two devices to the same UDP port. See the [Dual receiver guide](receiver-v2/README.md) for filtering, input validation and output behavior.
 
@@ -96,6 +102,7 @@ Exact pin assignments, normalization formulas, channel numbering, gesture logic,
 ├── max/source/                   # JSON patch sources extracted from .amxd
 ├── receiver-v2/                  # Dual receiver, companion JS, source and checks
 ├── mapper/                       # Separate ten-finger native mapper
+├── midi-trigger/                 # Dual-hand native MIDI trigger, source, guides and checks
 ├── neural-scope/                 # Neural mapper, portable ZIP, guides, source and checks
 ├── docs/
 │   ├── SETUP.md                  # Installation, calibration, troubleshooting
@@ -110,7 +117,7 @@ Exact pin assignments, normalization formulas, channel numbering, gesture logic,
 
 The sanitized sketch compiled successfully for UNO R4 WiFi using Arduino UNO R4 Boards **1.6.0**, Servo **1.2.1**, and CNMAT OSC **1.3.7**. The device payloads were inspected; the former model was reviewed before its requested removal, and the release includes the missing parameter mapping helper. See the [validation record](docs/VALIDATION.md) for reproducible checks.
 
-Hardware movement, USB transport, MIDI output and saved-set recall remain untested. The new Receiver/Mapper pair was loaded in Live, received synthetic localhost OSC frames, and one Pan assignment and release were verified; The receiver passes 26 engine and 38 simulated USB/controller checks; Mapper passes ten native range graph checks, controller and recursive patch/envelope/layout checks; see its [validation record](receiver-v2/VALIDATION.md). Glove Neural Scope also passes standalone native FluCoMa core, simulated host/native-message protocol, model format, UI transport/theme and patch checks; see its [validation record](neural-scope/VALIDATION.md). The original implementation's parser, connection and mapping limitations remain documented separately.
+Hardware movement, USB transport, MIDI output and saved-set recall remain untested. Glove MIDI Trigger passes 26 deterministic engine checks plus native parameter/routing/envelope/layout checks; see its [validation record](midi-trigger/VALIDATION.md). The new Receiver/Mapper pair was loaded in Live, received synthetic localhost OSC frames, and one Pan assignment and release were verified; The receiver passes 26 engine and 38 simulated USB/controller checks; Mapper passes ten native range graph checks, controller and recursive patch/envelope/layout checks; see its [validation record](receiver-v2/VALIDATION.md). Glove Neural Scope also passes standalone native FluCoMa core, simulated host/native-message protocol, model format, UI transport/theme and patch checks; see its [validation record](neural-scope/VALIDATION.md). The original implementation's parser, connection and mapping limitations remain documented separately.
 
 Glove Gesture passes synthetic native classification, controller/protocol, temporal/model, UI-function and patch checks. Its six SVG illustrations were rasterized and visually inspected. See the [classification validation record](gesture-classification/VALIDATION.md); these checks do not establish real-glove recognition accuracy or actual Live button behavior.
 
