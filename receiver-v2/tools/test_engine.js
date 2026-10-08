@@ -95,4 +95,62 @@ test('200Hz control input paints only the latest value at about 30Hz',()=>{
  assert(outputs.filter(x=>x[0]===5).length<=Math.ceil(2500/33));
  now+=33;c.tick();assert.equal(outputs.filter(x=>x[0]===5).slice(-1)[0][1][0],1);
 });
-console.log(`${count} engine checks passed including low-latency control/UI regressions.`);
+function calibrationReset(){c.setvalueof('none');reset();c.enabled(0);}
+function pose(h,values,normalized=false){for(let i=0;i<18;i++){now+=20;c[normalized?(h?'normright':'normleft'):(h?'rawright':'rawleft')](...values);c.tick();}}
+test('independent per-finger calibration supports either sensor direction and 0.1 headroom',()=>{
+ calibrationReset();const open=[20,30,40,150,160],fist=[120,130,140,50,60];
+ pose(0,open);c.capture(0,'open');assert.equal(c.calibrated[0],null);
+ pose(0,fist);c.capture(0,'fist');c.rawleft(...open);latest(0).forEach(v=>close(v,0));
+ c.rawleft(...fist);latest(0).forEach(v=>close(v,.9));
+ c.rawleft(...open.map((v,i)=>v+(fist[i]-v)/.9));latest(0).forEach(v=>close(v,1));
+ c.rawleft(0,0,0,180,180);latest(0).forEach(v=>close(v,0));
+ c.rawright(90,99,99,99,125);latest(1).forEach(v=>close(v,.5));
+ pose(1,[10,20,30,40,50]);c.capture(1,'open');pose(1,[60,70,80,90,100]);c.capture(1,'fist');
+ c.rawright(35,45,55,65,75);latest(1).forEach(v=>close(v,.45));c.rawleft(...fist);latest(0).forEach(v=>close(v,.9));
+});
+test('capture requires fresh stationary physical input, rejecting stale, moving and tiny spans',()=>{
+ calibrationReset();c.manualleft(0,.5);c.capture(0,'open');assert.equal(c.poses[0].open,null);
+ pose(0,[20,20,20,20,20]);now+=151;c.capture(0,'open');assert.equal(c.poses[0].open,null);
+ for(let i=0;i<14;i++){now+=20;c.rawleft(i%2?20:30,20,20,20,20);}
+ c.capture(0,'open');assert.equal(c.poses[0].open,null);
+ pose(0,[20,20,20,20,20]);c.capture(0,'open');pose(0,[23,120,120,120,120]);c.capture(0,'fist');
+ assert.equal(c.calibrated[0],null);assert.equal(c.poses[0].fist,null);assert(c.poses[0].open);
+ c.reset();c.capture(0,'fist');assert.equal(c.calibrated[0],null);
+});
+test('recalibration keeps the last valid pair until a new pair passes validation',()=>{
+ calibrationReset();pose(0,[20,20,20,20,20]);c.capture(0,'open');pose(0,[120,120,120,120,120]);c.capture(0,'fist');
+ const saved=c.getvalueof();pose(0,[30,30,30,30,30]);c.capture(0,'open');assert.equal(c.getvalueof(),saved);
+ pose(0,[31,31,31,31,31]);c.capture(0,'fist');assert.equal(c.getvalueof(),saved);
+ pose(0,[130,130,130,130,130]);c.capture(0,'fist');assert.notEqual(c.getvalueof(),saved);
+});
+test('calibration capture and restore do not replay old frames into learning buses',()=>{
+ calibrationReset();pose(0,[20,20,20,20,20]);c.capture(0,'open');pose(0,[120,120,120,120,120]);outputs=[];c.capture(0,'fist');c.tick();c.flush();
+ assert(!outputs.some(v=>v[0]===3));assert(!c.hands[0].ready);
+ now+=5;c.rawleft(120,120,120,120,120);c.tick();assert(outputs.some(v=>v[0]===3&&Math.abs(v[1][0]-.9)<1e-8));
+ const saved=c.getvalueof();outputs=[];c.setvalueof(saved);c.tick();c.flush();assert(!outputs.some(v=>v[0]===3));
+ assert.equal(c.hands[0].received,0);assert.equal(c.poses[0].recent.length,0);
+});
+test('JSON endpoints round-trip, corrupt recall is atomic, reset and stream changes preserve calibration',()=>{
+ calibrationReset();pose(0,[20,20,20,20,20]);c.capture(0,'open');pose(0,[120,120,120,120,120]);c.capture(0,'fist');
+ const saved=c.getvalueof();c.setvalueof('none');assert.equal(c.calibrated[0],null);c.setvalueof(saved);assert.equal(c.getvalueof(),saved);
+ for(const bad of ['garbage','{}',JSON.stringify({version:1,hands:[{kind:'raw',open:{length:5},fist:[1,2,3,4,5]},null]}),saved.replace('120','20')]){c.setvalueof(bad);assert.equal(c.getvalueof(),saved);}
+ c.reset();assert.equal(c.getvalueof(),saved);c.lostleft();assert.equal(c.getvalueof(),saved);
+ c.normleft(.5,.5,.5,.5,.5);latest(0).forEach(v=>close(v,.5));c.rawleft(120,120,120,120,120);latest(0).forEach(v=>close(v,.9));
+ c.clearcal(1);assert.equal(c.getvalueof(),saved);c.clearcal(0);assert.equal(c.calibrated[0],null);
+ c.rawleft(90,99,99,99,125);latest(0).forEach(v=>close(v,.5));
+});
+test('normalized calibration is explicitly captured and never applied to raw-degree input',()=>{
+ calibrationReset();pose(1,[.1,.1,.1,.1,.1],true);c.capture(1,'fist');pose(1,[.9,.9,.9,.9,.9],true);c.capture(1,'open');
+ c.normright(.1,.1,.1,.1,.1);latest(1).forEach(v=>close(v,.9));c.normright(.9,.9,.9,.9,.9);latest(1).forEach(v=>close(v,0));
+ c.normright(0,0,0,0,0);latest(1).forEach(v=>close(v,1));
+ c.rawright(90,99,99,99,125);latest(1).forEach(v=>close(v,.5));
+ pose(0,[20,20,20,20,20]);c.capture(0,'open');pose(0,[.9,.9,.9,.9,.9],true);c.capture(0,'fist');assert.equal(c.calibrated[0],null);
+});
+test('calibration averages captures only; next live frame and low-latency filtering remain immediate',()=>{
+ calibrationReset();pose(0,[20,20,20,20,20]);now+=10;c.rawleft(21,21,21,21,21);c.capture(0,'open');
+ close(c.poses[0].open[0],20+1/14);pose(0,[120,120,120,120,120]);c.capture(0,'fist');
+ c.enabled(1);c.smooth(8);c.deadband(.003);now+=5;c.rawleft(...Array(5).fill(c.calibrated[0].open[0]));c.tick();
+ now+=1;c.rawleft(120,120,120,120,120);for(let i=0;i<5;i++){now+=5;c.tick();}
+ assert(c.hands[0].value[0]>.85);assert(c.hands[0].value[0]<.9);
+});
+console.log(`${count} engine checks passed including calibration and low-latency control/UI regressions.`);

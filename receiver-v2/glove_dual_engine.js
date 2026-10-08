@@ -7,6 +7,8 @@ var minimum = [0, 18, 18, 18, 70];
 var maximum = [180, 180, 180, 180, 180];
 var tau = 8, dead = 0.003, filtering = 1;
 var hands = [makehand(), makehand()];
+var calibrated = [null, null];
+var poses = [makeposes(), makeposes()];
 var lastTick = 0;
 var runner = new Task(tick, this);
 runner.interval = 5;
@@ -15,11 +17,12 @@ function makehand() {
     return { ready: false, target: [0,0,0,0,0], value: [0,0,0,0,0],
         sent: [0,0,0,0,0], uiDirty: false, uiAt: 0, received: 0, pendingBus: false, status: "WAIT" };
 }
+function makeposes() { return { kind: null, recent: [], open: null, fist: null }; }
 function finite(v) { return typeof v === "number" && isFinite(v); }
 function clip(v) { return Math.max(0, Math.min(1, v)); }
 function start() { runner.cancel(); lastTick = Date.now(); runner.repeat(); }
 function stop() { runner.cancel(); }
-function loadbang() { start(); report(); }
+function loadbang() { start(); report(); calreport(); }
 function notifydeleted() { stop(); }
 function smooth(v) { if (finite(v)) tau = Math.max(0, Math.min(500, v)); }
 function deadband(v) { if (finite(v)) dead = Math.max(0, Math.min(0.1, v)); }
@@ -40,8 +43,15 @@ function receive(index, args, normalized) {
     var values = [], i, hand = hands[index], now = Date.now();
     for (i=0; i<5; i++) {
         if (!finite(args[i])) { outlet(2, "invalid", index); return; }
-        values[i] = clip(normalized ? args[i] :
-            (args[i] - minimum[i]) / (maximum[i] - minimum[i]));
+    }
+    var kind = normalized ? "norm" : "raw", state = poses[index], cal = calibrated[index];
+    if (state.kind !== kind) { poses[index] = state = makeposes(); state.kind = kind; }
+    state.recent.push({ at: now, values: args.slice() });
+    while (state.recent.length && (now-state.recent[0].at>250 || state.recent.length>128)) state.recent.shift();
+    for (i=0; i<5; i++) {
+        values[i] = clip(cal && cal.kind === kind ?
+            0.9 * (args[i]-cal.open[i]) / (cal.fist[i]-cal.open[i]) :
+            normalized ? args[i] : (args[i]-minimum[i]) / (maximum[i]-minimum[i]));
     }
     hand.received = now;
     hand.pendingBus = true;
@@ -112,10 +122,67 @@ function report() {
 }
 function lostleft() { lost(0); }
 function lostright() { lost(1); }
-function lost(h) { hands[h].pendingBus=false;hands[h].received=0;setstatus(h,"HOLD"); }
+function lost(h) { hands[h].pendingBus=false;hands[h].received=0;poses[h]=makeposes();setstatus(h,"HOLD"); }
 // Re-send current frames when OSC forwarding is enabled or its destination changes.
 function flush() { for (var h=0; h<2; h++) if (hands[h].ready) emit(h,true); }
-function reset() { hands=[makehand(),makehand()]; lastTick=Date.now(); report(); }
+function reset() { hands=[makehand(),makehand()]; poses=[makeposes(),makeposes()]; lastTick=Date.now(); report(); calreport(); }
+// Only the capture action averages recent input; ordinary motion gets no extra delay.
+function capture(h, pose) {
+    if ((h!==0 && h!==1) || (pose!=="open" && pose!=="fist")) return;
+    var s=poses[h], now=Date.now(), rows=[], mean=[0,0,0,0,0], i,j;
+    for (i=0;i<s.recent.length;i++) if (now-s.recent[i].at<=250) rows.push(s.recent[i]);
+    if (rows.length<3 || now-rows[rows.length-1].at>150) {
+        calmessage(h,"Need fresh data; hold the pose and retry."); return;
+    }
+    for (i=0;i<5;i++) {
+        var lo=Infinity,hi=-Infinity;
+        for (j=0;j<rows.length;j++) { var v=rows[j].values[i];mean[i]+=v;lo=Math.min(lo,v);hi=Math.max(hi,v); }
+        if (hi-lo>(s.kind==="raw"?3:0.02)) { calmessage(h,"Hold still for 0.3 seconds, then retry.");return; }
+        mean[i]/=rows.length;
+    }
+    var open=pose==="open"?mean:s.open, fist=pose==="fist"?mean:s.fist;
+    if (open && fist) {
+        for (i=0;i<5;i++) if (Math.abs(fist[i]-open[i])<(s.kind==="raw"?5:0.025)) {
+            calmessage(h,"Pose span too small: "+["Pinky","Ring","Middle","Index","Thumb"][i]+". Retry this pose.");return;
+        }
+        calibrated[h]={kind:s.kind,open:open.slice(),fist:fist.slice()};
+        s.open=null;s.fist=null;
+        // Do not replay the captured pose as a fresh learning frame.
+        hands[h]=makehand();outlet(2,"status",h,"WAIT");
+        if (typeof notifyclients==="function") notifyclients();
+        calmessage(h,"Calibrated ("+s.kind+"): Open 0.000 / Fist 0.900.");
+    } else {
+        s[pose]=mean;
+        calmessage(h,(pose==="open"?"Open captured. Now hold fist and click Fist.":"Fist captured. Now open hand and click Open.")+ (calibrated[h]?" Previous pair active.":""));
+    }
+}
+function clearcal(h) {
+    if (h!==0 && h!==1) return;
+    calibrated[h]=null;poses[h]=makeposes();hands[h]=makehand();
+    outlet(2,"status",h,"WAIT");
+    if (typeof notifyclients==="function") notifyclients();
+    calmessage(h,"Default range restored. Capture Open and Fist.");
+}
+function calmessage(h,s) { outlet(2,"calstatus",h,s); }
+function calreport() {
+    for (var h=0;h<2;h++) calmessage(h,calibrated[h]?"Calibrated ("+calibrated[h].kind+"): Open 0.000 / Fist 0.900.":"Default range. Capture Open and Fist.");
+}
+// Bound pattr saves endpoints, never recent samples, connection state or held data.
+function getvalueof() { return JSON.stringify({version:1,hands:calibrated}); }
+function setvalueof() {
+    var a=arrayfromargs(arguments), data, restored=[];
+    try { data=a.length===1&&a[0]==="none"?{version:1,hands:[null,null]}:JSON.parse(a.join(" ")); }
+    catch(e) { return; }
+    if (!data || data.version!==1 || !Array.isArray(data.hands) || data.hands.length!==2) return;
+    for (var h=0;h<2;h++) {
+        var v=data.hands[h];
+        if (v===null) { restored[h]=null;continue; }
+        if (!v || (v.kind!=="raw" && v.kind!=="norm") || !Array.isArray(v.open) || !Array.isArray(v.fist) || v.open.length!==5 || v.fist.length!==5) return;
+        for(var i=0;i<5;i++) if(!finite(v.open[i]) || !finite(v.fist[i]) || Math.abs(v.fist[i]-v.open[i])<(v.kind==="raw"?5:0.025))return;
+        restored[h]={kind:v.kind,open:v.open.slice(),fist:v.fist.slice()};
+    }
+    calibrated=restored;reset();
+}
 // Optional advanced calibration messages; changes take effect on subsequent raw input.
 function calibration() {
     var a=arrayfromargs(arguments);

@@ -2,11 +2,11 @@
 
 ## Passed
 
-- Executed the **actual shipped `glove_dual_engine.js`** inside a Node VM with stubs for Max's `Task`, `outlet`, `arrayfromargs` and a controlled clock. Fifteen checks passed: original raw calibration, independent right-hand input and clipping, malformed packet rejection, deadband jitter suppression, monotone time-correct smoothing, held-target convergence, exact endpoints and no duplicate idle frames, stale hold and recovery, bypass modes, isolated manual engine messages, and frame flushing. The test file groups convergence/endpoint assertions in one check, for ten original checks, plus two fresh-input bus checks and three control/UI latency checks.
-- Read every embedded patcher recursively and checked object IDs and connections. Verified ten embedded `live.map @strict 1` objects with persistent mapping enabled, globally unique Live parameter names and ten normalized `live.remote~` targets.
+- Executed the **actual shipped `glove_dual_engine.js`** inside a Node VM with stubs for Max's `Task`, `outlet`, `arrayfromargs` and a controlled clock. **22 checks** pass: 15 filtering/freshness/latency checks and seven calibration regressions detailed below.
+- Read every embedded patcher recursively and checked object IDs and connections. Verified ten embedded `live.map @strict 1` objects with persistent mapping enabled, globally unique Live parameter names and ten `live.remote~ @normalized 0` targets fed by the native mapper's signal outlet. Visible Min/Max use the target's actual range and retain the original saved parameter names.
 - Checked both UDP receive ports and both gated raw/normalized route paths, USB-native serial/controller/menu connections, independent engine outlets feeding each five-value Max bus, monitor unpacker, control unpacker and OSC gate, and both OSC prefixes.
 - Checked independent left/right stereo `plugin~` → `plugout~` connections.
-- Checked all main presentation controls fit **808 × 169** pixels; the independent USB settings window fits **580 × 80** pixels. Neither layout has rectangular overlap. Exported the hand graphics from the actual jsui source and visually reviewed the layout preview.
+- Checked all main presentation controls fit **808 × 169** pixels; the independent USB settings window fits **580 × 80** pixels and each calibration window fits **440 × 125**. Presentation controls have no rectangular overlap; hand art is an intentional background. Exported the hand graphics from the actual jsui source and visually reviewed the main/calibration previews.
 - Verified the AMXD audio-effect header and payload length, and parsed its JSON payload to confirm exact equality with the editable `.maxpat` source.
 - Preserved original published device/model/helper hashes; the original release audit still passes.
 
@@ -15,7 +15,7 @@
 
 ## Scope of the checks
 
-The VM verifies the processing algorithm, not Max's JavaScript engine or actual serial/UDP transport. `layout-preview.png` / `.svg` and `usb-settings-preview.png` / `.svg` reproduce the shipped vector drawing and presentation geometry with illustrative native controls; **they are not screenshots of Ableton Live**.
+The VM verifies the processing algorithm, not Max's JavaScript engine or actual serial/UDP transport. `layout-preview`, `usb-settings-preview` and `calibration-preview` PNG/SVG files reproduce the shipped vector drawing and presentation geometry with illustrative native controls; **they are not screenshots of Ableton Live**.
 
 Native app control timed out for both installed Max instances, access to the Live UI was unavailable, and the installed MaxMCP endpoint on localhost:7400 was not running. Consequently the following have **not** been verified in the host:
 
@@ -24,6 +24,7 @@ Native app control timed out for both installed Max instances, access to the Liv
 - Actual UDP receive/forwarding and OSC encoding under Max.
 - Ten Live parameter assignments, unmapping, set reload, reordering and duplicate-device behavior.
 - Destination/filter parameter recall, native theme rendering and audio pass-through while hosted.
+- Calibration button operation and endpoint recall in an actual saved Set, native Min/Max widgets and their target-unit signal output in Live.
 - End-to-end latency and behavior with either physical glove.
 
 ## Reproduce offline checks
@@ -33,6 +34,7 @@ python3 tools/build.py
 python3 tools/test_patch.py
 node tools/test_engine.js
 node tools/test_usb.js
+node tools/test_mapping.js
 node tools/export_layout.js
 ```
 
@@ -46,6 +48,8 @@ The builder expects the installed Cycling '74 `liveui.map.maxpat` under `/Applic
 4. Map all ten fingers to ten distinct Live parameters, test 0 and 1 endpoints, then click each × and verify that the target is released. Save/reopen the set and verify assignments and destination/filter settings.
 5. For USB, upload the provided firmware to an actual UNO R4 WiFi with the documented pin wiring. Select USB, open USB… settings, Refresh, select its port and Open. Confirm L/R angles match calibration, and that stable poses continuously reach GLeft/GRight. Test bad frames, missing hands, Close, input-mode changes, occupied/missing ports, disconnect/reconnect, saved Set recall and two-second gesture recordings. The connection must remain closed after recall.
 6. Receive OSC at a separate destination port, enable OSC Out and confirm `/GLeft` and `/GRight`, each with five values matching the Max buses. Change destination with Apply. Stop incoming packets for over one second and confirm HOLD retains the last state.
+7. With fresh glove input, open each Calibrate window. Hold open for 0.3s and capture Open, then hold fist and capture Fist. Verify 0.000/0.900 per finger and permitted clipping at 1.000, both sensor directions, hand independence, rejection of stale/moving/insufficient-span captures and Reset. Confirm no replayed learning frames after a calibration change. Save/reopen and verify completed endpoints; USB must still start closed.
+8. Set a mapped finger's Min/Max to 20%/80%; verify open = 20%, fist = 74%, headroom = 80% of the target range. Test inverted and equal endpoints, targets with different actual ranges, target reassignment and Set recall. Confirm GLeft/GRight and OSC remain calibrated 0–1 regardless of mapping range.
 
 The supplied demo sender (`tools/send_demo.py`) produces synthetic normalized data to localhost; it does not read the glove. Use its `--raw` option for the calibration example above. Disable other receivers before testing the same input ports.
 
@@ -66,3 +70,12 @@ Source inspection found two concrete issues: the target UART's inherited zero av
 **50 logic checks** (15 engine + 35 USB/graph) and the recursive patch/AMXD/mapping/layout check pass. Companion files, release hashes and packaged installation are checked separately. No end-to-end latency improvement, actual native grouping callback format, audio-buffer behavior or on-screen response has been measured in the host; report only nominal intervals and model response, not a measured hardware latency target.
 
 For host acceptance, reload this AMXD, reopen USB, set Smooth to 8ms or 0ms explicitly if the Set restores 30ms, and compare both hands in Stabilize-off and enabled modes. Verify numbers, all mappings and fresh regression/classification input, including under normal Live session load. Old and new full system latency should be measured with the same audio buffer and glove conditions if exact timing is required.
+
+## Pose calibration and native Mapping ranges — 2026-10-08
+
+- Seven new engine checks exercise independent per-finger raw/normalized endpoints, positive and negative spans, open = 0 and fist = 0.9 with clipping/headroom, fresh stationary capture averaging, minimum span, atomic replacement, malformed JSON recall, source-format changes, stream reset, hand-specific clearing and preservation of low-latency filtering. Capture/restore do not manufacture learning frames from old input.
+- Ten native mapping checks interpret the actual embedded `p Scale` graph's control arithmetic and signal path. All fingers pass for full range, 20–80% with fist/headroom, inversion, equal endpoints, clipped input, native targets in [-70,6] and [20,20000], and a changed target range. These are documented-object simulations, not Max DSP or Live API executions.
+- The structural check verifies both calibration popups, momentary bang-to-message commands, status routing, bound calibration state, native visible percentage controls, native target-range wiring and absence of the old direct signal-to-remote bypass. Existing Map parameter names are preserved.
+- **67 logic/graph checks** pass (22 engine + 35 USB + 10 native mapping), plus the recursive patch/AMXD/parameter/layout check. A local backup of the installed pre-calibration receiver was retained. No firmware upload or serial-port interruption was performed.
+
+Real glove calibration accuracy, native widget rendering and saved Set recall remain host acceptance items. Model training must use the same calibration as inference; previously trained models are not automatically converted by this receiver update.

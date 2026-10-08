@@ -284,7 +284,7 @@
             85,
             22
           ],
-          "text": "route status"
+          "text": "route status calstatus"
         }
       },
       {
@@ -298,6 +298,32 @@
             22
           ],
           "text": "route 0 1"
+        }
+      },
+      {
+        "box": {
+          "id": "calroute",
+          "maxclass": "newobj",
+          "patching_rect": [
+            1010,
+            850,
+            145,
+            22
+          ],
+          "text": "route 0 1"
+        }
+      },
+      {
+        "box": {
+          "id": "calreport",
+          "maxclass": "message",
+          "patching_rect": [
+            30,
+            905,
+            145,
+            22
+          ],
+          "text": "calreport"
         }
       },
       {
@@ -555,14 +581,14 @@
             30,
             683,
             60,
-            14
+            40
           ],
           "presentation": 1,
           "presentation_rect": [
             7,
             74,
             60,
-            14
+            40
           ],
           "patcher": {
             "fileversion": 1,
@@ -578,7 +604,7 @@
               0,
               0,
               60,
-              15
+              40
             ],
             "bglocked": 0,
             "openinpresentation": 1,
@@ -611,6 +637,35 @@
             "subpatcher_template": "",
             "assistshowspatchername": 0,
             "boxes": [
+              {
+                "box": {
+                  "id": "range_label_background",
+                  "maxclass": "panel",
+                  "numinlets": 1,
+                  "numoutlets": 0,
+                  "patching_rect": [
+                    0,
+                    15,
+                    60,
+                    9
+                  ],
+                  "presentation": 1,
+                  "presentation_rect": [
+                    0,
+                    15,
+                    60,
+                    9
+                  ],
+                  "background": 1,
+                  "border": 0,
+                  "rounded": 0,
+                  "saved_attribute_attributes": {
+                    "bgcolor": {
+                      "expression": "themecolor.live_lcd_bg"
+                    }
+                  }
+                }
+              },
               {
                 "box": {
                   "id": "obj-13",
@@ -4895,7 +4950,7 @@
                   ],
                   "annotation": "Defines the modulation value generated when input value is at its maximum amplitude. Note that this value can be lower than Min.",
                   "annotation_name": "Max",
-                  "appearance": 4,
+                  "appearance": 0,
                   "focusbordercolor": [
                     1.0,
                     0.709804,
@@ -4917,12 +4972,12 @@
                     46.0,
                     15.0
                   ],
-                  "presentation": 0,
+                  "presentation": 1,
                   "presentation_rect": [
-                    125.0,
-                    1.0,
-                    34.0,
-                    15.0
+                    31,
+                    24,
+                    29,
+                    15
                   ],
                   "prototypename": "amount",
                   "saved_attribute_attributes": {
@@ -4952,7 +5007,7 @@
                       "parameter_linknames": 1,
                       "parameter_longname": "Left Pinky Max",
                       "parameter_mmax": 100.0,
-                      "parameter_mmin": -100.0,
+                      "parameter_mmin": 0.0,
                       "parameter_shortname": "Max",
                       "parameter_type": 1,
                       "parameter_unitstyle": 5
@@ -4965,7 +5020,8 @@
                     1.0
                   ],
                   "textjustification": 0,
-                  "varname": "TargetMax[1]"
+                  "varname": "TargetMax[1]",
+                  "fontsize": 9
                 }
               },
               {
@@ -4990,7 +5046,7 @@
                   ],
                   "annotation": "Defines the modulation value generated when the input value is at its minimum amplitude. Note that this value can be higher than Max.",
                   "annotation_name": "Min",
-                  "appearance": 4,
+                  "appearance": 0,
                   "focusbordercolor": [
                     1.0,
                     0.709804,
@@ -5012,12 +5068,12 @@
                     46.0,
                     15.0
                   ],
-                  "presentation": 0,
+                  "presentation": 1,
                   "presentation_rect": [
-                    92.0,
-                    1.0,
-                    34.0,
-                    15.0
+                    0,
+                    24,
+                    29,
+                    15
                   ],
                   "prototypename": "amount",
                   "saved_attribute_attributes": {
@@ -5047,7 +5103,7 @@
                       "parameter_linknames": 1,
                       "parameter_longname": "Left Pinky Min",
                       "parameter_mmax": 100.0,
-                      "parameter_mmin": -100.0,
+                      "parameter_mmin": 0.0,
                       "parameter_shortname": "Min",
                       "parameter_type": 1,
                       "parameter_unitstyle": 5
@@ -5060,7 +5116,8 @@
                     1.0
                   ],
                   "textjustification": 0,
-                  "varname": "TargetMin[1]"
+                  "varname": "TargetMin[1]",
+                  "fontsize": 9
                 }
               },
               {
@@ -5242,6 +5299,52 @@
                   "texton": "Map",
                   "varname": "live.text",
                   "fontsize": 9
+                }
+              },
+              {
+                "box": {
+                  "id": "range_min_label",
+                  "maxclass": "live.comment",
+                  "text": "MIN",
+                  "fontsize": 7,
+                  "numinlets": 1,
+                  "numoutlets": 0,
+                  "patching_rect": [
+                    0,
+                    16,
+                    29,
+                    8
+                  ],
+                  "presentation": 1,
+                  "presentation_rect": [
+                    0,
+                    16,
+                    29,
+                    8
+                  ]
+                }
+              },
+              {
+                "box": {
+                  "id": "range_max_label",
+                  "maxclass": "live.comment",
+                  "text": "MAX",
+                  "fontsize": 7,
+                  "numinlets": 1,
+                  "numoutlets": 0,
+                  "patching_rect": [
+                    31,
+                    16,
+                    29,
+                    8
+                  ],
+                  "presentation": 1,
+                  "presentation_rect": [
+                    31,
+                    16,
+                    29,
+                    8
+                  ]
                 }
               }
             ],
@@ -5789,7 +5892,7 @@
             105,
             46
           ],
-          "text": "live.remote~ @normalized 1 @smoothing 0.",
+          "text": "live.remote~ @normalized 0 @smoothing 0.",
           "saved_object_attributes": {
             "_persistence": 1
           }
@@ -5906,14 +6009,14 @@
             142,
             683,
             60,
-            14
+            40
           ],
           "presentation": 1,
           "presentation_rect": [
             75,
             61,
             60,
-            14
+            40
           ],
           "patcher": {
             "fileversion": 1,
@@ -5929,7 +6032,7 @@
               0,
               0,
               60,
-              15
+              40
             ],
             "bglocked": 0,
             "openinpresentation": 1,
@@ -5962,6 +6065,35 @@
             "subpatcher_template": "",
             "assistshowspatchername": 0,
             "boxes": [
+              {
+                "box": {
+                  "id": "range_label_background",
+                  "maxclass": "panel",
+                  "numinlets": 1,
+                  "numoutlets": 0,
+                  "patching_rect": [
+                    0,
+                    15,
+                    60,
+                    9
+                  ],
+                  "presentation": 1,
+                  "presentation_rect": [
+                    0,
+                    15,
+                    60,
+                    9
+                  ],
+                  "background": 1,
+                  "border": 0,
+                  "rounded": 0,
+                  "saved_attribute_attributes": {
+                    "bgcolor": {
+                      "expression": "themecolor.live_lcd_bg"
+                    }
+                  }
+                }
+              },
               {
                 "box": {
                   "id": "obj-13",
@@ -10246,7 +10378,7 @@
                   ],
                   "annotation": "Defines the modulation value generated when input value is at its maximum amplitude. Note that this value can be lower than Min.",
                   "annotation_name": "Max",
-                  "appearance": 4,
+                  "appearance": 0,
                   "focusbordercolor": [
                     1.0,
                     0.709804,
@@ -10268,12 +10400,12 @@
                     46.0,
                     15.0
                   ],
-                  "presentation": 0,
+                  "presentation": 1,
                   "presentation_rect": [
-                    125.0,
-                    1.0,
-                    34.0,
-                    15.0
+                    31,
+                    24,
+                    29,
+                    15
                   ],
                   "prototypename": "amount",
                   "saved_attribute_attributes": {
@@ -10303,7 +10435,7 @@
                       "parameter_linknames": 1,
                       "parameter_longname": "Left Ring Max",
                       "parameter_mmax": 100.0,
-                      "parameter_mmin": -100.0,
+                      "parameter_mmin": 0.0,
                       "parameter_shortname": "Max",
                       "parameter_type": 1,
                       "parameter_unitstyle": 5
@@ -10316,7 +10448,8 @@
                     1.0
                   ],
                   "textjustification": 0,
-                  "varname": "TargetMax[1]"
+                  "varname": "TargetMax[1]",
+                  "fontsize": 9
                 }
               },
               {
@@ -10341,7 +10474,7 @@
                   ],
                   "annotation": "Defines the modulation value generated when the input value is at its minimum amplitude. Note that this value can be higher than Max.",
                   "annotation_name": "Min",
-                  "appearance": 4,
+                  "appearance": 0,
                   "focusbordercolor": [
                     1.0,
                     0.709804,
@@ -10363,12 +10496,12 @@
                     46.0,
                     15.0
                   ],
-                  "presentation": 0,
+                  "presentation": 1,
                   "presentation_rect": [
-                    92.0,
-                    1.0,
-                    34.0,
-                    15.0
+                    0,
+                    24,
+                    29,
+                    15
                   ],
                   "prototypename": "amount",
                   "saved_attribute_attributes": {
@@ -10398,7 +10531,7 @@
                       "parameter_linknames": 1,
                       "parameter_longname": "Left Ring Min",
                       "parameter_mmax": 100.0,
-                      "parameter_mmin": -100.0,
+                      "parameter_mmin": 0.0,
                       "parameter_shortname": "Min",
                       "parameter_type": 1,
                       "parameter_unitstyle": 5
@@ -10411,7 +10544,8 @@
                     1.0
                   ],
                   "textjustification": 0,
-                  "varname": "TargetMin[1]"
+                  "varname": "TargetMin[1]",
+                  "fontsize": 9
                 }
               },
               {
@@ -10593,6 +10727,52 @@
                   "texton": "Map",
                   "varname": "live.text",
                   "fontsize": 9
+                }
+              },
+              {
+                "box": {
+                  "id": "range_min_label",
+                  "maxclass": "live.comment",
+                  "text": "MIN",
+                  "fontsize": 7,
+                  "numinlets": 1,
+                  "numoutlets": 0,
+                  "patching_rect": [
+                    0,
+                    16,
+                    29,
+                    8
+                  ],
+                  "presentation": 1,
+                  "presentation_rect": [
+                    0,
+                    16,
+                    29,
+                    8
+                  ]
+                }
+              },
+              {
+                "box": {
+                  "id": "range_max_label",
+                  "maxclass": "live.comment",
+                  "text": "MAX",
+                  "fontsize": 7,
+                  "numinlets": 1,
+                  "numoutlets": 0,
+                  "patching_rect": [
+                    31,
+                    16,
+                    29,
+                    8
+                  ],
+                  "presentation": 1,
+                  "presentation_rect": [
+                    31,
+                    16,
+                    29,
+                    8
+                  ]
                 }
               }
             ],
@@ -11140,7 +11320,7 @@
             105,
             46
           ],
-          "text": "live.remote~ @normalized 1 @smoothing 0.",
+          "text": "live.remote~ @normalized 0 @smoothing 0.",
           "saved_object_attributes": {
             "_persistence": 1
           }
@@ -11257,14 +11437,14 @@
             254,
             683,
             60,
-            14
+            40
           ],
           "presentation": 1,
           "presentation_rect": [
             143,
             52,
             60,
-            14
+            40
           ],
           "patcher": {
             "fileversion": 1,
@@ -11280,7 +11460,7 @@
               0,
               0,
               60,
-              15
+              40
             ],
             "bglocked": 0,
             "openinpresentation": 1,
@@ -11313,6 +11493,35 @@
             "subpatcher_template": "",
             "assistshowspatchername": 0,
             "boxes": [
+              {
+                "box": {
+                  "id": "range_label_background",
+                  "maxclass": "panel",
+                  "numinlets": 1,
+                  "numoutlets": 0,
+                  "patching_rect": [
+                    0,
+                    15,
+                    60,
+                    9
+                  ],
+                  "presentation": 1,
+                  "presentation_rect": [
+                    0,
+                    15,
+                    60,
+                    9
+                  ],
+                  "background": 1,
+                  "border": 0,
+                  "rounded": 0,
+                  "saved_attribute_attributes": {
+                    "bgcolor": {
+                      "expression": "themecolor.live_lcd_bg"
+                    }
+                  }
+                }
+              },
               {
                 "box": {
                   "id": "obj-13",
@@ -15597,7 +15806,7 @@
                   ],
                   "annotation": "Defines the modulation value generated when input value is at its maximum amplitude. Note that this value can be lower than Min.",
                   "annotation_name": "Max",
-                  "appearance": 4,
+                  "appearance": 0,
                   "focusbordercolor": [
                     1.0,
                     0.709804,
@@ -15619,12 +15828,12 @@
                     46.0,
                     15.0
                   ],
-                  "presentation": 0,
+                  "presentation": 1,
                   "presentation_rect": [
-                    125.0,
-                    1.0,
-                    34.0,
-                    15.0
+                    31,
+                    24,
+                    29,
+                    15
                   ],
                   "prototypename": "amount",
                   "saved_attribute_attributes": {
@@ -15654,7 +15863,7 @@
                       "parameter_linknames": 1,
                       "parameter_longname": "Left Middle Max",
                       "parameter_mmax": 100.0,
-                      "parameter_mmin": -100.0,
+                      "parameter_mmin": 0.0,
                       "parameter_shortname": "Max",
                       "parameter_type": 1,
                       "parameter_unitstyle": 5
@@ -15667,7 +15876,8 @@
                     1.0
                   ],
                   "textjustification": 0,
-                  "varname": "TargetMax[1]"
+                  "varname": "TargetMax[1]",
+                  "fontsize": 9
                 }
               },
               {
@@ -15692,7 +15902,7 @@
                   ],
                   "annotation": "Defines the modulation value generated when the input value is at its minimum amplitude. Note that this value can be higher than Max.",
                   "annotation_name": "Min",
-                  "appearance": 4,
+                  "appearance": 0,
                   "focusbordercolor": [
                     1.0,
                     0.709804,
@@ -15714,12 +15924,12 @@
                     46.0,
                     15.0
                   ],
-                  "presentation": 0,
+                  "presentation": 1,
                   "presentation_rect": [
-                    92.0,
-                    1.0,
-                    34.0,
-                    15.0
+                    0,
+                    24,
+                    29,
+                    15
                   ],
                   "prototypename": "amount",
                   "saved_attribute_attributes": {
@@ -15749,7 +15959,7 @@
                       "parameter_linknames": 1,
                       "parameter_longname": "Left Middle Min",
                       "parameter_mmax": 100.0,
-                      "parameter_mmin": -100.0,
+                      "parameter_mmin": 0.0,
                       "parameter_shortname": "Min",
                       "parameter_type": 1,
                       "parameter_unitstyle": 5
@@ -15762,7 +15972,8 @@
                     1.0
                   ],
                   "textjustification": 0,
-                  "varname": "TargetMin[1]"
+                  "varname": "TargetMin[1]",
+                  "fontsize": 9
                 }
               },
               {
@@ -15944,6 +16155,52 @@
                   "texton": "Map",
                   "varname": "live.text",
                   "fontsize": 9
+                }
+              },
+              {
+                "box": {
+                  "id": "range_min_label",
+                  "maxclass": "live.comment",
+                  "text": "MIN",
+                  "fontsize": 7,
+                  "numinlets": 1,
+                  "numoutlets": 0,
+                  "patching_rect": [
+                    0,
+                    16,
+                    29,
+                    8
+                  ],
+                  "presentation": 1,
+                  "presentation_rect": [
+                    0,
+                    16,
+                    29,
+                    8
+                  ]
+                }
+              },
+              {
+                "box": {
+                  "id": "range_max_label",
+                  "maxclass": "live.comment",
+                  "text": "MAX",
+                  "fontsize": 7,
+                  "numinlets": 1,
+                  "numoutlets": 0,
+                  "patching_rect": [
+                    31,
+                    16,
+                    29,
+                    8
+                  ],
+                  "presentation": 1,
+                  "presentation_rect": [
+                    31,
+                    16,
+                    29,
+                    8
+                  ]
                 }
               }
             ],
@@ -16491,7 +16748,7 @@
             105,
             46
           ],
-          "text": "live.remote~ @normalized 1 @smoothing 0.",
+          "text": "live.remote~ @normalized 0 @smoothing 0.",
           "saved_object_attributes": {
             "_persistence": 1
           }
@@ -16608,14 +16865,14 @@
             366,
             683,
             60,
-            14
+            40
           ],
           "presentation": 1,
           "presentation_rect": [
             211,
             61,
             60,
-            14
+            40
           ],
           "patcher": {
             "fileversion": 1,
@@ -16631,7 +16888,7 @@
               0,
               0,
               60,
-              15
+              40
             ],
             "bglocked": 0,
             "openinpresentation": 1,
@@ -16664,6 +16921,35 @@
             "subpatcher_template": "",
             "assistshowspatchername": 0,
             "boxes": [
+              {
+                "box": {
+                  "id": "range_label_background",
+                  "maxclass": "panel",
+                  "numinlets": 1,
+                  "numoutlets": 0,
+                  "patching_rect": [
+                    0,
+                    15,
+                    60,
+                    9
+                  ],
+                  "presentation": 1,
+                  "presentation_rect": [
+                    0,
+                    15,
+                    60,
+                    9
+                  ],
+                  "background": 1,
+                  "border": 0,
+                  "rounded": 0,
+                  "saved_attribute_attributes": {
+                    "bgcolor": {
+                      "expression": "themecolor.live_lcd_bg"
+                    }
+                  }
+                }
+              },
               {
                 "box": {
                   "id": "obj-13",
@@ -20948,7 +21234,7 @@
                   ],
                   "annotation": "Defines the modulation value generated when input value is at its maximum amplitude. Note that this value can be lower than Min.",
                   "annotation_name": "Max",
-                  "appearance": 4,
+                  "appearance": 0,
                   "focusbordercolor": [
                     1.0,
                     0.709804,
@@ -20970,12 +21256,12 @@
                     46.0,
                     15.0
                   ],
-                  "presentation": 0,
+                  "presentation": 1,
                   "presentation_rect": [
-                    125.0,
-                    1.0,
-                    34.0,
-                    15.0
+                    31,
+                    24,
+                    29,
+                    15
                   ],
                   "prototypename": "amount",
                   "saved_attribute_attributes": {
@@ -21005,7 +21291,7 @@
                       "parameter_linknames": 1,
                       "parameter_longname": "Left Index Max",
                       "parameter_mmax": 100.0,
-                      "parameter_mmin": -100.0,
+                      "parameter_mmin": 0.0,
                       "parameter_shortname": "Max",
                       "parameter_type": 1,
                       "parameter_unitstyle": 5
@@ -21018,7 +21304,8 @@
                     1.0
                   ],
                   "textjustification": 0,
-                  "varname": "TargetMax[1]"
+                  "varname": "TargetMax[1]",
+                  "fontsize": 9
                 }
               },
               {
@@ -21043,7 +21330,7 @@
                   ],
                   "annotation": "Defines the modulation value generated when the input value is at its minimum amplitude. Note that this value can be higher than Max.",
                   "annotation_name": "Min",
-                  "appearance": 4,
+                  "appearance": 0,
                   "focusbordercolor": [
                     1.0,
                     0.709804,
@@ -21065,12 +21352,12 @@
                     46.0,
                     15.0
                   ],
-                  "presentation": 0,
+                  "presentation": 1,
                   "presentation_rect": [
-                    92.0,
-                    1.0,
-                    34.0,
-                    15.0
+                    0,
+                    24,
+                    29,
+                    15
                   ],
                   "prototypename": "amount",
                   "saved_attribute_attributes": {
@@ -21100,7 +21387,7 @@
                       "parameter_linknames": 1,
                       "parameter_longname": "Left Index Min",
                       "parameter_mmax": 100.0,
-                      "parameter_mmin": -100.0,
+                      "parameter_mmin": 0.0,
                       "parameter_shortname": "Min",
                       "parameter_type": 1,
                       "parameter_unitstyle": 5
@@ -21113,7 +21400,8 @@
                     1.0
                   ],
                   "textjustification": 0,
-                  "varname": "TargetMin[1]"
+                  "varname": "TargetMin[1]",
+                  "fontsize": 9
                 }
               },
               {
@@ -21295,6 +21583,52 @@
                   "texton": "Map",
                   "varname": "live.text",
                   "fontsize": 9
+                }
+              },
+              {
+                "box": {
+                  "id": "range_min_label",
+                  "maxclass": "live.comment",
+                  "text": "MIN",
+                  "fontsize": 7,
+                  "numinlets": 1,
+                  "numoutlets": 0,
+                  "patching_rect": [
+                    0,
+                    16,
+                    29,
+                    8
+                  ],
+                  "presentation": 1,
+                  "presentation_rect": [
+                    0,
+                    16,
+                    29,
+                    8
+                  ]
+                }
+              },
+              {
+                "box": {
+                  "id": "range_max_label",
+                  "maxclass": "live.comment",
+                  "text": "MAX",
+                  "fontsize": 7,
+                  "numinlets": 1,
+                  "numoutlets": 0,
+                  "patching_rect": [
+                    31,
+                    16,
+                    29,
+                    8
+                  ],
+                  "presentation": 1,
+                  "presentation_rect": [
+                    31,
+                    16,
+                    29,
+                    8
+                  ]
                 }
               }
             ],
@@ -21842,7 +22176,7 @@
             105,
             46
           ],
-          "text": "live.remote~ @normalized 1 @smoothing 0.",
+          "text": "live.remote~ @normalized 0 @smoothing 0.",
           "saved_object_attributes": {
             "_persistence": 1
           }
@@ -21959,14 +22293,14 @@
             478,
             683,
             60,
-            14
+            40
           ],
           "presentation": 1,
           "presentation_rect": [
             303,
             95,
             60,
-            14
+            40
           ],
           "patcher": {
             "fileversion": 1,
@@ -21982,7 +22316,7 @@
               0,
               0,
               60,
-              15
+              40
             ],
             "bglocked": 0,
             "openinpresentation": 1,
@@ -22015,6 +22349,35 @@
             "subpatcher_template": "",
             "assistshowspatchername": 0,
             "boxes": [
+              {
+                "box": {
+                  "id": "range_label_background",
+                  "maxclass": "panel",
+                  "numinlets": 1,
+                  "numoutlets": 0,
+                  "patching_rect": [
+                    0,
+                    15,
+                    60,
+                    9
+                  ],
+                  "presentation": 1,
+                  "presentation_rect": [
+                    0,
+                    15,
+                    60,
+                    9
+                  ],
+                  "background": 1,
+                  "border": 0,
+                  "rounded": 0,
+                  "saved_attribute_attributes": {
+                    "bgcolor": {
+                      "expression": "themecolor.live_lcd_bg"
+                    }
+                  }
+                }
+              },
               {
                 "box": {
                   "id": "obj-13",
@@ -26299,7 +26662,7 @@
                   ],
                   "annotation": "Defines the modulation value generated when input value is at its maximum amplitude. Note that this value can be lower than Min.",
                   "annotation_name": "Max",
-                  "appearance": 4,
+                  "appearance": 0,
                   "focusbordercolor": [
                     1.0,
                     0.709804,
@@ -26321,12 +26684,12 @@
                     46.0,
                     15.0
                   ],
-                  "presentation": 0,
+                  "presentation": 1,
                   "presentation_rect": [
-                    125.0,
-                    1.0,
-                    34.0,
-                    15.0
+                    31,
+                    24,
+                    29,
+                    15
                   ],
                   "prototypename": "amount",
                   "saved_attribute_attributes": {
@@ -26356,7 +26719,7 @@
                       "parameter_linknames": 1,
                       "parameter_longname": "Left Thumb Max",
                       "parameter_mmax": 100.0,
-                      "parameter_mmin": -100.0,
+                      "parameter_mmin": 0.0,
                       "parameter_shortname": "Max",
                       "parameter_type": 1,
                       "parameter_unitstyle": 5
@@ -26369,7 +26732,8 @@
                     1.0
                   ],
                   "textjustification": 0,
-                  "varname": "TargetMax[1]"
+                  "varname": "TargetMax[1]",
+                  "fontsize": 9
                 }
               },
               {
@@ -26394,7 +26758,7 @@
                   ],
                   "annotation": "Defines the modulation value generated when the input value is at its minimum amplitude. Note that this value can be higher than Max.",
                   "annotation_name": "Min",
-                  "appearance": 4,
+                  "appearance": 0,
                   "focusbordercolor": [
                     1.0,
                     0.709804,
@@ -26416,12 +26780,12 @@
                     46.0,
                     15.0
                   ],
-                  "presentation": 0,
+                  "presentation": 1,
                   "presentation_rect": [
-                    92.0,
-                    1.0,
-                    34.0,
-                    15.0
+                    0,
+                    24,
+                    29,
+                    15
                   ],
                   "prototypename": "amount",
                   "saved_attribute_attributes": {
@@ -26451,7 +26815,7 @@
                       "parameter_linknames": 1,
                       "parameter_longname": "Left Thumb Min",
                       "parameter_mmax": 100.0,
-                      "parameter_mmin": -100.0,
+                      "parameter_mmin": 0.0,
                       "parameter_shortname": "Min",
                       "parameter_type": 1,
                       "parameter_unitstyle": 5
@@ -26464,7 +26828,8 @@
                     1.0
                   ],
                   "textjustification": 0,
-                  "varname": "TargetMin[1]"
+                  "varname": "TargetMin[1]",
+                  "fontsize": 9
                 }
               },
               {
@@ -26646,6 +27011,52 @@
                   "texton": "Map",
                   "varname": "live.text",
                   "fontsize": 9
+                }
+              },
+              {
+                "box": {
+                  "id": "range_min_label",
+                  "maxclass": "live.comment",
+                  "text": "MIN",
+                  "fontsize": 7,
+                  "numinlets": 1,
+                  "numoutlets": 0,
+                  "patching_rect": [
+                    0,
+                    16,
+                    29,
+                    8
+                  ],
+                  "presentation": 1,
+                  "presentation_rect": [
+                    0,
+                    16,
+                    29,
+                    8
+                  ]
+                }
+              },
+              {
+                "box": {
+                  "id": "range_max_label",
+                  "maxclass": "live.comment",
+                  "text": "MAX",
+                  "fontsize": 7,
+                  "numinlets": 1,
+                  "numoutlets": 0,
+                  "patching_rect": [
+                    31,
+                    16,
+                    29,
+                    8
+                  ],
+                  "presentation": 1,
+                  "presentation_rect": [
+                    31,
+                    16,
+                    29,
+                    8
+                  ]
                 }
               }
             ],
@@ -27193,10 +27604,639 @@
             105,
             46
           ],
-          "text": "live.remote~ @normalized 1 @smoothing 0.",
+          "text": "live.remote~ @normalized 0 @smoothing 0.",
           "saved_object_attributes": {
             "_persistence": 1
           }
+        }
+      },
+      {
+        "box": {
+          "id": "left_calibrate",
+          "maxclass": "live.text",
+          "patching_rect": [
+            20,
+            1544,
+            145,
+            22
+          ],
+          "text": "Calibrate",
+          "presentation": 1,
+          "presentation_rect": [
+            272,
+            4,
+            60,
+            15
+          ],
+          "texton": "Calibrate",
+          "mode": 0,
+          "numinlets": 1,
+          "numoutlets": 2,
+          "outlettype": [
+            "",
+            ""
+          ],
+          "parameter_enable": 1,
+          "varname": "left_calibrate",
+          "fontsize": 9,
+          "saved_attribute_attributes": {
+            "valueof": {
+              "parameter_longname": "Left Calibrate",
+              "parameter_shortname": "Left Calibrate",
+              "parameter_type": 2,
+              "parameter_enum": [
+                "Off",
+                "On"
+              ],
+              "parameter_mmax": 1,
+              "parameter_initial": [
+                0
+              ],
+              "parameter_initial_enable": 1,
+              "parameter_invisible": 2
+            }
+          }
+        }
+      },
+      {
+        "box": {
+          "id": "left_cal_press",
+          "maxclass": "newobj",
+          "patching_rect": [
+            20,
+            1568,
+            145,
+            22
+          ],
+          "text": "t b b"
+        }
+      },
+      {
+        "box": {
+          "id": "left_cal_open",
+          "maxclass": "message",
+          "patching_rect": [
+            20,
+            1592,
+            145,
+            22
+          ],
+          "text": "open"
+        }
+      },
+      {
+        "box": {
+          "id": "left_cal_control",
+          "maxclass": "newobj",
+          "patching_rect": [
+            20,
+            1616,
+            145,
+            22
+          ],
+          "text": "pcontrol"
+        }
+      },
+      {
+        "box": {
+          "id": "left_calibration",
+          "maxclass": "newobj",
+          "patching_rect": [
+            20,
+            1640,
+            145,
+            22
+          ],
+          "text": "p Left_Calibration",
+          "patcher": {
+            "fileversion": 1,
+            "appversion": {
+              "major": 9,
+              "minor": 1,
+              "revision": 3,
+              "architecture": "arm64",
+              "modernui": 1
+            },
+            "classnamespace": "box",
+            "rect": [
+              120,
+              160,
+              440,
+              125
+            ],
+            "openinpresentation": 1,
+            "default_fontsize": 11,
+            "default_fontname": "Arial",
+            "devicewidth": 440,
+            "enablehscroll": 0,
+            "enablevscroll": 0,
+            "boxes": [
+              {
+                "box": {
+                  "id": "cal_title",
+                  "maxclass": "live.comment",
+                  "patching_rect": [
+                    20,
+                    200,
+                    145,
+                    22
+                  ],
+                  "text": "LEFT HAND  /  CALIBRATION",
+                  "presentation": 1,
+                  "presentation_rect": [
+                    10,
+                    7,
+                    420,
+                    18
+                  ],
+                  "fontsize": 11,
+                  "numinlets": 1,
+                  "numoutlets": 0,
+                  "textjustification": 0
+                }
+              },
+              {
+                "box": {
+                  "id": "cal_hint",
+                  "maxclass": "live.comment",
+                  "patching_rect": [
+                    20,
+                    224,
+                    145,
+                    22
+                  ],
+                  "text": "Hold each pose still for 0.3 seconds before capturing.",
+                  "presentation": 1,
+                  "presentation_rect": [
+                    10,
+                    29,
+                    420,
+                    16
+                  ],
+                  "fontsize": 10,
+                  "numinlets": 1,
+                  "numoutlets": 0,
+                  "textjustification": 0
+                }
+              },
+              {
+                "box": {
+                  "id": "cal_open",
+                  "maxclass": "live.text",
+                  "patching_rect": [
+                    20,
+                    248,
+                    145,
+                    22
+                  ],
+                  "text": "Open → 0",
+                  "presentation": 1,
+                  "presentation_rect": [
+                    10,
+                    51,
+                    130,
+                    22
+                  ],
+                  "texton": "Open → 0",
+                  "mode": 0,
+                  "numinlets": 1,
+                  "numoutlets": 2,
+                  "outlettype": [
+                    "",
+                    ""
+                  ],
+                  "parameter_enable": 1,
+                  "varname": "cal_open",
+                  "fontsize": 9,
+                  "saved_attribute_attributes": {
+                    "valueof": {
+                      "parameter_longname": "Left Calibration open",
+                      "parameter_shortname": "Left Calibration open",
+                      "parameter_type": 2,
+                      "parameter_enum": [
+                        "Off",
+                        "On"
+                      ],
+                      "parameter_mmax": 1,
+                      "parameter_initial": [
+                        0
+                      ],
+                      "parameter_initial_enable": 1,
+                      "parameter_invisible": 2
+                    }
+                  }
+                }
+              },
+              {
+                "box": {
+                  "id": "cal_open_bang",
+                  "maxclass": "newobj",
+                  "patching_rect": [
+                    20,
+                    272,
+                    145,
+                    22
+                  ],
+                  "text": "t b"
+                }
+              },
+              {
+                "box": {
+                  "id": "cal_open_command",
+                  "maxclass": "message",
+                  "patching_rect": [
+                    20,
+                    296,
+                    145,
+                    22
+                  ],
+                  "text": "capture 0 open"
+                }
+              },
+              {
+                "box": {
+                  "id": "cal_fist",
+                  "maxclass": "live.text",
+                  "patching_rect": [
+                    20,
+                    320,
+                    145,
+                    22
+                  ],
+                  "text": "Fist → 0.9",
+                  "presentation": 1,
+                  "presentation_rect": [
+                    150,
+                    51,
+                    130,
+                    22
+                  ],
+                  "texton": "Fist → 0.9",
+                  "mode": 0,
+                  "numinlets": 1,
+                  "numoutlets": 2,
+                  "outlettype": [
+                    "",
+                    ""
+                  ],
+                  "parameter_enable": 1,
+                  "varname": "cal_fist",
+                  "fontsize": 9,
+                  "saved_attribute_attributes": {
+                    "valueof": {
+                      "parameter_longname": "Left Calibration fist",
+                      "parameter_shortname": "Left Calibration fist",
+                      "parameter_type": 2,
+                      "parameter_enum": [
+                        "Off",
+                        "On"
+                      ],
+                      "parameter_mmax": 1,
+                      "parameter_initial": [
+                        0
+                      ],
+                      "parameter_initial_enable": 1,
+                      "parameter_invisible": 2
+                    }
+                  }
+                }
+              },
+              {
+                "box": {
+                  "id": "cal_fist_bang",
+                  "maxclass": "newobj",
+                  "patching_rect": [
+                    20,
+                    344,
+                    145,
+                    22
+                  ],
+                  "text": "t b"
+                }
+              },
+              {
+                "box": {
+                  "id": "cal_fist_command",
+                  "maxclass": "message",
+                  "patching_rect": [
+                    20,
+                    368,
+                    145,
+                    22
+                  ],
+                  "text": "capture 0 fist"
+                }
+              },
+              {
+                "box": {
+                  "id": "cal_clear",
+                  "maxclass": "live.text",
+                  "patching_rect": [
+                    20,
+                    392,
+                    145,
+                    22
+                  ],
+                  "text": "Reset",
+                  "presentation": 1,
+                  "presentation_rect": [
+                    290,
+                    51,
+                    130,
+                    22
+                  ],
+                  "texton": "Reset",
+                  "mode": 0,
+                  "numinlets": 1,
+                  "numoutlets": 2,
+                  "outlettype": [
+                    "",
+                    ""
+                  ],
+                  "parameter_enable": 1,
+                  "varname": "cal_clear",
+                  "fontsize": 9,
+                  "saved_attribute_attributes": {
+                    "valueof": {
+                      "parameter_longname": "Left Calibration clear",
+                      "parameter_shortname": "Left Calibration clear",
+                      "parameter_type": 2,
+                      "parameter_enum": [
+                        "Off",
+                        "On"
+                      ],
+                      "parameter_mmax": 1,
+                      "parameter_initial": [
+                        0
+                      ],
+                      "parameter_initial_enable": 1,
+                      "parameter_invisible": 2
+                    }
+                  }
+                }
+              },
+              {
+                "box": {
+                  "id": "cal_clear_bang",
+                  "maxclass": "newobj",
+                  "patching_rect": [
+                    20,
+                    416,
+                    145,
+                    22
+                  ],
+                  "text": "t b"
+                }
+              },
+              {
+                "box": {
+                  "id": "cal_clear_command",
+                  "maxclass": "message",
+                  "patching_rect": [
+                    20,
+                    440,
+                    145,
+                    22
+                  ],
+                  "text": "clearcal 0"
+                }
+              },
+              {
+                "box": {
+                  "id": "cal_status",
+                  "maxclass": "live.comment",
+                  "patching_rect": [
+                    20,
+                    464,
+                    145,
+                    22
+                  ],
+                  "text": "Default range. Capture Open and Fist.",
+                  "presentation": 1,
+                  "presentation_rect": [
+                    10,
+                    80,
+                    420,
+                    17
+                  ],
+                  "fontsize": 10,
+                  "numinlets": 1,
+                  "numoutlets": 0,
+                  "textjustification": 0
+                }
+              },
+              {
+                "box": {
+                  "id": "cal_headroom",
+                  "maxclass": "live.comment",
+                  "patching_rect": [
+                    20,
+                    488,
+                    145,
+                    22
+                  ],
+                  "text": "Fist = 0.900; extra bend may rise to 1.000.",
+                  "presentation": 1,
+                  "presentation_rect": [
+                    10,
+                    102,
+                    420,
+                    16
+                  ],
+                  "fontsize": 10,
+                  "numinlets": 1,
+                  "numoutlets": 0,
+                  "textjustification": 0
+                }
+              },
+              {
+                "box": {
+                  "id": "cal_input",
+                  "maxclass": "inlet",
+                  "patching_rect": [
+                    20,
+                    512,
+                    145,
+                    22
+                  ],
+                  "numinlets": 0,
+                  "numoutlets": 1
+                }
+              },
+              {
+                "box": {
+                  "id": "cal_output",
+                  "maxclass": "outlet",
+                  "patching_rect": [
+                    20,
+                    536,
+                    145,
+                    22
+                  ],
+                  "numinlets": 1,
+                  "numoutlets": 0
+                }
+              }
+            ],
+            "lines": [
+              {
+                "patchline": {
+                  "source": [
+                    "cal_open",
+                    0
+                  ],
+                  "destination": [
+                    "cal_open_bang",
+                    0
+                  ]
+                }
+              },
+              {
+                "patchline": {
+                  "source": [
+                    "cal_open_bang",
+                    0
+                  ],
+                  "destination": [
+                    "cal_open_command",
+                    0
+                  ]
+                }
+              },
+              {
+                "patchline": {
+                  "source": [
+                    "cal_open_command",
+                    0
+                  ],
+                  "destination": [
+                    "cal_output",
+                    0
+                  ]
+                }
+              },
+              {
+                "patchline": {
+                  "source": [
+                    "cal_fist",
+                    0
+                  ],
+                  "destination": [
+                    "cal_fist_bang",
+                    0
+                  ]
+                }
+              },
+              {
+                "patchline": {
+                  "source": [
+                    "cal_fist_bang",
+                    0
+                  ],
+                  "destination": [
+                    "cal_fist_command",
+                    0
+                  ]
+                }
+              },
+              {
+                "patchline": {
+                  "source": [
+                    "cal_fist_command",
+                    0
+                  ],
+                  "destination": [
+                    "cal_output",
+                    0
+                  ]
+                }
+              },
+              {
+                "patchline": {
+                  "source": [
+                    "cal_clear",
+                    0
+                  ],
+                  "destination": [
+                    "cal_clear_bang",
+                    0
+                  ]
+                }
+              },
+              {
+                "patchline": {
+                  "source": [
+                    "cal_clear_bang",
+                    0
+                  ],
+                  "destination": [
+                    "cal_clear_command",
+                    0
+                  ]
+                }
+              },
+              {
+                "patchline": {
+                  "source": [
+                    "cal_clear_command",
+                    0
+                  ],
+                  "destination": [
+                    "cal_output",
+                    0
+                  ]
+                }
+              },
+              {
+                "patchline": {
+                  "source": [
+                    "cal_input",
+                    0
+                  ],
+                  "destination": [
+                    "cal_status",
+                    0
+                  ]
+                }
+              }
+            ],
+            "parameters": {
+              "cal_open": [
+                "Left Calibration open",
+                "Left Calibration open",
+                0
+              ],
+              "cal_fist": [
+                "Left Calibration fist",
+                "Left Calibration fist",
+                0
+              ],
+              "cal_clear": [
+                "Left Calibration clear",
+                "Left Calibration clear",
+                0
+              ]
+            }
+          },
+          "numinlets": 1,
+          "numoutlets": 1,
+          "outlettype": [
+            ""
+          ],
+          "varname": "left_calibration"
+        }
+      },
+      {
+        "box": {
+          "id": "left_cal_statusset",
+          "maxclass": "newobj",
+          "patching_rect": [
+            20,
+            1664,
+            145,
+            22
+          ],
+          "text": "prepend set"
         }
       },
       {
@@ -27454,14 +28494,14 @@
             690,
             683,
             60,
-            14
+            40
           ],
           "presentation": 1,
           "presentation_rect": [
             727,
             74,
             60,
-            14
+            40
           ],
           "patcher": {
             "fileversion": 1,
@@ -27477,7 +28517,7 @@
               0,
               0,
               60,
-              15
+              40
             ],
             "bglocked": 0,
             "openinpresentation": 1,
@@ -27510,6 +28550,35 @@
             "subpatcher_template": "",
             "assistshowspatchername": 0,
             "boxes": [
+              {
+                "box": {
+                  "id": "range_label_background",
+                  "maxclass": "panel",
+                  "numinlets": 1,
+                  "numoutlets": 0,
+                  "patching_rect": [
+                    0,
+                    15,
+                    60,
+                    9
+                  ],
+                  "presentation": 1,
+                  "presentation_rect": [
+                    0,
+                    15,
+                    60,
+                    9
+                  ],
+                  "background": 1,
+                  "border": 0,
+                  "rounded": 0,
+                  "saved_attribute_attributes": {
+                    "bgcolor": {
+                      "expression": "themecolor.live_lcd_bg"
+                    }
+                  }
+                }
+              },
               {
                 "box": {
                   "id": "obj-13",
@@ -31794,7 +32863,7 @@
                   ],
                   "annotation": "Defines the modulation value generated when input value is at its maximum amplitude. Note that this value can be lower than Min.",
                   "annotation_name": "Max",
-                  "appearance": 4,
+                  "appearance": 0,
                   "focusbordercolor": [
                     1.0,
                     0.709804,
@@ -31816,12 +32885,12 @@
                     46.0,
                     15.0
                   ],
-                  "presentation": 0,
+                  "presentation": 1,
                   "presentation_rect": [
-                    125.0,
-                    1.0,
-                    34.0,
-                    15.0
+                    31,
+                    24,
+                    29,
+                    15
                   ],
                   "prototypename": "amount",
                   "saved_attribute_attributes": {
@@ -31851,7 +32920,7 @@
                       "parameter_linknames": 1,
                       "parameter_longname": "Right Pinky Max",
                       "parameter_mmax": 100.0,
-                      "parameter_mmin": -100.0,
+                      "parameter_mmin": 0.0,
                       "parameter_shortname": "Max",
                       "parameter_type": 1,
                       "parameter_unitstyle": 5
@@ -31864,7 +32933,8 @@
                     1.0
                   ],
                   "textjustification": 0,
-                  "varname": "TargetMax[1]"
+                  "varname": "TargetMax[1]",
+                  "fontsize": 9
                 }
               },
               {
@@ -31889,7 +32959,7 @@
                   ],
                   "annotation": "Defines the modulation value generated when the input value is at its minimum amplitude. Note that this value can be higher than Max.",
                   "annotation_name": "Min",
-                  "appearance": 4,
+                  "appearance": 0,
                   "focusbordercolor": [
                     1.0,
                     0.709804,
@@ -31911,12 +32981,12 @@
                     46.0,
                     15.0
                   ],
-                  "presentation": 0,
+                  "presentation": 1,
                   "presentation_rect": [
-                    92.0,
-                    1.0,
-                    34.0,
-                    15.0
+                    0,
+                    24,
+                    29,
+                    15
                   ],
                   "prototypename": "amount",
                   "saved_attribute_attributes": {
@@ -31946,7 +33016,7 @@
                       "parameter_linknames": 1,
                       "parameter_longname": "Right Pinky Min",
                       "parameter_mmax": 100.0,
-                      "parameter_mmin": -100.0,
+                      "parameter_mmin": 0.0,
                       "parameter_shortname": "Min",
                       "parameter_type": 1,
                       "parameter_unitstyle": 5
@@ -31959,7 +33029,8 @@
                     1.0
                   ],
                   "textjustification": 0,
-                  "varname": "TargetMin[1]"
+                  "varname": "TargetMin[1]",
+                  "fontsize": 9
                 }
               },
               {
@@ -32141,6 +33212,52 @@
                   "texton": "Map",
                   "varname": "live.text",
                   "fontsize": 9
+                }
+              },
+              {
+                "box": {
+                  "id": "range_min_label",
+                  "maxclass": "live.comment",
+                  "text": "MIN",
+                  "fontsize": 7,
+                  "numinlets": 1,
+                  "numoutlets": 0,
+                  "patching_rect": [
+                    0,
+                    16,
+                    29,
+                    8
+                  ],
+                  "presentation": 1,
+                  "presentation_rect": [
+                    0,
+                    16,
+                    29,
+                    8
+                  ]
+                }
+              },
+              {
+                "box": {
+                  "id": "range_max_label",
+                  "maxclass": "live.comment",
+                  "text": "MAX",
+                  "fontsize": 7,
+                  "numinlets": 1,
+                  "numoutlets": 0,
+                  "patching_rect": [
+                    31,
+                    16,
+                    29,
+                    8
+                  ],
+                  "presentation": 1,
+                  "presentation_rect": [
+                    31,
+                    16,
+                    29,
+                    8
+                  ]
                 }
               }
             ],
@@ -32688,7 +33805,7 @@
             105,
             46
           ],
-          "text": "live.remote~ @normalized 1 @smoothing 0.",
+          "text": "live.remote~ @normalized 0 @smoothing 0.",
           "saved_object_attributes": {
             "_persistence": 1
           }
@@ -32805,14 +33922,14 @@
             802,
             683,
             60,
-            14
+            40
           ],
           "presentation": 1,
           "presentation_rect": [
             659,
             61,
             60,
-            14
+            40
           ],
           "patcher": {
             "fileversion": 1,
@@ -32828,7 +33945,7 @@
               0,
               0,
               60,
-              15
+              40
             ],
             "bglocked": 0,
             "openinpresentation": 1,
@@ -32861,6 +33978,35 @@
             "subpatcher_template": "",
             "assistshowspatchername": 0,
             "boxes": [
+              {
+                "box": {
+                  "id": "range_label_background",
+                  "maxclass": "panel",
+                  "numinlets": 1,
+                  "numoutlets": 0,
+                  "patching_rect": [
+                    0,
+                    15,
+                    60,
+                    9
+                  ],
+                  "presentation": 1,
+                  "presentation_rect": [
+                    0,
+                    15,
+                    60,
+                    9
+                  ],
+                  "background": 1,
+                  "border": 0,
+                  "rounded": 0,
+                  "saved_attribute_attributes": {
+                    "bgcolor": {
+                      "expression": "themecolor.live_lcd_bg"
+                    }
+                  }
+                }
+              },
               {
                 "box": {
                   "id": "obj-13",
@@ -37145,7 +38291,7 @@
                   ],
                   "annotation": "Defines the modulation value generated when input value is at its maximum amplitude. Note that this value can be lower than Min.",
                   "annotation_name": "Max",
-                  "appearance": 4,
+                  "appearance": 0,
                   "focusbordercolor": [
                     1.0,
                     0.709804,
@@ -37167,12 +38313,12 @@
                     46.0,
                     15.0
                   ],
-                  "presentation": 0,
+                  "presentation": 1,
                   "presentation_rect": [
-                    125.0,
-                    1.0,
-                    34.0,
-                    15.0
+                    31,
+                    24,
+                    29,
+                    15
                   ],
                   "prototypename": "amount",
                   "saved_attribute_attributes": {
@@ -37202,7 +38348,7 @@
                       "parameter_linknames": 1,
                       "parameter_longname": "Right Ring Max",
                       "parameter_mmax": 100.0,
-                      "parameter_mmin": -100.0,
+                      "parameter_mmin": 0.0,
                       "parameter_shortname": "Max",
                       "parameter_type": 1,
                       "parameter_unitstyle": 5
@@ -37215,7 +38361,8 @@
                     1.0
                   ],
                   "textjustification": 0,
-                  "varname": "TargetMax[1]"
+                  "varname": "TargetMax[1]",
+                  "fontsize": 9
                 }
               },
               {
@@ -37240,7 +38387,7 @@
                   ],
                   "annotation": "Defines the modulation value generated when the input value is at its minimum amplitude. Note that this value can be higher than Max.",
                   "annotation_name": "Min",
-                  "appearance": 4,
+                  "appearance": 0,
                   "focusbordercolor": [
                     1.0,
                     0.709804,
@@ -37262,12 +38409,12 @@
                     46.0,
                     15.0
                   ],
-                  "presentation": 0,
+                  "presentation": 1,
                   "presentation_rect": [
-                    92.0,
-                    1.0,
-                    34.0,
-                    15.0
+                    0,
+                    24,
+                    29,
+                    15
                   ],
                   "prototypename": "amount",
                   "saved_attribute_attributes": {
@@ -37297,7 +38444,7 @@
                       "parameter_linknames": 1,
                       "parameter_longname": "Right Ring Min",
                       "parameter_mmax": 100.0,
-                      "parameter_mmin": -100.0,
+                      "parameter_mmin": 0.0,
                       "parameter_shortname": "Min",
                       "parameter_type": 1,
                       "parameter_unitstyle": 5
@@ -37310,7 +38457,8 @@
                     1.0
                   ],
                   "textjustification": 0,
-                  "varname": "TargetMin[1]"
+                  "varname": "TargetMin[1]",
+                  "fontsize": 9
                 }
               },
               {
@@ -37492,6 +38640,52 @@
                   "texton": "Map",
                   "varname": "live.text",
                   "fontsize": 9
+                }
+              },
+              {
+                "box": {
+                  "id": "range_min_label",
+                  "maxclass": "live.comment",
+                  "text": "MIN",
+                  "fontsize": 7,
+                  "numinlets": 1,
+                  "numoutlets": 0,
+                  "patching_rect": [
+                    0,
+                    16,
+                    29,
+                    8
+                  ],
+                  "presentation": 1,
+                  "presentation_rect": [
+                    0,
+                    16,
+                    29,
+                    8
+                  ]
+                }
+              },
+              {
+                "box": {
+                  "id": "range_max_label",
+                  "maxclass": "live.comment",
+                  "text": "MAX",
+                  "fontsize": 7,
+                  "numinlets": 1,
+                  "numoutlets": 0,
+                  "patching_rect": [
+                    31,
+                    16,
+                    29,
+                    8
+                  ],
+                  "presentation": 1,
+                  "presentation_rect": [
+                    31,
+                    16,
+                    29,
+                    8
+                  ]
                 }
               }
             ],
@@ -38039,7 +39233,7 @@
             105,
             46
           ],
-          "text": "live.remote~ @normalized 1 @smoothing 0.",
+          "text": "live.remote~ @normalized 0 @smoothing 0.",
           "saved_object_attributes": {
             "_persistence": 1
           }
@@ -38156,14 +39350,14 @@
             914,
             683,
             60,
-            14
+            40
           ],
           "presentation": 1,
           "presentation_rect": [
             591,
             52,
             60,
-            14
+            40
           ],
           "patcher": {
             "fileversion": 1,
@@ -38179,7 +39373,7 @@
               0,
               0,
               60,
-              15
+              40
             ],
             "bglocked": 0,
             "openinpresentation": 1,
@@ -38212,6 +39406,35 @@
             "subpatcher_template": "",
             "assistshowspatchername": 0,
             "boxes": [
+              {
+                "box": {
+                  "id": "range_label_background",
+                  "maxclass": "panel",
+                  "numinlets": 1,
+                  "numoutlets": 0,
+                  "patching_rect": [
+                    0,
+                    15,
+                    60,
+                    9
+                  ],
+                  "presentation": 1,
+                  "presentation_rect": [
+                    0,
+                    15,
+                    60,
+                    9
+                  ],
+                  "background": 1,
+                  "border": 0,
+                  "rounded": 0,
+                  "saved_attribute_attributes": {
+                    "bgcolor": {
+                      "expression": "themecolor.live_lcd_bg"
+                    }
+                  }
+                }
+              },
               {
                 "box": {
                   "id": "obj-13",
@@ -42496,7 +43719,7 @@
                   ],
                   "annotation": "Defines the modulation value generated when input value is at its maximum amplitude. Note that this value can be lower than Min.",
                   "annotation_name": "Max",
-                  "appearance": 4,
+                  "appearance": 0,
                   "focusbordercolor": [
                     1.0,
                     0.709804,
@@ -42518,12 +43741,12 @@
                     46.0,
                     15.0
                   ],
-                  "presentation": 0,
+                  "presentation": 1,
                   "presentation_rect": [
-                    125.0,
-                    1.0,
-                    34.0,
-                    15.0
+                    31,
+                    24,
+                    29,
+                    15
                   ],
                   "prototypename": "amount",
                   "saved_attribute_attributes": {
@@ -42553,7 +43776,7 @@
                       "parameter_linknames": 1,
                       "parameter_longname": "Right Middle Max",
                       "parameter_mmax": 100.0,
-                      "parameter_mmin": -100.0,
+                      "parameter_mmin": 0.0,
                       "parameter_shortname": "Max",
                       "parameter_type": 1,
                       "parameter_unitstyle": 5
@@ -42566,7 +43789,8 @@
                     1.0
                   ],
                   "textjustification": 0,
-                  "varname": "TargetMax[1]"
+                  "varname": "TargetMax[1]",
+                  "fontsize": 9
                 }
               },
               {
@@ -42591,7 +43815,7 @@
                   ],
                   "annotation": "Defines the modulation value generated when the input value is at its minimum amplitude. Note that this value can be higher than Max.",
                   "annotation_name": "Min",
-                  "appearance": 4,
+                  "appearance": 0,
                   "focusbordercolor": [
                     1.0,
                     0.709804,
@@ -42613,12 +43837,12 @@
                     46.0,
                     15.0
                   ],
-                  "presentation": 0,
+                  "presentation": 1,
                   "presentation_rect": [
-                    92.0,
-                    1.0,
-                    34.0,
-                    15.0
+                    0,
+                    24,
+                    29,
+                    15
                   ],
                   "prototypename": "amount",
                   "saved_attribute_attributes": {
@@ -42648,7 +43872,7 @@
                       "parameter_linknames": 1,
                       "parameter_longname": "Right Middle Min",
                       "parameter_mmax": 100.0,
-                      "parameter_mmin": -100.0,
+                      "parameter_mmin": 0.0,
                       "parameter_shortname": "Min",
                       "parameter_type": 1,
                       "parameter_unitstyle": 5
@@ -42661,7 +43885,8 @@
                     1.0
                   ],
                   "textjustification": 0,
-                  "varname": "TargetMin[1]"
+                  "varname": "TargetMin[1]",
+                  "fontsize": 9
                 }
               },
               {
@@ -42843,6 +44068,52 @@
                   "texton": "Map",
                   "varname": "live.text",
                   "fontsize": 9
+                }
+              },
+              {
+                "box": {
+                  "id": "range_min_label",
+                  "maxclass": "live.comment",
+                  "text": "MIN",
+                  "fontsize": 7,
+                  "numinlets": 1,
+                  "numoutlets": 0,
+                  "patching_rect": [
+                    0,
+                    16,
+                    29,
+                    8
+                  ],
+                  "presentation": 1,
+                  "presentation_rect": [
+                    0,
+                    16,
+                    29,
+                    8
+                  ]
+                }
+              },
+              {
+                "box": {
+                  "id": "range_max_label",
+                  "maxclass": "live.comment",
+                  "text": "MAX",
+                  "fontsize": 7,
+                  "numinlets": 1,
+                  "numoutlets": 0,
+                  "patching_rect": [
+                    31,
+                    16,
+                    29,
+                    8
+                  ],
+                  "presentation": 1,
+                  "presentation_rect": [
+                    31,
+                    16,
+                    29,
+                    8
+                  ]
                 }
               }
             ],
@@ -43390,7 +44661,7 @@
             105,
             46
           ],
-          "text": "live.remote~ @normalized 1 @smoothing 0.",
+          "text": "live.remote~ @normalized 0 @smoothing 0.",
           "saved_object_attributes": {
             "_persistence": 1
           }
@@ -43507,14 +44778,14 @@
             1026,
             683,
             60,
-            14
+            40
           ],
           "presentation": 1,
           "presentation_rect": [
             523,
             61,
             60,
-            14
+            40
           ],
           "patcher": {
             "fileversion": 1,
@@ -43530,7 +44801,7 @@
               0,
               0,
               60,
-              15
+              40
             ],
             "bglocked": 0,
             "openinpresentation": 1,
@@ -43563,6 +44834,35 @@
             "subpatcher_template": "",
             "assistshowspatchername": 0,
             "boxes": [
+              {
+                "box": {
+                  "id": "range_label_background",
+                  "maxclass": "panel",
+                  "numinlets": 1,
+                  "numoutlets": 0,
+                  "patching_rect": [
+                    0,
+                    15,
+                    60,
+                    9
+                  ],
+                  "presentation": 1,
+                  "presentation_rect": [
+                    0,
+                    15,
+                    60,
+                    9
+                  ],
+                  "background": 1,
+                  "border": 0,
+                  "rounded": 0,
+                  "saved_attribute_attributes": {
+                    "bgcolor": {
+                      "expression": "themecolor.live_lcd_bg"
+                    }
+                  }
+                }
+              },
               {
                 "box": {
                   "id": "obj-13",
@@ -47847,7 +49147,7 @@
                   ],
                   "annotation": "Defines the modulation value generated when input value is at its maximum amplitude. Note that this value can be lower than Min.",
                   "annotation_name": "Max",
-                  "appearance": 4,
+                  "appearance": 0,
                   "focusbordercolor": [
                     1.0,
                     0.709804,
@@ -47869,12 +49169,12 @@
                     46.0,
                     15.0
                   ],
-                  "presentation": 0,
+                  "presentation": 1,
                   "presentation_rect": [
-                    125.0,
-                    1.0,
-                    34.0,
-                    15.0
+                    31,
+                    24,
+                    29,
+                    15
                   ],
                   "prototypename": "amount",
                   "saved_attribute_attributes": {
@@ -47904,7 +49204,7 @@
                       "parameter_linknames": 1,
                       "parameter_longname": "Right Index Max",
                       "parameter_mmax": 100.0,
-                      "parameter_mmin": -100.0,
+                      "parameter_mmin": 0.0,
                       "parameter_shortname": "Max",
                       "parameter_type": 1,
                       "parameter_unitstyle": 5
@@ -47917,7 +49217,8 @@
                     1.0
                   ],
                   "textjustification": 0,
-                  "varname": "TargetMax[1]"
+                  "varname": "TargetMax[1]",
+                  "fontsize": 9
                 }
               },
               {
@@ -47942,7 +49243,7 @@
                   ],
                   "annotation": "Defines the modulation value generated when the input value is at its minimum amplitude. Note that this value can be higher than Max.",
                   "annotation_name": "Min",
-                  "appearance": 4,
+                  "appearance": 0,
                   "focusbordercolor": [
                     1.0,
                     0.709804,
@@ -47964,12 +49265,12 @@
                     46.0,
                     15.0
                   ],
-                  "presentation": 0,
+                  "presentation": 1,
                   "presentation_rect": [
-                    92.0,
-                    1.0,
-                    34.0,
-                    15.0
+                    0,
+                    24,
+                    29,
+                    15
                   ],
                   "prototypename": "amount",
                   "saved_attribute_attributes": {
@@ -47999,7 +49300,7 @@
                       "parameter_linknames": 1,
                       "parameter_longname": "Right Index Min",
                       "parameter_mmax": 100.0,
-                      "parameter_mmin": -100.0,
+                      "parameter_mmin": 0.0,
                       "parameter_shortname": "Min",
                       "parameter_type": 1,
                       "parameter_unitstyle": 5
@@ -48012,7 +49313,8 @@
                     1.0
                   ],
                   "textjustification": 0,
-                  "varname": "TargetMin[1]"
+                  "varname": "TargetMin[1]",
+                  "fontsize": 9
                 }
               },
               {
@@ -48194,6 +49496,52 @@
                   "texton": "Map",
                   "varname": "live.text",
                   "fontsize": 9
+                }
+              },
+              {
+                "box": {
+                  "id": "range_min_label",
+                  "maxclass": "live.comment",
+                  "text": "MIN",
+                  "fontsize": 7,
+                  "numinlets": 1,
+                  "numoutlets": 0,
+                  "patching_rect": [
+                    0,
+                    16,
+                    29,
+                    8
+                  ],
+                  "presentation": 1,
+                  "presentation_rect": [
+                    0,
+                    16,
+                    29,
+                    8
+                  ]
+                }
+              },
+              {
+                "box": {
+                  "id": "range_max_label",
+                  "maxclass": "live.comment",
+                  "text": "MAX",
+                  "fontsize": 7,
+                  "numinlets": 1,
+                  "numoutlets": 0,
+                  "patching_rect": [
+                    31,
+                    16,
+                    29,
+                    8
+                  ],
+                  "presentation": 1,
+                  "presentation_rect": [
+                    31,
+                    16,
+                    29,
+                    8
+                  ]
                 }
               }
             ],
@@ -48741,7 +50089,7 @@
             105,
             46
           ],
-          "text": "live.remote~ @normalized 1 @smoothing 0.",
+          "text": "live.remote~ @normalized 0 @smoothing 0.",
           "saved_object_attributes": {
             "_persistence": 1
           }
@@ -48858,14 +50206,14 @@
             1138,
             683,
             60,
-            14
+            40
           ],
           "presentation": 1,
           "presentation_rect": [
             431,
             95,
             60,
-            14
+            40
           ],
           "patcher": {
             "fileversion": 1,
@@ -48881,7 +50229,7 @@
               0,
               0,
               60,
-              15
+              40
             ],
             "bglocked": 0,
             "openinpresentation": 1,
@@ -48914,6 +50262,35 @@
             "subpatcher_template": "",
             "assistshowspatchername": 0,
             "boxes": [
+              {
+                "box": {
+                  "id": "range_label_background",
+                  "maxclass": "panel",
+                  "numinlets": 1,
+                  "numoutlets": 0,
+                  "patching_rect": [
+                    0,
+                    15,
+                    60,
+                    9
+                  ],
+                  "presentation": 1,
+                  "presentation_rect": [
+                    0,
+                    15,
+                    60,
+                    9
+                  ],
+                  "background": 1,
+                  "border": 0,
+                  "rounded": 0,
+                  "saved_attribute_attributes": {
+                    "bgcolor": {
+                      "expression": "themecolor.live_lcd_bg"
+                    }
+                  }
+                }
+              },
               {
                 "box": {
                   "id": "obj-13",
@@ -53198,7 +54575,7 @@
                   ],
                   "annotation": "Defines the modulation value generated when input value is at its maximum amplitude. Note that this value can be lower than Min.",
                   "annotation_name": "Max",
-                  "appearance": 4,
+                  "appearance": 0,
                   "focusbordercolor": [
                     1.0,
                     0.709804,
@@ -53220,12 +54597,12 @@
                     46.0,
                     15.0
                   ],
-                  "presentation": 0,
+                  "presentation": 1,
                   "presentation_rect": [
-                    125.0,
-                    1.0,
-                    34.0,
-                    15.0
+                    31,
+                    24,
+                    29,
+                    15
                   ],
                   "prototypename": "amount",
                   "saved_attribute_attributes": {
@@ -53255,7 +54632,7 @@
                       "parameter_linknames": 1,
                       "parameter_longname": "Right Thumb Max",
                       "parameter_mmax": 100.0,
-                      "parameter_mmin": -100.0,
+                      "parameter_mmin": 0.0,
                       "parameter_shortname": "Max",
                       "parameter_type": 1,
                       "parameter_unitstyle": 5
@@ -53268,7 +54645,8 @@
                     1.0
                   ],
                   "textjustification": 0,
-                  "varname": "TargetMax[1]"
+                  "varname": "TargetMax[1]",
+                  "fontsize": 9
                 }
               },
               {
@@ -53293,7 +54671,7 @@
                   ],
                   "annotation": "Defines the modulation value generated when the input value is at its minimum amplitude. Note that this value can be higher than Max.",
                   "annotation_name": "Min",
-                  "appearance": 4,
+                  "appearance": 0,
                   "focusbordercolor": [
                     1.0,
                     0.709804,
@@ -53315,12 +54693,12 @@
                     46.0,
                     15.0
                   ],
-                  "presentation": 0,
+                  "presentation": 1,
                   "presentation_rect": [
-                    92.0,
-                    1.0,
-                    34.0,
-                    15.0
+                    0,
+                    24,
+                    29,
+                    15
                   ],
                   "prototypename": "amount",
                   "saved_attribute_attributes": {
@@ -53350,7 +54728,7 @@
                       "parameter_linknames": 1,
                       "parameter_longname": "Right Thumb Min",
                       "parameter_mmax": 100.0,
-                      "parameter_mmin": -100.0,
+                      "parameter_mmin": 0.0,
                       "parameter_shortname": "Min",
                       "parameter_type": 1,
                       "parameter_unitstyle": 5
@@ -53363,7 +54741,8 @@
                     1.0
                   ],
                   "textjustification": 0,
-                  "varname": "TargetMin[1]"
+                  "varname": "TargetMin[1]",
+                  "fontsize": 9
                 }
               },
               {
@@ -53545,6 +54924,52 @@
                   "texton": "Map",
                   "varname": "live.text",
                   "fontsize": 9
+                }
+              },
+              {
+                "box": {
+                  "id": "range_min_label",
+                  "maxclass": "live.comment",
+                  "text": "MIN",
+                  "fontsize": 7,
+                  "numinlets": 1,
+                  "numoutlets": 0,
+                  "patching_rect": [
+                    0,
+                    16,
+                    29,
+                    8
+                  ],
+                  "presentation": 1,
+                  "presentation_rect": [
+                    0,
+                    16,
+                    29,
+                    8
+                  ]
+                }
+              },
+              {
+                "box": {
+                  "id": "range_max_label",
+                  "maxclass": "live.comment",
+                  "text": "MAX",
+                  "fontsize": 7,
+                  "numinlets": 1,
+                  "numoutlets": 0,
+                  "patching_rect": [
+                    31,
+                    16,
+                    29,
+                    8
+                  ],
+                  "presentation": 1,
+                  "presentation_rect": [
+                    31,
+                    16,
+                    29,
+                    8
+                  ]
                 }
               }
             ],
@@ -54092,9 +55517,665 @@
             105,
             46
           ],
-          "text": "live.remote~ @normalized 1 @smoothing 0.",
+          "text": "live.remote~ @normalized 0 @smoothing 0.",
           "saved_object_attributes": {
             "_persistence": 1
+          }
+        }
+      },
+      {
+        "box": {
+          "id": "right_calibrate",
+          "maxclass": "live.text",
+          "patching_rect": [
+            20,
+            2648,
+            145,
+            22
+          ],
+          "text": "Calibrate",
+          "presentation": 1,
+          "presentation_rect": [
+            678,
+            4,
+            60,
+            15
+          ],
+          "texton": "Calibrate",
+          "mode": 0,
+          "numinlets": 1,
+          "numoutlets": 2,
+          "outlettype": [
+            "",
+            ""
+          ],
+          "parameter_enable": 1,
+          "varname": "right_calibrate",
+          "fontsize": 9,
+          "saved_attribute_attributes": {
+            "valueof": {
+              "parameter_longname": "Right Calibrate",
+              "parameter_shortname": "Right Calibrate",
+              "parameter_type": 2,
+              "parameter_enum": [
+                "Off",
+                "On"
+              ],
+              "parameter_mmax": 1,
+              "parameter_initial": [
+                0
+              ],
+              "parameter_initial_enable": 1,
+              "parameter_invisible": 2
+            }
+          }
+        }
+      },
+      {
+        "box": {
+          "id": "right_cal_press",
+          "maxclass": "newobj",
+          "patching_rect": [
+            20,
+            2672,
+            145,
+            22
+          ],
+          "text": "t b b"
+        }
+      },
+      {
+        "box": {
+          "id": "right_cal_open",
+          "maxclass": "message",
+          "patching_rect": [
+            20,
+            2696,
+            145,
+            22
+          ],
+          "text": "open"
+        }
+      },
+      {
+        "box": {
+          "id": "right_cal_control",
+          "maxclass": "newobj",
+          "patching_rect": [
+            20,
+            2720,
+            145,
+            22
+          ],
+          "text": "pcontrol"
+        }
+      },
+      {
+        "box": {
+          "id": "right_calibration",
+          "maxclass": "newobj",
+          "patching_rect": [
+            20,
+            2744,
+            145,
+            22
+          ],
+          "text": "p Right_Calibration",
+          "patcher": {
+            "fileversion": 1,
+            "appversion": {
+              "major": 9,
+              "minor": 1,
+              "revision": 3,
+              "architecture": "arm64",
+              "modernui": 1
+            },
+            "classnamespace": "box",
+            "rect": [
+              120,
+              160,
+              440,
+              125
+            ],
+            "openinpresentation": 1,
+            "default_fontsize": 11,
+            "default_fontname": "Arial",
+            "devicewidth": 440,
+            "enablehscroll": 0,
+            "enablevscroll": 0,
+            "boxes": [
+              {
+                "box": {
+                  "id": "cal_title",
+                  "maxclass": "live.comment",
+                  "patching_rect": [
+                    20,
+                    200,
+                    145,
+                    22
+                  ],
+                  "text": "RIGHT HAND  /  CALIBRATION",
+                  "presentation": 1,
+                  "presentation_rect": [
+                    10,
+                    7,
+                    420,
+                    18
+                  ],
+                  "fontsize": 11,
+                  "numinlets": 1,
+                  "numoutlets": 0,
+                  "textjustification": 0
+                }
+              },
+              {
+                "box": {
+                  "id": "cal_hint",
+                  "maxclass": "live.comment",
+                  "patching_rect": [
+                    20,
+                    224,
+                    145,
+                    22
+                  ],
+                  "text": "Hold each pose still for 0.3 seconds before capturing.",
+                  "presentation": 1,
+                  "presentation_rect": [
+                    10,
+                    29,
+                    420,
+                    16
+                  ],
+                  "fontsize": 10,
+                  "numinlets": 1,
+                  "numoutlets": 0,
+                  "textjustification": 0
+                }
+              },
+              {
+                "box": {
+                  "id": "cal_open",
+                  "maxclass": "live.text",
+                  "patching_rect": [
+                    20,
+                    248,
+                    145,
+                    22
+                  ],
+                  "text": "Open → 0",
+                  "presentation": 1,
+                  "presentation_rect": [
+                    10,
+                    51,
+                    130,
+                    22
+                  ],
+                  "texton": "Open → 0",
+                  "mode": 0,
+                  "numinlets": 1,
+                  "numoutlets": 2,
+                  "outlettype": [
+                    "",
+                    ""
+                  ],
+                  "parameter_enable": 1,
+                  "varname": "cal_open",
+                  "fontsize": 9,
+                  "saved_attribute_attributes": {
+                    "valueof": {
+                      "parameter_longname": "Right Calibration open",
+                      "parameter_shortname": "Right Calibration open",
+                      "parameter_type": 2,
+                      "parameter_enum": [
+                        "Off",
+                        "On"
+                      ],
+                      "parameter_mmax": 1,
+                      "parameter_initial": [
+                        0
+                      ],
+                      "parameter_initial_enable": 1,
+                      "parameter_invisible": 2
+                    }
+                  }
+                }
+              },
+              {
+                "box": {
+                  "id": "cal_open_bang",
+                  "maxclass": "newobj",
+                  "patching_rect": [
+                    20,
+                    272,
+                    145,
+                    22
+                  ],
+                  "text": "t b"
+                }
+              },
+              {
+                "box": {
+                  "id": "cal_open_command",
+                  "maxclass": "message",
+                  "patching_rect": [
+                    20,
+                    296,
+                    145,
+                    22
+                  ],
+                  "text": "capture 1 open"
+                }
+              },
+              {
+                "box": {
+                  "id": "cal_fist",
+                  "maxclass": "live.text",
+                  "patching_rect": [
+                    20,
+                    320,
+                    145,
+                    22
+                  ],
+                  "text": "Fist → 0.9",
+                  "presentation": 1,
+                  "presentation_rect": [
+                    150,
+                    51,
+                    130,
+                    22
+                  ],
+                  "texton": "Fist → 0.9",
+                  "mode": 0,
+                  "numinlets": 1,
+                  "numoutlets": 2,
+                  "outlettype": [
+                    "",
+                    ""
+                  ],
+                  "parameter_enable": 1,
+                  "varname": "cal_fist",
+                  "fontsize": 9,
+                  "saved_attribute_attributes": {
+                    "valueof": {
+                      "parameter_longname": "Right Calibration fist",
+                      "parameter_shortname": "Right Calibration fist",
+                      "parameter_type": 2,
+                      "parameter_enum": [
+                        "Off",
+                        "On"
+                      ],
+                      "parameter_mmax": 1,
+                      "parameter_initial": [
+                        0
+                      ],
+                      "parameter_initial_enable": 1,
+                      "parameter_invisible": 2
+                    }
+                  }
+                }
+              },
+              {
+                "box": {
+                  "id": "cal_fist_bang",
+                  "maxclass": "newobj",
+                  "patching_rect": [
+                    20,
+                    344,
+                    145,
+                    22
+                  ],
+                  "text": "t b"
+                }
+              },
+              {
+                "box": {
+                  "id": "cal_fist_command",
+                  "maxclass": "message",
+                  "patching_rect": [
+                    20,
+                    368,
+                    145,
+                    22
+                  ],
+                  "text": "capture 1 fist"
+                }
+              },
+              {
+                "box": {
+                  "id": "cal_clear",
+                  "maxclass": "live.text",
+                  "patching_rect": [
+                    20,
+                    392,
+                    145,
+                    22
+                  ],
+                  "text": "Reset",
+                  "presentation": 1,
+                  "presentation_rect": [
+                    290,
+                    51,
+                    130,
+                    22
+                  ],
+                  "texton": "Reset",
+                  "mode": 0,
+                  "numinlets": 1,
+                  "numoutlets": 2,
+                  "outlettype": [
+                    "",
+                    ""
+                  ],
+                  "parameter_enable": 1,
+                  "varname": "cal_clear",
+                  "fontsize": 9,
+                  "saved_attribute_attributes": {
+                    "valueof": {
+                      "parameter_longname": "Right Calibration clear",
+                      "parameter_shortname": "Right Calibration clear",
+                      "parameter_type": 2,
+                      "parameter_enum": [
+                        "Off",
+                        "On"
+                      ],
+                      "parameter_mmax": 1,
+                      "parameter_initial": [
+                        0
+                      ],
+                      "parameter_initial_enable": 1,
+                      "parameter_invisible": 2
+                    }
+                  }
+                }
+              },
+              {
+                "box": {
+                  "id": "cal_clear_bang",
+                  "maxclass": "newobj",
+                  "patching_rect": [
+                    20,
+                    416,
+                    145,
+                    22
+                  ],
+                  "text": "t b"
+                }
+              },
+              {
+                "box": {
+                  "id": "cal_clear_command",
+                  "maxclass": "message",
+                  "patching_rect": [
+                    20,
+                    440,
+                    145,
+                    22
+                  ],
+                  "text": "clearcal 1"
+                }
+              },
+              {
+                "box": {
+                  "id": "cal_status",
+                  "maxclass": "live.comment",
+                  "patching_rect": [
+                    20,
+                    464,
+                    145,
+                    22
+                  ],
+                  "text": "Default range. Capture Open and Fist.",
+                  "presentation": 1,
+                  "presentation_rect": [
+                    10,
+                    80,
+                    420,
+                    17
+                  ],
+                  "fontsize": 10,
+                  "numinlets": 1,
+                  "numoutlets": 0,
+                  "textjustification": 0
+                }
+              },
+              {
+                "box": {
+                  "id": "cal_headroom",
+                  "maxclass": "live.comment",
+                  "patching_rect": [
+                    20,
+                    488,
+                    145,
+                    22
+                  ],
+                  "text": "Fist = 0.900; extra bend may rise to 1.000.",
+                  "presentation": 1,
+                  "presentation_rect": [
+                    10,
+                    102,
+                    420,
+                    16
+                  ],
+                  "fontsize": 10,
+                  "numinlets": 1,
+                  "numoutlets": 0,
+                  "textjustification": 0
+                }
+              },
+              {
+                "box": {
+                  "id": "cal_input",
+                  "maxclass": "inlet",
+                  "patching_rect": [
+                    20,
+                    512,
+                    145,
+                    22
+                  ],
+                  "numinlets": 0,
+                  "numoutlets": 1
+                }
+              },
+              {
+                "box": {
+                  "id": "cal_output",
+                  "maxclass": "outlet",
+                  "patching_rect": [
+                    20,
+                    536,
+                    145,
+                    22
+                  ],
+                  "numinlets": 1,
+                  "numoutlets": 0
+                }
+              }
+            ],
+            "lines": [
+              {
+                "patchline": {
+                  "source": [
+                    "cal_open",
+                    0
+                  ],
+                  "destination": [
+                    "cal_open_bang",
+                    0
+                  ]
+                }
+              },
+              {
+                "patchline": {
+                  "source": [
+                    "cal_open_bang",
+                    0
+                  ],
+                  "destination": [
+                    "cal_open_command",
+                    0
+                  ]
+                }
+              },
+              {
+                "patchline": {
+                  "source": [
+                    "cal_open_command",
+                    0
+                  ],
+                  "destination": [
+                    "cal_output",
+                    0
+                  ]
+                }
+              },
+              {
+                "patchline": {
+                  "source": [
+                    "cal_fist",
+                    0
+                  ],
+                  "destination": [
+                    "cal_fist_bang",
+                    0
+                  ]
+                }
+              },
+              {
+                "patchline": {
+                  "source": [
+                    "cal_fist_bang",
+                    0
+                  ],
+                  "destination": [
+                    "cal_fist_command",
+                    0
+                  ]
+                }
+              },
+              {
+                "patchline": {
+                  "source": [
+                    "cal_fist_command",
+                    0
+                  ],
+                  "destination": [
+                    "cal_output",
+                    0
+                  ]
+                }
+              },
+              {
+                "patchline": {
+                  "source": [
+                    "cal_clear",
+                    0
+                  ],
+                  "destination": [
+                    "cal_clear_bang",
+                    0
+                  ]
+                }
+              },
+              {
+                "patchline": {
+                  "source": [
+                    "cal_clear_bang",
+                    0
+                  ],
+                  "destination": [
+                    "cal_clear_command",
+                    0
+                  ]
+                }
+              },
+              {
+                "patchline": {
+                  "source": [
+                    "cal_clear_command",
+                    0
+                  ],
+                  "destination": [
+                    "cal_output",
+                    0
+                  ]
+                }
+              },
+              {
+                "patchline": {
+                  "source": [
+                    "cal_input",
+                    0
+                  ],
+                  "destination": [
+                    "cal_status",
+                    0
+                  ]
+                }
+              }
+            ],
+            "parameters": {
+              "cal_open": [
+                "Right Calibration open",
+                "Right Calibration open",
+                0
+              ],
+              "cal_fist": [
+                "Right Calibration fist",
+                "Right Calibration fist",
+                0
+              ],
+              "cal_clear": [
+                "Right Calibration clear",
+                "Right Calibration clear",
+                0
+              ]
+            }
+          },
+          "numinlets": 1,
+          "numoutlets": 1,
+          "outlettype": [
+            ""
+          ],
+          "varname": "right_calibration"
+        }
+      },
+      {
+        "box": {
+          "id": "right_cal_statusset",
+          "maxclass": "newobj",
+          "patching_rect": [
+            20,
+            2768,
+            145,
+            22
+          ],
+          "text": "prepend set"
+        }
+      },
+      {
+        "box": {
+          "id": "calibration_state",
+          "maxclass": "newobj",
+          "patching_rect": [
+            275,
+            905,
+            145,
+            22
+          ],
+          "text": "pattr hand_calibration @bindto engine @initial none",
+          "varname": "hand_calibration",
+          "parameter_enable": 1,
+          "saved_attribute_attributes": {
+            "valueof": {
+              "parameter_longname": "Hand Calibration",
+              "parameter_shortname": "Calibration",
+              "parameter_type": 3,
+              "parameter_invisible": 1,
+              "parameter_initial": [
+                "none"
+              ],
+              "parameter_initial_enable": 1
+            }
           }
         }
       },
@@ -54103,8 +56184,8 @@
           "id": "filter_enabled",
           "maxclass": "live.text",
           "patching_rect": [
-            1010,
-            850,
+            520,
+            905,
             145,
             22
           ],
@@ -54151,7 +56232,7 @@
           "id": "smooth_label",
           "maxclass": "live.comment",
           "patching_rect": [
-            30,
+            765,
             905,
             145,
             22
@@ -54175,7 +56256,7 @@
           "id": "smooth_ms",
           "maxclass": "live.numbox",
           "patching_rect": [
-            275,
+            1010,
             905,
             145,
             22
@@ -54217,8 +56298,8 @@
           "id": "dead_label",
           "maxclass": "live.comment",
           "patching_rect": [
-            520,
-            905,
+            30,
+            960,
             145,
             22
           ],
@@ -54241,8 +56322,8 @@
           "id": "deadband",
           "maxclass": "live.numbox",
           "patching_rect": [
-            765,
-            905,
+            275,
+            960,
             145,
             22
           ],
@@ -54284,8 +56365,8 @@
           "id": "filter_enabled_prepend",
           "maxclass": "newobj",
           "patching_rect": [
-            1010,
-            905,
+            520,
+            960,
             145,
             22
           ],
@@ -54297,7 +56378,7 @@
           "id": "smooth_ms_prepend",
           "maxclass": "newobj",
           "patching_rect": [
-            30,
+            765,
             960,
             145,
             22
@@ -54310,7 +56391,7 @@
           "id": "deadband_prepend",
           "maxclass": "newobj",
           "patching_rect": [
-            275,
+            1010,
             960,
             145,
             22
@@ -54323,8 +56404,8 @@
           "id": "osc_enable",
           "maxclass": "live.text",
           "patching_rect": [
-            520,
-            960,
+            30,
+            1015,
             145,
             22
           ],
@@ -54371,8 +56452,8 @@
           "id": "ip_label",
           "maxclass": "live.comment",
           "patching_rect": [
-            765,
-            960,
+            275,
+            1015,
             145,
             22
           ],
@@ -54395,8 +56476,8 @@
           "id": "osc_host",
           "maxclass": "textedit",
           "patching_rect": [
-            1010,
-            960,
+            520,
+            1015,
             145,
             22
           ],
@@ -54438,7 +56519,7 @@
           "id": "host_state",
           "maxclass": "newobj",
           "patching_rect": [
-            30,
+            765,
             1015,
             145,
             22
@@ -54465,7 +56546,7 @@
           "id": "port_label",
           "maxclass": "live.comment",
           "patching_rect": [
-            275,
+            1010,
             1015,
             145,
             22
@@ -54489,8 +56570,8 @@
           "id": "osc_port",
           "maxclass": "live.numbox",
           "patching_rect": [
-            520,
-            1015,
+            30,
+            1070,
             145,
             22
           ],
@@ -54531,8 +56612,8 @@
           "id": "apply",
           "maxclass": "live.text",
           "patching_rect": [
-            765,
-            1015,
+            275,
+            1070,
             145,
             22
           ],
@@ -54579,8 +56660,8 @@
           "id": "host_route",
           "maxclass": "newobj",
           "patching_rect": [
-            1010,
-            1015,
+            520,
+            1070,
             145,
             22
           ],
@@ -54592,7 +56673,7 @@
           "id": "host_prepend",
           "maxclass": "newobj",
           "patching_rect": [
-            30,
+            765,
             1070,
             145,
             22
@@ -54605,7 +56686,7 @@
           "id": "port_integer",
           "maxclass": "newobj",
           "patching_rect": [
-            275,
+            1010,
             1070,
             145,
             22
@@ -54618,8 +56699,8 @@
           "id": "port_prepend",
           "maxclass": "newobj",
           "patching_rect": [
-            520,
-            1070,
+            30,
+            1125,
             145,
             22
           ],
@@ -54631,8 +56712,8 @@
           "id": "udpout",
           "maxclass": "newobj",
           "patching_rect": [
-            765,
-            1070,
+            275,
+            1125,
             160,
             22
           ],
@@ -54644,8 +56725,8 @@
           "id": "apply_bang",
           "maxclass": "newobj",
           "patching_rect": [
-            1010,
-            1070,
+            520,
+            1125,
             145,
             22
           ],
@@ -54657,7 +56738,7 @@
           "id": "startup_destination",
           "maxclass": "newobj",
           "patching_rect": [
-            30,
+            765,
             1125,
             145,
             22
@@ -54670,7 +56751,7 @@
           "id": "osc_switch",
           "maxclass": "newobj",
           "patching_rect": [
-            275,
+            1010,
             1125,
             145,
             22
@@ -54683,8 +56764,8 @@
           "id": "flush",
           "maxclass": "message",
           "patching_rect": [
-            520,
-            1125,
+            30,
+            1180,
             145,
             22
           ],
@@ -54697,7 +56778,7 @@
           "maxclass": "newobj",
           "patching_rect": [
             20,
-            3032,
+            3392,
             145,
             22
           ],
@@ -54710,7 +56791,7 @@
           "maxclass": "newobj",
           "patching_rect": [
             20,
-            3056,
+            3416,
             145,
             22
           ],
@@ -54723,7 +56804,7 @@
           "maxclass": "newobj",
           "patching_rect": [
             20,
-            3080,
+            3440,
             145,
             22
           ],
@@ -54736,7 +56817,7 @@
           "maxclass": "newobj",
           "patching_rect": [
             20,
-            3104,
+            3464,
             145,
             22
           ],
@@ -54748,8 +56829,8 @@
           "id": "host_flush",
           "maxclass": "newobj",
           "patching_rect": [
-            765,
-            1125,
+            275,
+            1180,
             145,
             22
           ],
@@ -54761,8 +56842,8 @@
           "id": "audioin",
           "maxclass": "newobj",
           "patching_rect": [
-            1010,
-            1125,
+            520,
+            1180,
             75,
             22
           ],
@@ -54774,7 +56855,7 @@
           "id": "audioout",
           "maxclass": "newobj",
           "patching_rect": [
-            30,
+            765,
             1180,
             75,
             22
@@ -54787,7 +56868,7 @@
           "id": "input_label",
           "maxclass": "live.comment",
           "patching_rect": [
-            275,
+            1010,
             1180,
             145,
             22
@@ -54811,8 +56892,8 @@
           "id": "input_mode",
           "maxclass": "live.menu",
           "patching_rect": [
-            520,
-            1180,
+            30,
+            1235,
             145,
             22
           ],
@@ -54857,8 +56938,8 @@
           "id": "usb_setup",
           "maxclass": "live.text",
           "patching_rect": [
-            765,
-            1180,
+            275,
+            1235,
             145,
             22
           ],
@@ -54905,8 +56986,8 @@
           "id": "usb_setup_press",
           "maxclass": "newobj",
           "patching_rect": [
-            1010,
-            1180,
+            520,
+            1235,
             145,
             22
           ],
@@ -54918,7 +56999,7 @@
           "id": "usb_setup_open",
           "maxclass": "message",
           "patching_rect": [
-            30,
+            765,
             1235,
             145,
             22
@@ -54931,7 +57012,7 @@
           "id": "usb_setup_control",
           "maxclass": "newobj",
           "patching_rect": [
-            275,
+            1010,
             1235,
             145,
             22
@@ -54944,8 +57025,8 @@
           "id": "usb_settings",
           "maxclass": "newobj",
           "patching_rect": [
-            520,
-            1235,
+            30,
+            1290,
             145,
             22
           ],
@@ -55423,8 +57504,8 @@
           "id": "usb_controller",
           "maxclass": "newobj",
           "patching_rect": [
-            765,
-            1235,
+            275,
+            1290,
             145,
             22
           ],
@@ -55448,8 +57529,8 @@
           "id": "serial",
           "maxclass": "newobj",
           "patching_rect": [
-            1010,
-            1235,
+            520,
+            1290,
             145,
             22
           ],
@@ -55467,7 +57548,7 @@
           "id": "serial_group",
           "maxclass": "newobj",
           "patching_rect": [
-            30,
+            765,
             1290,
             145,
             22
@@ -55486,7 +57567,7 @@
           "id": "serial_route",
           "maxclass": "newobj",
           "patching_rect": [
-            275,
+            1010,
             1290,
             145,
             22
@@ -55505,8 +57586,8 @@
           "id": "serial_read_setup",
           "maxclass": "newobj",
           "patching_rect": [
-            520,
-            1290,
+            30,
+            1345,
             145,
             22
           ],
@@ -55524,8 +57605,8 @@
           "id": "serial_group_clear",
           "maxclass": "message",
           "patching_rect": [
-            765,
-            1290,
+            275,
+            1345,
             145,
             22
           ],
@@ -55542,8 +57623,8 @@
           "id": "serial_group_size",
           "maxclass": "newobj",
           "patching_rect": [
-            1010,
-            1290,
+            520,
+            1345,
             145,
             22
           ],
@@ -55560,7 +57641,7 @@
           "id": "serial_batch_defer",
           "maxclass": "newobj",
           "patching_rect": [
-            30,
+            765,
             1345,
             145,
             22
@@ -55578,7 +57659,7 @@
           "id": "serial_info_defer",
           "maxclass": "newobj",
           "patching_rect": [
-            275,
+            1010,
             1345,
             145,
             22
@@ -55596,8 +57677,8 @@
           "id": "serial_info",
           "maxclass": "newobj",
           "patching_rect": [
-            520,
-            1345,
+            30,
+            1400,
             145,
             22
           ],
@@ -55614,8 +57695,8 @@
           "id": "input_mode_command",
           "maxclass": "newobj",
           "patching_rect": [
-            765,
-            1345,
+            275,
+            1400,
             145,
             22
           ],
@@ -55627,8 +57708,8 @@
           "id": "usb_chooseport_command",
           "maxclass": "newobj",
           "patching_rect": [
-            1010,
-            1345,
+            520,
+            1400,
             145,
             22
           ],
@@ -55640,7 +57721,7 @@
           "id": "usb_refresh_command",
           "maxclass": "newobj",
           "patching_rect": [
-            30,
+            765,
             1400,
             145,
             22
@@ -55653,7 +57734,7 @@
           "id": "usb_connect_command",
           "maxclass": "newobj",
           "patching_rect": [
-            275,
+            1010,
             1400,
             145,
             22
@@ -55666,8 +57747,8 @@
           "id": "usb_disconnect_command",
           "maxclass": "newobj",
           "patching_rect": [
-            520,
-            1400,
+            30,
+            1455,
             145,
             22
           ],
@@ -55679,8 +57760,8 @@
           "id": "usb_init",
           "maxclass": "message",
           "patching_rect": [
-            765,
-            1400,
+            275,
+            1455,
             145,
             22
           ],
@@ -55692,8 +57773,8 @@
           "id": "usb_init_defer",
           "maxclass": "newobj",
           "patching_rect": [
-            1010,
-            1400,
+            520,
+            1455,
             145,
             22
           ],
@@ -55705,7 +57786,7 @@
           "id": "usb_saved_port",
           "maxclass": "newobj",
           "patching_rect": [
-            30,
+            765,
             1455,
             145,
             22
@@ -55833,6 +57914,42 @@
           ],
           "destination": [
             "handroute",
+            0
+          ]
+        }
+      },
+      {
+        "patchline": {
+          "source": [
+            "statusroute",
+            1
+          ],
+          "destination": [
+            "calroute",
+            0
+          ]
+        }
+      },
+      {
+        "patchline": {
+          "source": [
+            "device",
+            0
+          ],
+          "destination": [
+            "calreport",
+            0
+          ]
+        }
+      },
+      {
+        "patchline": {
+          "source": [
+            "calreport",
+            0
+          ],
+          "destination": [
+            "engine",
             0
           ]
         }
@@ -56032,7 +58149,7 @@
       {
         "patchline": {
           "source": [
-            "left_pinky_signal",
+            "left_pinky_map",
             0
           ],
           "destination": [
@@ -56104,7 +58221,7 @@
       {
         "patchline": {
           "source": [
-            "left_ring_signal",
+            "left_ring_map",
             0
           ],
           "destination": [
@@ -56176,7 +58293,7 @@
       {
         "patchline": {
           "source": [
-            "left_middle_signal",
+            "left_middle_map",
             0
           ],
           "destination": [
@@ -56248,7 +58365,7 @@
       {
         "patchline": {
           "source": [
-            "left_index_signal",
+            "left_index_map",
             0
           ],
           "destination": [
@@ -56320,7 +58437,7 @@
       {
         "patchline": {
           "source": [
-            "left_thumb_signal",
+            "left_thumb_map",
             0
           ],
           "destination": [
@@ -56349,6 +58466,102 @@
           ],
           "destination": [
             "left_thumb_map",
+            0
+          ]
+        }
+      },
+      {
+        "patchline": {
+          "source": [
+            "left_calibrate",
+            0
+          ],
+          "destination": [
+            "left_cal_press",
+            0
+          ]
+        }
+      },
+      {
+        "patchline": {
+          "source": [
+            "left_cal_press",
+            1
+          ],
+          "destination": [
+            "calreport",
+            0
+          ]
+        }
+      },
+      {
+        "patchline": {
+          "source": [
+            "left_cal_press",
+            0
+          ],
+          "destination": [
+            "left_cal_open",
+            0
+          ]
+        }
+      },
+      {
+        "patchline": {
+          "source": [
+            "left_cal_open",
+            0
+          ],
+          "destination": [
+            "left_cal_control",
+            0
+          ]
+        }
+      },
+      {
+        "patchline": {
+          "source": [
+            "left_cal_control",
+            0
+          ],
+          "destination": [
+            "left_calibration",
+            0
+          ]
+        }
+      },
+      {
+        "patchline": {
+          "source": [
+            "left_calibration",
+            0
+          ],
+          "destination": [
+            "engine",
+            0
+          ]
+        }
+      },
+      {
+        "patchline": {
+          "source": [
+            "calroute",
+            0
+          ],
+          "destination": [
+            "left_cal_statusset",
+            0
+          ]
+        }
+      },
+      {
+        "patchline": {
+          "source": [
+            "left_cal_statusset",
+            0
+          ],
+          "destination": [
+            "left_calibration",
             0
           ]
         }
@@ -56548,7 +58761,7 @@
       {
         "patchline": {
           "source": [
-            "right_pinky_signal",
+            "right_pinky_map",
             0
           ],
           "destination": [
@@ -56620,7 +58833,7 @@
       {
         "patchline": {
           "source": [
-            "right_ring_signal",
+            "right_ring_map",
             0
           ],
           "destination": [
@@ -56692,7 +58905,7 @@
       {
         "patchline": {
           "source": [
-            "right_middle_signal",
+            "right_middle_map",
             0
           ],
           "destination": [
@@ -56764,7 +58977,7 @@
       {
         "patchline": {
           "source": [
-            "right_index_signal",
+            "right_index_map",
             0
           ],
           "destination": [
@@ -56836,7 +59049,7 @@
       {
         "patchline": {
           "source": [
-            "right_thumb_signal",
+            "right_thumb_map",
             0
           ],
           "destination": [
@@ -56865,6 +59078,102 @@
           ],
           "destination": [
             "right_thumb_map",
+            0
+          ]
+        }
+      },
+      {
+        "patchline": {
+          "source": [
+            "right_calibrate",
+            0
+          ],
+          "destination": [
+            "right_cal_press",
+            0
+          ]
+        }
+      },
+      {
+        "patchline": {
+          "source": [
+            "right_cal_press",
+            1
+          ],
+          "destination": [
+            "calreport",
+            0
+          ]
+        }
+      },
+      {
+        "patchline": {
+          "source": [
+            "right_cal_press",
+            0
+          ],
+          "destination": [
+            "right_cal_open",
+            0
+          ]
+        }
+      },
+      {
+        "patchline": {
+          "source": [
+            "right_cal_open",
+            0
+          ],
+          "destination": [
+            "right_cal_control",
+            0
+          ]
+        }
+      },
+      {
+        "patchline": {
+          "source": [
+            "right_cal_control",
+            0
+          ],
+          "destination": [
+            "right_calibration",
+            0
+          ]
+        }
+      },
+      {
+        "patchline": {
+          "source": [
+            "right_calibration",
+            0
+          ],
+          "destination": [
+            "engine",
+            0
+          ]
+        }
+      },
+      {
+        "patchline": {
+          "source": [
+            "calroute",
+            1
+          ],
+          "destination": [
+            "right_cal_statusset",
+            0
+          ]
+        }
+      },
+      {
+        "patchline": {
+          "source": [
+            "right_cal_statusset",
+            0
+          ],
+          "destination": [
+            "right_calibration",
             0
           ]
         }
@@ -57861,6 +60170,26 @@
         "Map",
         0
       ],
+      "left_calibrate": [
+        "Left Calibrate",
+        "Left Calibrate",
+        0
+      ],
+      "left_calibration::cal_open": [
+        "Left Calibration open",
+        "Left Calibration open",
+        0
+      ],
+      "left_calibration::cal_fist": [
+        "Left Calibration fist",
+        "Left Calibration fist",
+        0
+      ],
+      "left_calibration::cal_clear": [
+        "Left Calibration clear",
+        "Left Calibration clear",
+        0
+      ],
       "right_pinky": [
         "Right Pinky",
         "Right Pinky",
@@ -58009,6 +60338,31 @@
       "right_thumb_map::obj-48": [
         "Right Thumb Map",
         "Map",
+        0
+      ],
+      "right_calibrate": [
+        "Right Calibrate",
+        "Right Calibrate",
+        0
+      ],
+      "right_calibration::cal_open": [
+        "Right Calibration open",
+        "Right Calibration open",
+        0
+      ],
+      "right_calibration::cal_fist": [
+        "Right Calibration fist",
+        "Right Calibration fist",
+        0
+      ],
+      "right_calibration::cal_clear": [
+        "Right Calibration clear",
+        "Right Calibration clear",
+        0
+      ],
+      "calibration_state": [
+        "Hand Calibration",
+        "Calibration",
         0
       ],
       "filter_enabled": [

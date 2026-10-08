@@ -53,12 +53,22 @@ def label(id,text,rect,size=9):
 native=json.loads(NATIVE.read_text())['patcher']
 # Embed the native Live UI implementation; customize only presentation/name metadata.
 def mapping(name):
-    m=copy.deepcopy(native);m.update(devicewidth=60,rect=[0,0,60,15],enablehscroll=0,enablevscroll=0)
+    m=copy.deepcopy(native);m.update(devicewidth=60,rect=[0,0,60,40],enablehscroll=0,enablevscroll=0)
     ids={o['box']['id']:o['box'] for o in m['boxes']}
     for id in ('obj-48','obj-34'): ids[id]['presentation_rect']=[0,0,46,14]
     ids['obj-47'].update(presentation_rect=[47,0,13,14],usepicture=0,pictures=[],fontsize=9,text='×',texton='×')
     ids['obj-48']['fontsize']=9
-    for id in ('obj-45','obj-46'):ids[id]['presentation']=0
+    for id,x in [('obj-46',0),('obj-45',31)]:
+        ids[id].update(presentation=1,presentation_rect=[x,24,29,15],fontsize=9,appearance=0)
+        ids[id]['saved_attribute_attributes']['valueof']['parameter_mmin']=0.
+    m['boxes'].insert(0,{'box':dict(id='range_label_background',maxclass='panel',
+        numinlets=1,numoutlets=0,patching_rect=[0,15,60,9],presentation=1,
+        presentation_rect=[0,15,60,9],background=1,border=0,rounded=0,
+        saved_attribute_attributes={'bgcolor':{'expression':'themecolor.live_lcd_bg'}})})
+    for id,x,text in [('range_min_label',0,'MIN'),('range_max_label',31,'MAX')]:
+        m['boxes'].append({'box':dict(id=id,maxclass='live.comment',text=text,
+            fontsize=7,numinlets=1,numoutlets=0,patching_rect=[x,16,29,8],
+            presentation=1,presentation_rect=[x,16,29,8])})
     for id,data in list(m['parameters'].items()):
         if not isinstance(data,list):continue
         unique=name+' '+data[1]
@@ -90,8 +100,10 @@ box('colors',text='live.colors',rect=[680,300,75,22])
 box('query_colors','message','everything',rect=[680,268,70,22])
 wire('device','query_colors');wire('colors','query_colors',1);wire('query_colors','colors');wire('colors','art')
 wire('engine','art',2)
-box('statusroute',text='route status',rect=[290,368,90,22]);wire('engine','statusroute',2)
+box('statusroute',text='route status calstatus',rect=[290,368,140,22]);wire('engine','statusroute',2)
 box('handroute',text='route 0 1',rect=[290,404,70,22]);wire('statusroute','handroute')
+box('calroute',text='route 0 1');wire('statusroute','calroute',1)
+box('calreport',cls='message',text='calreport');wire('device','calreport');wire('calreport','engine')
 for h,(name,port,origin,mirrored) in enumerate([('left',7000,8,False),('right',6000,414,True)]):
     labelname=name.capitalize()
     box(name+'_udp',text=f'udpreceive {port}',rect=[40+300*h,210,130,22])
@@ -119,14 +131,51 @@ for h,(name,port,origin,mirrored) in enumerate([('left',7000,8,False),('right',6
         setid=id+'_set';box(setid,text='prepend set');wire(name+'_monitor_unpack',setid,ch);wire(setid,id)
         sig=id+'_signal';box(sig,text='sig~ 0.');wire(name+'_unpack',sig,ch)
         mapper=id+'_map';mp=mapping(labelname+' '+finger)
-        box(mapper,'bpatcher',pres=[x-29,tip-17,60,14],patcher=mp,
+        box(mapper,'bpatcher',pres=[x-29,tip-17,60,40],patcher=mp,
             numinlets=1,numoutlets=2,outlettype=['signal',''],varname=mapper,
             offset=[0,0],border=0,embed=1,clickthrough=0,enablehscroll=0,enablevscroll=0)
         for k,v in mp['parameters'].items():
             if isinstance(v,list):p['parameters'][mapper+'::'+k]=v
-        remote=id+'_remote';box(remote,text='live.remote~ @normalized 1 @smoothing 0.',
-            saved_object_attributes={'_persistence':1});wire(sig,remote);wire(mapper,remote,1,1)
+        # The native mapper scales percentages into the target's actual units.
+        remote=id+'_remote';box(remote,text='live.remote~ @normalized 0 @smoothing 0.',
+            saved_object_attributes={'_persistence':1});wire(mapper,remote);wire(mapper,remote,1,1)
         wire(sig,mapper)
+
+    button(name+'_calibrate',labelname+' Calibrate',[272+406*h,4,60,15],mode=0).update(text='Calibrate',texton='Calibrate')
+    box(name+'_cal_press',text='t b b');wire(name+'_calibrate',name+'_cal_press')
+    wire(name+'_cal_press','calreport',1)
+    box(name+'_cal_open',cls='message',text='open');wire(name+'_cal_press',name+'_cal_open')
+    box(name+'_cal_control',text='pcontrol');wire(name+'_cal_open',name+'_cal_control')
+    main_patch=p
+    p=patch();p.update(rect=[120,160,440,125],devicewidth=440)
+    label('cal_title',labelname.upper()+' HAND  /  CALIBRATION',[10,7,420,18],11)
+    label('cal_hint','Hold each pose still for 0.3 seconds before capturing.',[10,29,420,16],10)
+    for id,title,x,command in [('open','Open → 0',10,f'capture {h} open'),
+                              ('fist','Fist → 0.9',150,f'capture {h} fist'),
+                              ('clear','Reset',290,f'clearcal {h}')]:
+        button('cal_'+id,labelname+' Calibration '+id,[x,51,130,22],mode=0).update(text=title,texton=title)
+        box('cal_'+id+'_bang',text='t b');wire('cal_'+id,'cal_'+id+'_bang')
+        box('cal_'+id+'_command',cls='message',text=command);wire('cal_'+id+'_bang','cal_'+id+'_command')
+        wire('cal_'+id+'_command','cal_output')
+    label('cal_status','Default range. Capture Open and Fist.',[10,80,420,17],10)
+    label('cal_headroom','Fist = 0.900; extra bend may rise to 1.000.',[10,102,420,16],10)
+    box('cal_input','inlet',numinlets=0,numoutlets=1);wire('cal_input','cal_status')
+    box('cal_output','outlet',numinlets=1,numoutlets=0)
+    calibration_patch=p;p=main_patch
+    popup=name+'_calibration'
+    box(popup,text='p '+labelname+'_Calibration',patcher=calibration_patch,
+        numinlets=1,numoutlets=1,outlettype=[''],varname=popup)
+    for k,v in calibration_patch['parameters'].items():
+        if isinstance(v,list):p['parameters'][popup+'::'+k]=v
+    wire(name+'_cal_control',popup);wire(popup,'engine')
+    box(name+'_cal_statusset',text='prepend set');wire('calroute',name+'_cal_statusset',h);wire(name+'_cal_statusset',popup)
+
+box('calibration_state',text='pattr hand_calibration @bindto engine @initial none',
+    varname='hand_calibration',parameter_enable=1,
+    saved_attribute_attributes={'valueof':dict(parameter_longname='Hand Calibration',
+        parameter_shortname='Calibration',parameter_type=3,parameter_invisible=1,
+        parameter_initial=['none'],parameter_initial_enable=1)})
+p['parameters']['calibration_state']=['Hand Calibration','Calibration',0]
 
 button('filter_enabled','Stabilize',[8,151,54,15],1)
 label('smooth_label','Smooth',[72,150,39,17]);param('smooth_ms','Smooth ms',0,500,8,[113,151,46,15],unit=2)
@@ -261,7 +310,7 @@ for h,name in enumerate(['left','right']):
         id=name+'_'+finger;cx=x+ch*112
         positions={id+'_label':[cx,540,90,14],id+'_set':[cx,565,90,22],
           id:[cx,602,60,15],id+'_signal':[cx,641,65,22],
-          id+'_map':[cx,683,60,14],id+'_remote':[cx,726,105,46]}
+          id+'_map':[cx,683,60,40],id+'_remote':[cx,726,105,46]}
         for k,v in positions.items():objects[k]['patching_rect']=v
 objects['engine']['patching_rect']=[355,390,195,22]
 objects['statusroute']['patching_rect']=[820,395,85,22]

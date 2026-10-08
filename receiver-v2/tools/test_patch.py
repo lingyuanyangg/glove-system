@@ -36,10 +36,21 @@ for h,name in enumerate(['left','right']):
         n=name+'_'+finger
         assert ids[n+'_map']['embed']==1
         assert ((''+name+'_unpack',ch),(n+'_signal',0)) in lines
-        assert ((n+'_signal',0),(n+'_remote',0)) in lines
+        assert ((n+'_map',0),(n+'_remote',0)) in lines
+        assert ((n+'_signal',0),(n+'_remote',0)) not in lines
         assert ((n+'_map',1),(n+'_remote',1)) in lines
-        assert '@normalized 1' in ids[n+'_remote']['text']
+        assert '@normalized 0' in ids[n+'_remote']['text']
         assert ids[n]['ignoreclick']==1
+        mapper=ids[n+'_map']['patcher']
+        mids={o['box']['id']:o['box'] for o in mapper['boxes']}
+        mlines={(tuple(l['patchline']['source']),tuple(l['patchline']['destination'])) for l in mapper['lines']}
+        for end in ['obj-45','obj-46']:
+            v=mids[end]['saved_attribute_attributes']['valueof']
+            assert mids[end]['presentation']==1 and v['parameter_mmin']==0 and v['parameter_mmax']==100
+        assert (('obj-46',0),('obj-77',1)) in mlines
+        assert (('obj-45',0),('obj-77',2)) in mlines
+        assert (('obj-77',0),('obj-38',0)) in mlines
+        assert (('obj-3',4),('obj-6',0)) in mlines and (('obj-6',0),('obj-77',3)) in mlines
 assert (('audioin',0),('audioout',0)) in lines
 assert (('audioin',1),('audioout',1)) in lines
 assert ids['osc_port']['saved_attribute_attributes']['valueof']['parameter_type']==0
@@ -69,6 +80,10 @@ assert (('usb_controller',1),('engine',0)) in lines
 assert (('usb_controller',3),('usb_settings',0)) in lines
 assert (('usb_controller',4),('usb_settings',1)) in lines
 assert '@bindto usb_controller' in ids['usb_saved_port']['text']
+assert '@bindto engine' in ids['calibration_state']['text']
+assert ids['calibration_state']['saved_attribute_attributes']['valueof']['parameter_type']==3
+assert ids['statusroute']['text']=='route status calstatus'
+assert (('statusroute',1),('calroute',0)) in lines
 for n in ['glove_dual_engine.js','glove_hands.js','glove_usb_serial.js']:
     assert any(d['name']==n for d in p['dependency_cache'])
     assert (root/n).is_file()
@@ -100,5 +115,25 @@ b=(root/'Glove_Receiver_Dual.amxd').read_bytes()
 assert b[:12]==b'ampf\x04\x00\x00\x00aaaa'
 assert struct.unpack('<I',b[28:32])[0]==len(b)-32
 assert json.loads(b[32:].rstrip(b'\0'))=={'patcher':p}
+for h,name in enumerate(['left','right']):
+    popup=ids[name+'_calibration']['patcher']
+    pi={o['box']['id']:o['box'] for o in popup['boxes']}
+    pl={(tuple(l['patchline']['source']),tuple(l['patchline']['destination'])) for l in popup['lines']}
+    assert ((name+'_calibration',0),('engine',0)) in lines
+    assert ((name+'_cal_control',0),(name+'_calibration',0)) in lines
+    assert (('calroute',h),(name+'_cal_statusset',0)) in lines
+    assert ids[name+'_cal_press']['text']=='t b b'
+    for pose in ['open','fist','clear']:
+        assert pi['cal_'+pose+'_bang']['text']=='t b'
+        assert pi['cal_'+pose+'_command']['text']==(f'clearcal {h}' if pose=='clear' else f'capture {h} {pose}')
+        assert (('cal_'+pose,0),('cal_'+pose+'_bang',0)) in pl
+        assert (('cal_'+pose+'_command',0),('cal_output',0)) in pl
+    pv=[b for b in pi.values() if b.get('presentation')]
+    for i,b in enumerate(pv):
+        x,y,w,height=b['presentation_rect'];assert 0<=x and 0<=y and x+w<=440 and y+height<=125
+        for a in pv[i+1:]:
+            xx,yy,ww,hh=a['presentation_rect']
+            assert min(x+w,xx+ww)-max(x,xx)<=0 or min(y+height,yy+hh)-max(y,yy)<=0,(b['id'],a['id'])
 print('PASS: AMXD payload, recursive patch links, unique parameters, 10 persistent native maps,')
-print('      gated OSC + USB input, fresh-frame buses, stereo passthrough and 808 × 169 layout bounds/overlap.')
+print('      visible native Min/Max, calibration capture/recall wiring, popup bounds, gated OSC + USB,')
+print('      fresh-frame buses, stereo passthrough and 808 × 169 layout bounds/overlap.')

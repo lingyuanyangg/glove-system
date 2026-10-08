@@ -1,6 +1,6 @@
 # Glove Receiver Dual
 
-A compact, dual-hand Max for Live audio effect based on the original `GloveRecevier` and the **ElastremeSense Manu-5D e-skin data glove kit** project. It preserves the original left-hand calibration, adds a right-hand receiver, adds USB serial input alongside OSC, filters finger jitter, maps ten finger values to Live parameters, and forwards normalized OSC frames.
+A compact, dual-hand Max for Live audio effect based on the original `GloveRecevier` and the **ElastremeSense Manu-5D e-skin data glove kit** project. It receives both hands over USB or OSC, captures independent open/fist calibration, filters finger jitter, maps ten finger values to adjustable Live parameter ranges, and forwards normalized OSC frames. The original normalization is retained as the fallback before calibration.
 
 [Download the receiver and USB firmware](Glove_Receiver_Dual.zip).
 
@@ -36,7 +36,7 @@ The compact native main UI stays **808 × 169**, within Live's fixed device heig
 | Left | 7000 | `/servos` | `/GLeft` | `GLeft` / `/GLeft` |
 | Right | 6000 | `/servos` | `/GRight` | `GRight` / `/GRight` |
 
-Each message must contain exactly **five numeric arguments**, in the original project's order: **pinky, ring, middle, index, thumb**. Both receivers reject incomplete or nonnumeric packets. Normalized input is clipped to 0–1 and bypasses calibration; raw input uses:
+Each message must contain exactly **five numeric arguments**, in the original project's order: **pinky, ring, middle, index, thumb**. Both receivers reject incomplete or nonnumeric packets. Before explicit pose calibration, normalized input is clipped to 0–1 and raw input uses:
 
 ```text
 minimum = [0, 18, 18, 18, 70]
@@ -44,13 +44,39 @@ maximum = [180, 180, 180, 180, 180]
 value[i] = clamp((raw[i] - minimum[i]) / (maximum[i] - minimum[i]), 0, 1)
 ```
 
-The right hand initially uses the same calibration. Verify its physical sensor order and ranges. The supplied Arduino sender targets 7000; configure a second sender to target **6000** for the right hand. This device does not add acquisition firmware for the kit.
+The right hand initially uses the same fallback range. Verify its physical sensor order and ranges. The supplied Arduino sender targets 7000; configure a second sender to target **6000** for the right hand. This device does not add acquisition firmware for the kit.
+
+## Open / fist calibration
+
+Each hand has its own **Calibrate** button and native **440 × 125** settings window. Connect the gloves first, then calibrate each hand independently:
+
+1. Open the hand naturally. Hold it still for at least **0.3 seconds**, then click **Open → 0**.
+2. Make a comfortable fist. Hold it still for at least **0.3 seconds**, then click **Fist → 0.9**. Both captures must succeed. The window reports the active calibration.
+3. The displayed values, mappings, `GLeft` / `GRight` and forwarded OSC now use the calibrated values. Further bending may raise a finger from **0.900 to 1.000**; values are clipped to 0–1.
+
+```text
+value[i] = clamp(0.9 * (input[i] - open[i]) / (fist[i] - open[i]), 0, 1)
+```
+
+Endpoints are independent for all five fingers and may run in either sensor direction. Reaching 1.0 requires about 11.1% more sensor travel beyond the captured fist. Calibration cannot create additional hardware travel if the sensor already saturates at the fist pose.
+
+The capture averages valid, unfiltered input from the last **250ms**, with at least three frames and the latest no older than 150ms. A moving pose is rejected when any finger's sample spread exceeds 3 degrees for raw input or 0.02 for normalized input. Every finger needs an absolute open/fist span of at least 5 degrees or 0.025 respectively. Follow the status message and retry the rejected pose; a failed capture leaves the previous complete calibration active. Recalibration requires two new captures. Either pose may be captured first. Partial captures are discarded on stream reset or raw/normalized format changes.
+
+Raw USB and raw `/servos` use degree endpoints. Explicit calibration of normalized `/GLeft` or `/GRight` instead uses normalized endpoints; a pair is applied only to its recorded input format. A raw pair therefore does not renormalize already-normalized OSC. Changing between formats retains the active pair but uses the fallback for the other format. **Reset** restores the default range for that hand only.
+
+Completed pairs are stored through a bound `pattr` Live parameter with the Set. Temporary captures, sample history and stream state are not saved. A calibration change invalidates held data; the next real frame initializes immediately without replaying old samples into learning buses. Only button capture uses averaging, so ordinary control retains the existing low-latency filter. See [Cycling '74's JavaScript state interface](https://docs.cycling74.com/userguide/javascript/).
+
+Calibrate before recording regression or classification examples. If a saved model was trained with different calibration, retrain it using the new input scale. A recorded fist is **0.9**, so existing rules that require a value of exactly 1.0 may need adjustment.
 
 ## Mapping and interface
 
 The device uses native `live.numbox`, `live.text` and `live.comment` controls. Two mirrored vector hand outlines sit below the finger displays. Each display shows its filtered value from **0.000 to 1.000**. The small finger strokes brighten with movement. Each finger has an embedded, compact version of Cycling '74's installed `liveui.map` module.
 
-Click **Map**, then click a mappable Live parameter. The button shows an abbreviated target name. Click **×** to release that mapping. Ten `live.remote~ @normalized 1` objects apply the finger values to each target's complete native range; they require Live's audio engine to run. The standard mapping module retains its `_persistence` configuration. Host reload, parameter reassignment, duplicate-device and mapping-persistence behavior must be checked in Live before performance use.
+Click **Map**, then click a mappable Live parameter. The button shows an abbreviated target name. Click **×** to release that mapping. Each finger shows native **Min** and **Max** controls below Map, expressed as **0–100% of the target parameter's native range**, initially 0% and 100%. They are saved independently with the mapping and Set. Min can exceed Max for an inverted response, and equal values fix the target at one point.
+
+For example, Min = 20% and Max = 80% gives 20% at open (0.0), **74% at fist (0.9)** and 80% at the headroom limit (1.0). To reach a particular value at the captured fist, account for its 0.9 input. These are target ranges: they do not alter finger displays, Max buses or OSC values.
+
+The embedded native mapper scales the input signal into the target's actual units. Ten `live.remote~ @normalized 0 @smoothing 0.` objects consume that scaled signal; they require Live's audio engine to run. This restores the native Min/Max processing that the earlier direct normalized connection bypassed. Existing mapping parameter names and persistence configuration are preserved. Host reload, parameter reassignment, duplicate-device and mapping-persistence behavior must be checked in Live before performance use.
 
 The displays are read-only monitors rather than exposed automation parameters. For a software test, send normalized `/GLeft` or `/GRight` packets to the corresponding input port.
 
@@ -88,6 +114,7 @@ Official object references: [live.map](https://docs.cycling74.com/reference/live
 python3 tools/build.py
 node tools/test_engine.js
 node tools/test_usb.js
+node tools/test_mapping.js
 python3 tools/test_patch.py
 ```
 
@@ -100,6 +127,8 @@ Illustrative layout previews generated from the shipped vectors and presentation
 ![Main receiver](layout-preview.png)
 
 ![USB settings window](usb-settings-preview.png)
+
+![Left-hand calibration window](calibration-preview.png)
 
 ## USB troubleshooting correction
 

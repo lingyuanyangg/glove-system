@@ -26,7 +26,11 @@ function text(x,y,s,size=9,col='#d4d4d4'){svg.push(`<text x="${x}" y="${y}" font
 function widgets(p){for(const o of p.boxes){const b=o.box;if(!b.presentation||b.maxclass==='jsui')continue;
  const [x,y,w,h]=b.presentation_rect;
  if(b.maxclass==='live.comment'){text(x,y+h*.74,b.text,b.fontsize);continue;}
- if(b.maxclass==='bpatcher'){rect(x,y,46,h);text(x+12,y+10,'Map',9,'#ffc15a');continue;}
+ if(b.maxclass==='bpatcher'){
+  rect(x,y,46,14);text(x+12,y+10,'Map',9,'#ffc15a');rect(x+47,y,13,14);text(x+49,y+10,'×',9);
+  rect(x,y+15,60,9);text(x,y+22,'MIN',7);text(x+31,y+22,'MAX',7);
+  rect(x,y+24,29,15);rect(x+31,y+24,29,15);text(x+2,y+35,'0%',9);text(x+32,y+35,'100%',9);continue;
+ }
  rect(x,y,w,h,b.id==='filter_enabled'?'#a99a67':'#292929');
  let s=b.text||'';
  if(b.maxclass==='live.menu')s=b.saved_attribute_attributes.valueof.parameter_enum[0];
@@ -43,4 +47,7 @@ fs.writeFileSync(path.join(root,'layout-preview.svg'),`<svg xmlns="http://www.w3
 svg=['<rect width="580" height="80" fill="#383838"/>'];
 widgets(p.boxes.find(o=>o.box.id==='usb_settings').box.patcher);
 fs.writeFileSync(path.join(root,'usb-settings-preview.svg'),`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 580 80" width="1160" height="160">${svg.join('')}</svg>`);
-console.log('Exported main and USB window layout previews from shipped code.');
+svg=['<rect width="440" height="125" fill="#383838"/>'];
+widgets(p.boxes.find(o=>o.box.id==='left_calibration').box.patcher);
+fs.writeFileSync(path.join(root,'calibration-preview.svg'),`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 440 125" width="880" height="250">${svg.join('')}</svg>`);
+console.log('Exported main, calibration and USB window layout previews from shipped code.');
