@@ -9,7 +9,7 @@ A dual-hand musical control system based on the **ElastremeSense Manu-5D e-skin 
 | Arduino USB · D12 hardware UART | Left D0/D1 and right D12/D11 UART inputs; one tagged USB stream | [Firmware](arduino/glove_usb_dual_hardware/Glove_USB_D12.zip) | [Wiring and upload](arduino/glove_usb_dual_hardware/README.md) |
 | Glove Receiver Dual | USB/OSC reception, independent hand calibration, jitter filtering, curl display and OSC forwarding | [Receiver](receiver-v2/Glove_Receiver_Dual.zip) | [Operation](receiver-v2/README.md) |
 | Glove Gesture | Left/right/combined-pose classification and gesture-to-button mapping | [Gesture](gesture-classification/Glove%20Gesture.zip) | [Training and mapping](gesture-classification/README.md) |
-| Glove Neural Scope | Learn left/right/both-hand poses to parameters of a selected device | [Neural Scope](neural-scope/Glove%20Neural%20Scope.zip) | [Training and models](neural-scope/README.md) |
+| Glove Neural Scope | Learn left/right/both-hand poses to combined parameters across multiple devices and tracks | [Neural Scope](neural-scope/Glove%20Neural%20Scope.zip) | [Training and models](neural-scope/README.md) |
 | Glove Mapper | Ten independent finger-to-parameter mappings with output Min/Max | [Mapper](mapper/Glove_Mapper.zip) | [Mapping](mapper/README.md) |
 | Glove MIDI Trigger | Piano-like bend strikes, curl-held notes, fixed/random/Markov pitch, global scale and velocity limits | [MIDI Trigger](midi-trigger/Glove_MIDI_Trigger.zip) | [MIDI operation](midi-trigger/README.md) |
 

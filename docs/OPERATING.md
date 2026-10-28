@@ -58,15 +58,15 @@ Name and Save a model, select it and Load to recall it, and Export/Import JSON t
 
 ## 6. Train continuous neural mapping
 
-Load Glove Neural Scope. **This track** uses its own track; **Selected track** follows Live's selected track. Follow uses the track's selected device; choosing TARGET pins one.
+Load Glove Neural Scope. This track / Selected track chooses the browsing context; Follow browses its selected device. The first chosen device is included automatically. Browse another device, click **Add**, and enable its Scope rows. Additional new devices start with Scope off. Targets can span tracks and Rack chains; browsing does not replace added targets.
 
-1. Choose Left/Right/Both and select the parameters in **Scope**. Open ↗ for the larger editor. Use a plug-in's Configure control if a required parameter is not exposed to Live.
-2. Keep Run off. Make a glove pose, set the target sound and click **Capture**. Start with 8–20 different pose/sound pairs; at least two are required.
-3. Click **Train**, then **Run**. RMSE shows training error. Test movements between and beyond captured poses; add examples and retrain as needed.
-4. Set custom Min/Max to clamp outputs in each parameter's native units. Smooth controls output smoothing. **Stop** releases parameter control.
-5. Enter a model name and Save. Select a saved model and Load, or Export/Import JSON. Input mode and parameter structure must match. Save the Live Set to retain models and banks.
+1. Choose Left / Right / Both. Use **Targets** to view/remove included devices and **↗** for the larger editor. All / None / First 10 affects the current device only. The shared limit is 32 devices and 256 outputs.
+2. Keep Run off. Make a glove pose, set sounds on all included devices, then **Capture** once. Start with 8–20 distinct pose/sound pairs; at least two are required. Examples hold the full combined output vector.
+3. **Train → Run** controls all included outputs together. RMSE is training error. Test new poses, add examples and retrain as needed. Each ordered target set / hand mode / combined Scope has its own bank.
+4. Min / Max clamp each output in native units. Smooth controls output smoothing. **Stop** releases every mapping. Membership, input-mode or Scope changes stop control; browsing can continue during Run. A missing, moved or changed target also stops the whole set.
+5. Name and **Save** a model. MODEL → **Load** restores targets, examples, weights, Scope and bounds with Run off. Load validates saved paths and structures; hand mode must match. Export / Import transfers JSON. Save the Live Set to retain targets, models and banks.
 
-Changing target, input mode or Scope stops active control. Load and Set recall leave Run off. Review the target after replacing/reordering devices. Neural Scope holds each hand's latest valid input; it has no independent per-hand timeout/pair-skew guard. Stop before disconnecting a hand, especially in Both mode.
+Earlier single-device models remain supported with one compatible target. Adding devices requires new joint examples and training. Review saved targets after rearranging or replacing devices. Neural Scope holds each hand's latest valid input without independent per-hand timeout/pair-skew checks; Stop before disconnecting a source.
 
 ## 7. Perform MIDI notes
 
