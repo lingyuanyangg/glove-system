@@ -14,11 +14,18 @@ Install **FluidCorpusManipulation / FluCoMa** in Max Package Manager. Keep all f
 
 1. Select **Left hand** or **Right hand**.
 2. Choose **Open hand, Fist, Index, V sign, Middle or OK** from the training menu. The pose drawing follows the selection.
-3. Click **Record 2s** while holding the pose. Repeat several times with natural variations. Recorded classes become enabled; **Include in training** can exclude one, and Clear removes that class's examples.
+3. Click **Record 2s**, prepare the pose during Delay s, and hold it during the two-second window. Repeat several times with natural variations. Recorded classes become enabled; **Include in training** can exclude one, and Clear removes that class's examples.
 4. Record relaxed poses and transitions using **Other 2s**. Every enabled class and Other require at least 20 examples. Unrecorded classes need not be included.
 5. Click **Train**, then **Run**. The picture follows the detected gesture. Confirming waits for stability; Confirmed is the active gesture; Other means no accepted known pose.
 
 Keep calibration/filter settings consistent. Test new repetitions and transitions before assigning performance actions. Finger-bend measurements cannot distinguish thumb/index contact, orientation or position if the measured patterns are identical.
+
+
+## Hands-free collection
+
+**Delay s** defaults to 5 (0–15). Press Record 2s or Other 2s, then put the mouse down and prepare the pose during the countdown. Recording lasts two seconds after the countdown; Stop cancels. Train uses stored examples, so holding the pose during model fitting is unnecessary.
+
+For repeated collection, select a gesture (or a left/right pair), set **Every s** (default 5, range 3–60), then enable **Auto**. The first two-second window starts after the interval; subsequent windows start one interval apart, for example 5–7 s and 10–12 s. Vary the same pose slightly between windows. Auto keeps the selected class/pair; turn it off before changing gestures. Use Other 2s separately for background examples. Auto off or Stop cancels the countdown/current window. Stop Auto before Train. Class/bank limits and missing/stale input stop collection. Delay/Every are saved with the Set; active timers always recall off.
 
 ## Train a combined pose
 

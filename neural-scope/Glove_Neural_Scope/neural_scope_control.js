@@ -183,6 +183,7 @@ var ownerPatcher=this.patcher,ready=false,uiReady=false,selfID=0,trackID=0;
 var apiCache={},songView=null,devices=[],sessions={},savedSessions={},selected=null,sequence=0,revision=0;
 var targetIDs=[],multiBanks={},savedTargets=[],autoTarget=true;
 var mode='left',trackMode='this',follow=true,running=false,smoothing=30,epochs=800;
+var captureDelay=5,capturePending=null,inputLeftAt=0,inputRightAt=0;
 var inputLeft=null,inputRight=null,inputRevision=0,lastPredicted=-1;
 var remotes={},remotePool=null,pollTask=null,trainer=null,trainingBank=null,backend=null,runEpoch=0;
 var ticks=0,note='Choose a target device',storedPayload='',visibleIDs=[],deviceSignature='',lastUi=0;
@@ -243,8 +244,8 @@ function input(){
     if(mode==='right'){if(!inputRight)throw Error('Waiting for GRight; move the right hand once');return inputRight.slice();}
     if(!inputLeft||!inputRight)throw Error('Both mode requires valid GLeft and GRight frames');return inputLeft.concat(inputRight);
 }
-function left(){try{inputLeft=GloveNeural.vector(arrayfromargs(arguments),5);inputRevision++;if(running&&mode!=='right')perform();}catch(e){say('Ignored invalid GLeft frame');}}
-function right(){try{inputRight=GloveNeural.vector(arrayfromargs(arguments),5);inputRevision++;if(running&&mode!=='left')perform();}catch(e){say('Ignored invalid GRight frame');}}
+function left(){try{inputLeft=GloveNeural.vector(arrayfromargs(arguments),5);inputLeftAt=Date.now();inputRevision++;if(running&&mode!=='right')perform();}catch(e){inputLeftAt=0;say('Ignored invalid GLeft frame');}}
+function right(){try{inputRight=GloveNeural.vector(arrayfromargs(arguments),5);inputRightAt=Date.now();inputRevision++;if(running&&mode!=='left')perform();}catch(e){inputRightAt=0;say('Ignored invalid GRight frame');}}
 function nin(){return mode==='both'?10:5;}
 function schema(rows){return rows.map(function(p){return p.index+':'+p.name+':'+p.lo+':'+p.hi+':'+p.quantized;}).join('|');}
 function bankKey(){return mode+'|'+(targetIDs.length===1?schema(scoped()):targetStamp());}
@@ -347,7 +348,7 @@ function pool(){
     for(var i=0;i<256;i++)remotePool.push({remote:p.getnamed('remote-'+i),sender:p.getnamed('sender-'+i),used:false});return remotePool;
 }
 function releaseAll(){for(var id in remotes){var r=remotes[id];try{r.sender.message('int',0);}catch(e){}r.used=false;}remotes={};}
-function stopRun(){running=false;runEpoch++;if(backend)backend.invalidate();releaseAll();lastPredicted=-1;}
+function stopRun(keepCapture){if(!keepCapture)stopCapture();running=false;runEpoch++;if(backend)backend.invalidate();releaseAll();lastPredicted=-1;}
 function cancelTraining(){if(backend)backend.cancelTrain();trainer=null;trainingBank=null;}
 function startRun(){
     validateTarget();var rows=scoped(),b=bank();if(!rows.length||rows.length>256)throw Error('Scope 1–256 parameters');
@@ -394,6 +395,29 @@ function nativeTrained(job){
     if(trainer!==job||job.cancelled)return;
     var b=trainingBank;b.model=GloveNeural.copy(job.best);b.loss=job.bestLoss;b.origin='FluCoMa MLP · tanh / linear · SGD';
     trainer=null;trainingBank=null;say('FluCoMa trained · normalized RMSE '+b.loss.toFixed(5)+' · enable Run');persist();revision++;emit();
+}
+function stopCapture(){capturePending=null;}
+function freshCapture(t){
+    if(mode!=='right'&&(!inputLeftAt||t-inputLeftAt>300))throw Error('Waiting for fresh GLeft');
+    if(mode!=='left'&&(!inputRightAt||t-inputRightAt>300))throw Error('Waiting for fresh GRight');
+    if(mode==='both'&&Math.abs(inputLeftAt-inputRightAt)>80)throw Error('Both hands need synchronized frames');
+}
+function armCapture(){
+    validateTarget();if(trainer||backend&&backend.job)throw Error('Finish training before capture');
+    if(!scoped().length)throw Error('Scope at least one output');
+    if(bank().samples.length>=512)throw Error('512 examples reached');
+    stopRun();
+    if(captureDelay===0){capture();return;}
+    capturePending={due:Date.now()+captureDelay*1000,mode:mode,targets:targetStamp(),bank:bank()};
+    say('Capture in '+captureDelay+' s · prepare your pose; Stop cancels');
+}
+function captureClock(){
+    if(!capturePending)return;var q=capturePending,t=Date.now();
+    if(q.mode!==mode||q.targets!==targetStamp()||q.bank!==bank()){stopCapture();say('Capture cancelled · target set or input changed');return;}
+    if(t<q.due){say('Get ready · capture in '+Math.ceil((q.due-t)/1000)+' s');return;}
+    capturePending=null;
+    try{validateTarget();freshCapture(t);capture();}
+    catch(e){stopCapture();say('Capture cancelled: '+e.message);}
 }
 function capture(){
     if(running)throw Error('Turn Run off before setting and capturing an example');
@@ -563,7 +587,7 @@ function setScope(action,id,value){
     say('Scope changed · independent model bank selected');revision++;persist();
 }
 function editRow(id,field,value){
-    stopRun();var rows=current().rows,p=null;for(var i=0;i<rows.length;i++)if(rows[i].id===String(id))p=rows[i];if(!p)throw Error('Parameter changed');
+    stopRun(field==='value'&&!!capturePending);var rows=current().rows,p=null;for(var i=0;i<rows.length;i++)if(rows[i].id===String(id))p=rows[i];if(!p)throw Error('Parameter changed');
     var v=Number(value);if(!isFinite(v)||v<p.lo||v>p.hi)throw Error('Enter a value within the native parameter range');
     if(field==='min'||field==='max'){
         if(field==='min'&&v>p.max||field==='max'&&v<p.min)throw Error('Min must be ≤ Max');
@@ -582,7 +606,7 @@ function pollRows(){
 }
 function tick(){
     if(!ready)return;try{
-        if(backend)backend.watch();ticks++;if(ticks%5===0||contextTrack()!==trackID)refresh();followSelection();
+        if(backend)backend.watch();captureClock();ticks++;if(ticks%5===0||contextTrack()!==trackID)refresh();followSelection();
         var tracked=targetIDs.slice();if(selected&&tracked.indexOf(selected)<0)tracked.push(selected);
         for(var i=0;i<tracked.length;i++){
             var id=tracked[i],s=sessions[id];if(!s||s.missing)continue;
@@ -600,7 +624,7 @@ function snapshotSession(s){return {path:s.path,name:s.name,signature:s.signatur
 
 function persist(){
     for(var id in sessions){var s=sessions[id];if(!s.missing)savedSessions[s.key]=snapshotSession(s);}
-    storedPayload=encodeURIComponent(JSON.stringify({version:4,targets:recordTargets(),multiBanks:multiBanks,mode:mode,trackMode:trackMode,follow:follow,smoothing:smoothing,epochs:epochs,sessions:savedSessions,models:modelLibrary,modelSelection:modelSelection}));
+    storedPayload=encodeURIComponent(JSON.stringify({version:4,captureDelay:captureDelay,targets:recordTargets(),multiBanks:multiBanks,mode:mode,trackMode:trackMode,follow:follow,smoothing:smoothing,epochs:epochs,sessions:savedSessions,models:modelLibrary,modelSelection:modelSelection}));
     var a=chunks(storedPayload);if(a.length===1)outlet(2,a[0]);else outlet.apply(this,[2,'list'].concat(a));
 }
 function restore(){
@@ -612,11 +636,13 @@ function restore(){
             if(!(d.targets instanceof Array)||d.targets.length>32||!d.multiBanks||typeof d.multiBanks!=='object'||d.multiBanks instanceof Array)throw Error('Invalid saved target set');
             var paths={};for(var t=0;t<d.targets.length;t++){var ref=d.targets[t];if(!ref||typeof ref.path!=='string'||!ref.path||typeof ref.name!=='string'||typeof ref.signature!=='string'||paths[ref.path])throw Error('Invalid saved target identity');paths[ref.path]=true;}
         }
+        var delay=d.captureDelay===undefined?5:d.captureDelay;
+        if(!GloveNeural.number(delay)||delay<0||delay>15||delay!==Math.floor(delay))throw Error('Invalid capture timer settings');
         var models=d.version>=2?d.models:[];if(!(models instanceof Array)||models.length>128)throw Error('Invalid saved model library');
         var seen={};for(var k=0;k<models.length;k++){validateRecord(models[k]);if(seen[models[k].id])throw Error('Duplicate saved model identity');seen[models[k].id]=true;}
         stopRun();cancelTraining();storedPayload=encoded;savedSessions=d.sessions||{};sessions={};selected=null;targetIDs=[];savedTargets=d.version===4?d.targets||[]:[];multiBanks=d.version===4?d.multiBanks||{}:{};autoTarget=d.version!==4;
         modelLibrary=GloveNeural.copy(models);modelSelection=seen[d.modelSelection]?d.modelSelection:'';
-        mode=d.mode;trackMode=d.trackMode;follow=!!d.follow;smoothing=GloveNeural.clamp(Number(d.smoothing)||0,0,500);epochs=GloveNeural.clamp(Number(d.epochs)||800,50,5000);
+        captureDelay=delay;mode=d.mode;trackMode=d.trackMode;follow=!!d.follow;smoothing=GloveNeural.clamp(Number(d.smoothing)||0,0,500);epochs=GloveNeural.clamp(Number(d.epochs)||800,50,5000);
         if(ready){refresh();followSelection();}say('Training banks restored · Run remains off');revision++;emit();
     }catch(e){say('Saved state error: '+e.message);emit();}
 }
@@ -644,6 +670,7 @@ function command(encoded){
             if(['this','selected'].indexOf(m.value)<0)throw Error('Choose This track or Selected track');trackMode=m.value;selected=null;refresh();followSelection();persist();revision++;
         }else if(m.op==='follow'){follow=!!m.value;if(ready)followSelection();persist();}
         else if(m.op==='smooth'){var ms=Number(m.value);if(!isFinite(ms)||ms<0||ms>500)throw Error('Smoothing must be 0–500 ms');smoothing=ms;for(var id in remotes)remotes[id].remote.message('smoothing',ms);persist();}
+        else if(m.op==='captureDelay'){if(capturePending)throw Error('Stop countdown before changing the timer');var value=Number(m.value);if(!isFinite(value)||value<0||value>15||value!==Math.floor(value))throw Error('Delay must be a whole number from 0 to 15 seconds');captureDelay=value;persist();}
         else if(m.op==='epochs'){var e=Number(m.value);if(!isFinite(e)||e<50||e>5000)throw Error('Epochs must be 50–5000');epochs=Math.floor(e);persist();}
         else {
             if(!ready)throw Error('Load the AMXD in Ableton Live');
@@ -662,10 +689,11 @@ function command(encoded){
                 if(String(m.device)!==String(selected)||Number(m.revision)!==revision)throw Error('Target/scope changed; use the refreshed interface');
                 if(['scope','scopeAll','edit','loadModel'].indexOf(m.op)<0)validateTarget();
                 if(trainer&&['train','stop'].indexOf(m.op)<0)throw Error('Cancel training before changing examples or parameters');
+                if(capturePending&&['run','train','undoSample','clear','saveModel'].indexOf(m.op)>=0)throw Error('Stop countdown first');
                 if(m.op==='scope')setScope('single',m.id,m.value);
                 else if(m.op==='scopeAll')setScope(m.value);
                 else if(m.op==='edit')editRow(m.id,m.field,m.value);
-                else if(m.op==='capture')capture();
+                else if(m.op==='capture')armCapture();
                 else if(m.op==='train'){if(trainer){cancelTraining();say('Training cancelled; previous model retained');}else train();}
                 else if(m.op==='run'){if(running){stopRun();say('Run off · targets released');}else startRun();}
                 else if(m.op==='undoSample'){stopRun();var b=bank();b.samples.pop();b.model=null;b.loss=null;say('Last example removed; re-train');persist();}
@@ -684,7 +712,7 @@ function emit(){
     for(var i=0;i<all.length;i++)all[i].output=i+1;
     var state={ready:ready,revision:revision,selected:selected,devices:devices,mode:mode,trackMode:trackMode,follow:follow,
         targets:targets().map(function(s){return {id:s.id,name:(s.missing?'':s.trackName+' / ')+s.name,path:s.path,missing:!!s.missing,outputs:s.rows.filter(function(p){return p.scope;}).length};}),
-        running:running,smoothing:smoothing,epochs:epochs,training:!!trainer,epoch:trainer?trainer.epoch:0,engine:'FluCoMa',engineReady:!!(backend&&backend.available&&!backend.fault),
+        running:running,captureDelay:captureDelay,capturePending:!!capturePending,captureRemaining:capturePending?Math.max(0,Math.ceil((capturePending.due-Date.now())/1000)):0,smoothing:smoothing,epochs:epochs,training:!!trainer,epoch:trainer?trainer.epoch:0,engine:'FluCoMa',engineReady:!!(backend&&backend.available&&!backend.fault),
         note:note,left:inputLeft,right:inputRight,rows:rows,samples:b?b.samples.length:0,trained:!!(b&&b.model),
         loss:b?b.loss:null,origin:b?b.origin:'No model',outputs:all.length,trackName:trackName(),colors:themeColors,
         modelSelection:modelSelection,models:modelLibrary.map(function(r){var reason=compatibility(r);return {id:r.id,name:r.name,mode:r.mode,outputs:r.configs.length,devices:r.version===2?r.targets.length:1,savedAt:r.savedAt,compatible:!reason,reason:reason};})};

@@ -115,6 +115,7 @@ autowatch=0;inlets=1;outlets=4;
 var owner=this.patcher,ready=false,uiReady=false,backend=null,clockTask=null,mode='left',running=false,runEpoch=0;
 var banks={left:Gesture.bank('left'),right:Gesture.bank('right'),both:Gesture.bank('both')},frames={left:null,right:null},frameTimes={left:0,right:0},frameSeq=0;
 var hold=120,cooldown=350,radius=0.18,epochs=500,pulse=120,temporal=new Gesture.Temporal(hold,cooldown),recording=null,trainer=null,trainingBank=null;
+var recordDelay=5,recordInterval=5,pendingRecord=null,autoRecord=false,autoLabel=null,nextAutoRecord=0,autoRecorded=0;
 var mappings=[],mapIDs=[],actions=[],owned={},lastQuery=0,lastRecordSeq=-1,lastUi=0,selections={left:'open',right:'open'},learning=-1,mappingReady=false,mappingWeb=null,mapPool=null;
 for(var mappingIndex=0;mappingIndex<48;mappingIndex++){mappings.push(null);mapIDs.push(0);actions.push('toggle');}
 var note='Record each gesture and Other, then Train',candidate='other',distance=null,models=[],modelSelection='',sequence=0,stored='',colors={},pendingExport=null,pendingImport=false;
@@ -144,7 +145,26 @@ function releaseAll(){for(var id in owned)release(id);}
 function invalidate(){runEpoch++;if(backend)backend.invalidate();if(temporal.confirmed)actionExit(temporal.confirmed);temporal.reset();candidate='other';distance=null;lastQuery=0;releaseAll();}
 function stop(){running=false;invalidate();}
 function cancelTrain(){if(backend)backend.cancel();trainer=null;trainingBank=null;}
-function stopRecord(){if(recording){recording=null;persist();}}
+function stopRecord(keepAuto){
+    var changed=!!recording;recording=null;pendingRecord=null;
+    if(!keepAuto){autoRecord=false;autoLabel=null;nextAutoRecord=0;}
+    if(changed)persist();
+}
+function recordCapacity(label){
+    var b=bank(),count=0;for(var i=0;i<b.samples.length;i++)if(b.samples[i].label===label)count++;
+    if(count>=400)throw Error('400 examples for this class reached');
+    if(b.samples.length>=(mode==='both'?8000:2800))throw Error('Training bank sample limit reached');
+}
+function finishRecord(){
+    stopRecord(true);
+    if(autoRecord){
+        try{recordCapacity(autoLabel);}catch(e){stopRecord();say('Auto stopped: '+e.message);return;}
+        autoRecorded++;var t=now();while(nextAutoRecord<=t)nextAutoRecord+=recordInterval*1000;
+        pendingRecord={label:autoLabel,mode:mode,due:nextAutoRecord,auto:true};
+        say('Auto recorded '+autoRecorded+' · prepare the next variation');
+    }else say('Recording complete · repeat with small variations');
+}
+
 function fresh(time){
     var l=frames.left,r=frames.right;
     if(mode==='left'){if(!l||time-frameTimes.left>300)throw Error('Waiting for fresh GLeft');return l.slice();}
@@ -159,7 +179,8 @@ function processFrame(time){
     var x;try{x=fresh(time);}catch(e){return;}
     if(recording&&time>=recording.next&&frameSeq!==lastRecordSeq){
         var b=bank(),count=0;for(var i=0;i<b.samples.length;i++)if(b.samples[i].label===recording.label)count++;
-        if(time>=recording.end||count>=400||b.samples.length>=(mode==='both'?8000:2800)){stopRecord();say(count>=400?'400 examples for this class reached':'Recording complete · repeat from a different pose');}
+        if(time>=recording.end){finishRecord();}
+        else if(count>=400||b.samples.length>=(mode==='both'?8000:2800)){stopRecord();say('Recording stopped · sample limit reached');}
         else{b.samples.push({x:x,label:recording.label,trial:recording.trial});b.model=null;b.loss=null;recording.next=time+50;lastRecordSeq=frameSeq;}
     }
     if(running&&time-lastQuery>=20){
@@ -195,10 +216,26 @@ function prediction(label,x,tag){
     if(distance>radius||label!=='other'&&(idx<0||!b.enabled[idx]))label='other';candidate=label;
     var event=temporal.feed(label,tag.time);if(event.exit)actionExit(event.exit);if(event.enter)actionEnter(event.enter,now());
 }
-function startRecord(label){
-    if(label!=='other'&&Gesture.keys(mode).indexOf(label)<0)throw Error('Unknown gesture in this hand mode');if(trainer||backend&&backend.job)throw Error('Cancel training and wait before recording');
-    stop();stopRecord();fresh(now());if(label!=='other')bank().enabled[Gesture.keys(mode).indexOf(label)]=true;recording={label:label,trial:'trial-'+now()+'-'+Math.floor(Math.random()*1e6),next:now(),end:now()+2000};lastRecordSeq=-1;say('Recording '+Gesture.title(label,mode)+' · hold for 2 seconds');
+function beginRecord(label){
+    fresh(now());recordCapacity(label);
+    if(label!=='other')bank().enabled[Gesture.keys(mode).indexOf(label)]=true;
+    recording={label:label,trial:'trial-'+now()+'-'+Math.floor(Math.random()*1e6),next:now(),end:now()+2000};lastRecordSeq=-1;
+    say('Recording '+Gesture.title(label,mode)+' · hold for 2 seconds');
 }
+function startRecord(label){
+    if(label!=='other'&&Gesture.keys(mode).indexOf(label)<0)throw Error('Unknown gesture in this hand mode');
+    if(trainer||backend&&backend.job)throw Error('Cancel training and wait before recording');
+    recordCapacity(label);stop();stopRecord();
+    if(recordDelay===0)beginRecord(label);
+    else{pendingRecord={label:label,mode:mode,due:now()+recordDelay*1000,auto:false};say('Get ready · '+Gesture.title(label,mode)+' in '+recordDelay+' s');}
+}
+function startAutoRecord(){
+    if(trainer||backend&&backend.job)throw Error('Cancel training and wait before recording');
+    var label=selectedLabel();recordCapacity(label);stop();stopRecord();autoRecord=true;autoLabel=label;autoRecorded=0;
+    pendingRecord={label:label,mode:mode,due:now()+recordInterval*1000,auto:true};
+    say('Auto armed · '+Gesture.title(label,mode)+' every '+recordInterval+' s; Stop cancels');
+}
+
 function train(){
     stop();stopRecord();backend.check();var b=bank(),list=Gesture.keys(mode),counts=countSamples(),a=b.samples.filter(function(s){return s.label==='other'||b.enabled[list.indexOf(s.label)];});
     var active=0;for(var i=0;i<list.length;i++)if(b.enabled[i]){active++;if(counts[i]<20)throw Error('Record at least 20 examples of '+Gesture.title(list[i],mode)+' or disable it');}
@@ -212,24 +249,36 @@ function countSamples(which){which=which||mode;var list=Gesture.keys(which).conc
 function tick(){
     var t=now();if(backend)backend.watch(t);
     for(var id in owned)if(owned[id].due<=t)release(id);
-    if(recording&&t>=recording.end){stopRecord();say('Recording complete · repeat with small variations');}
+    if(pendingRecord){
+        var request=pendingRecord;
+        if(request.mode!==mode){stopRecord();say('Recording cancelled · hand mode changed');}
+        else if(t>=request.due){
+            pendingRecord=null;
+            try{beginRecord(request.label);if(request.auto&&autoRecord)nextAutoRecord=request.due+recordInterval*1000;}
+            catch(e){stopRecord();say('Recording cancelled: '+e.message);}
+        }else say((request.auto?'AUTO · ':'Get ready · ')+Gesture.title(request.label,mode)+' in '+Math.ceil((request.due-t)/1000)+' s');
+    }
+    if(recording&&t>=recording.end)finishRecord();
     if(running)try{fresh(t);}catch(e){if(temporal.confirmed||candidate!=='other')invalidate();say(e.message);}
-    if(trainer)say('FluCoMa training '+trainer.epoch+' / '+trainer.epochs+(Gesture.number(trainer.loss)?' · training RMSE '+trainer.loss.toFixed(4):''));if(t-lastUi>=100){lastUi=t;emit();}
+    if(trainer)say('FluCoMa training '+trainer.epoch+' / '+trainer.epochs+(Gesture.number(trainer.loss)?' · training RMSE '+trainer.loss.toFixed(4):''));
+    if(t-lastUi>=100){lastUi=t;emit();}
 }
+
 function chunks(s){var a=[];for(var i=0;i<s.length;i+=4096)a.push(s.substring(i,i+4096));return a.length?a:[''];}
-function persist(){stored=encodeURIComponent(JSON.stringify({version:2,mode:mode,banks:banks,models:models,modelSelection:modelSelection,selections:selections,hold:hold,cooldown:cooldown,radius:radius,epochs:epochs,pulse:pulse,actions:actions}));var a=chunks(stored);if(a.length===1)outlet(2,a[0]);else outlet.apply(this,[2,'list'].concat(a));}
+function persist(){stored=encodeURIComponent(JSON.stringify({version:2,delay:recordDelay,interval:recordInterval,mode:mode,banks:banks,models:models,modelSelection:modelSelection,selections:selections,hold:hold,cooldown:cooldown,radius:radius,epochs:epochs,pulse:pulse,actions:actions}));var a=chunks(stored);if(a.length===1)outlet(2,a[0]);else outlet.apply(this,[2,'list'].concat(a));}
 function validSettings(d){
-    var keys=['hold','cooldown','radius','epochs','pulse'],ranges=[[40,1000],[0,3000],[0.01,1],[50,3000],[40,1000]];
+    var keys=['hold','cooldown','radius','epochs','pulse','delay','interval'],ranges=[[40,1000],[0,3000],[0.01,1],[50,3000],[40,1000],[0,15],[3,60]];
     for(var i=0;i<keys.length;i++)if(!Gesture.number(d[keys[i]])||d[keys[i]]<ranges[i][0]||d[keys[i]]>ranges[i][1])throw Error('Invalid '+keys[i]+' setting');
+    if(d.delay!==Math.floor(d.delay)||d.interval!==Math.floor(d.interval))throw Error('Delay and interval must be whole seconds');
     if(!(d.actions instanceof Array)||d.actions.length!==48||d.actions.some(function(v){return ['toggle','pulse','gate','on','off'].indexOf(v)<0;}))throw Error('Invalid button actions');
 }
 function restore(){
     var encoded=arrayfromargs(arguments).join('');if(!encoded||encoded===stored)return;
     try{var d=JSON.parse(decodeURIComponent(encoded));if([1,2].indexOf(d.version)<0)throw Error('Unsupported saved state');Gesture.dim(d.mode);
-        if(d.version===1){if(!d.actions||d.actions.length!==6)throw Error('Invalid legacy actions');var old=d.actions;d.actions=[];for(var k=0;k<48;k++)d.actions.push(k<12?old[k%6]:old[Math.floor((k-12)/6)]);for(var key in d.banks)d.banks[key]=Gesture.migrateBank(d.banks[key],key);d.selections={left:'open',right:'open'};}validSettings(d);Gesture.pair(d.selections.left,d.selections.right);
+        if(d.version===1){if(!d.actions||d.actions.length!==6)throw Error('Invalid legacy actions');var old=d.actions;d.actions=[];for(var k=0;k<48;k++)d.actions.push(k<12?old[k%6]:old[Math.floor((k-12)/6)]);for(var key in d.banks)d.banks[key]=Gesture.migrateBank(d.banks[key],key);d.selections={left:'open',right:'open'};}if(d.delay===undefined)d.delay=5;if(d.interval===undefined)d.interval=5;validSettings(d);Gesture.pair(d.selections.left,d.selections.right);
         if(!d.banks)throw Error('Missing hand banks');for(var i=0;i<3;i++){var m=['left','right','both'][i];Gesture.validateBank(d.banks[m],Gesture.dim(m));}
         if(!(d.models instanceof Array)||d.models.length>64)throw Error('Invalid model library');var seen={};for(i=0;i<d.models.length;i++){d.models[i]=Gesture.record(d.models[i]);if(seen[d.models[i].id])throw Error('Duplicate model ID');seen[d.models[i].id]=true;}
-        stop();stopRecord();cancelTrain();cancelMapping();banks=Gesture.copy(d.banks);models=Gesture.copy(d.models);mode=d.mode;hold=d.hold;cooldown=d.cooldown;radius=d.radius;epochs=d.epochs;pulse=d.pulse;actions=d.actions.slice();selections=Gesture.copy(d.selections);temporal=new Gesture.Temporal(hold,cooldown);modelSelection=seen[d.modelSelection]?d.modelSelection:'';stored=encoded;say('Restored · Run is off');emit();
+        stop();stopRecord();cancelTrain();cancelMapping();banks=Gesture.copy(d.banks);models=Gesture.copy(d.models);mode=d.mode;hold=d.hold;cooldown=d.cooldown;radius=d.radius;epochs=d.epochs;pulse=d.pulse;recordDelay=d.delay;recordInterval=d.interval;actions=d.actions.slice();selections=Gesture.copy(d.selections);temporal=new Gesture.Temporal(hold,cooldown);modelSelection=seen[d.modelSelection]?d.modelSelection:'';stored=encoded;say('Restored · Run is off');emit();
     }catch(e){say('Saved state: '+e.message);}
 }
 function findModel(id){for(var i=0;i<models.length;i++)if(models[i].id===id)return models[i];throw Error('Choose a saved model');}
@@ -254,7 +303,7 @@ function command(encoded){
         if(c.op==='help'){outlet(3,'help');return;}
         if(c.op==='stop'){stop();cancelTrain();stopRecord();cancelMapping();say('Stopped · temporary button holds released');emit();return;}
         if(c.op==='mode'){Gesture.dim(c.value);stop();cancelTrain();stopRecord();cancelMapping();mode=c.value;say('Changed hand bank · Run is off');persist();}
-        else if(c.op==='selectGesture'){if(recording||trainer||backend&&backend.job)throw Error('Finish recording/training first');if(['left','right'].indexOf(c.hand)<0||Gesture.labels.slice(0,6).indexOf(c.value)<0)throw Error('Choose a gesture');stop();selections[c.hand]=c.value;persist();}
+        else if(c.op==='selectGesture'){if(recording||pendingRecord||autoRecord||trainer||backend&&backend.job)throw Error('Finish recording/training first');if(['left','right'].indexOf(c.hand)<0||Gesture.labels.slice(0,6).indexOf(c.value)<0)throw Error('Choose a gesture');stop();selections[c.hand]=c.value;persist();}
         else if(c.op==='pickModel'){findModel(c.id);modelSelection=c.id;persist();}
         else if(c.op==='import'){pendingImport=true;outlet(3,'import');}
         else if(c.op==='export'){pendingExport=Gesture.copy(Gesture.record(findModel(c.id)));outlet(3,'export');}
@@ -262,15 +311,16 @@ function command(encoded){
         else if(c.op==='deleteModel'){findModel(c.id);models=models.filter(function(m){return m.id!==c.id;});if(modelSelection===c.id)modelSelection='';persist();}
         else{
             if(!ready)throw Error('Load this device in Ableton Live');
-            if(c.op==='run'){if(running){stop();say('Run off');}else{if(recording||trainer||backend.job)throw Error('Finish recording/training first');backend.check();Gesture.model(bank().model,Gesture.dim(mode));fresh(now());stop();running=true;say('Classifying · hold a gesture to trigger its button');processFrame(now());}}
+            if(c.op==='run'){if(running){stop();say('Run off');}else{if(recording||pendingRecord||autoRecord||trainer||backend.job)throw Error('Finish recording/training first');backend.check();Gesture.model(bank().model,Gesture.dim(mode));fresh(now());stop();running=true;say('Classifying · hold a gesture to trigger its button');processFrame(now());}}
+            else if(c.op==='autoRecord'){if(c.value){startAutoRecord();}else{stopRecord();say('Auto recording stopped');}}
             else if(c.op==='record'){startRecord(c.label||selectedLabel());}
             else if(c.op==='train'){if(trainer){cancelTrain();say('Training cancelled; previous completed model retained');}else train();}
-            else if(c.op==='saveModel'){if(recording||trainer)throw Error('Finish recording/training first');saveModel(c.name);}
+            else if(c.op==='saveModel'){if(recording||pendingRecord||autoRecord||trainer)throw Error('Finish recording/training first');saveModel(c.name);}
             else if(c.op==='map'||c.op==='unmap'){var i=Number(c.index);if(i<0||i>47||i!==Math.floor(i))throw Error('Invalid mapping row');stop();cancelMapping();if(c.op==='map'){learning=i;pool().getnamed('learn-'+i).message('int',1);say('Click a two-state device button in Live');}else{pool().getnamed('learn-'+i).message('unmap');pool().getnamed('target-'+i).message('id',0);mapped(i,'id',0);}}
             else if(c.op==='action'){var i=Number(c.index);if(i<0||i>47||i!==Math.floor(i)||['toggle','pulse','gate','on','off'].indexOf(c.value)<0)throw Error('Invalid button action');stop();actions[i]=c.value;persist();}
-            else if(c.op==='setting'){if(['hold','cooldown','radius','epochs','pulse'].indexOf(c.key)<0)throw Error('Unknown setting');var d={hold:hold,cooldown:cooldown,radius:radius,epochs:epochs,pulse:pulse,actions:actions};d[c.key]=Number(c.value);validSettings(d);stop();hold=d.hold;cooldown=d.cooldown;radius=d.radius;epochs=Math.floor(d.epochs);pulse=d.pulse;temporal=new Gesture.Temporal(hold,cooldown);persist();}
+            else if(c.op==='setting'){if(['hold','cooldown','radius','epochs','pulse','delay','interval'].indexOf(c.key)<0)throw Error('Unknown setting');if((c.key==='delay'||c.key==='interval')&&(recording||pendingRecord||autoRecord))throw Error('Stop recording before changing the timer');var d={hold:hold,cooldown:cooldown,radius:radius,epochs:epochs,pulse:pulse,delay:recordDelay,interval:recordInterval,actions:actions};d[c.key]=Number(c.value);validSettings(d);stop();hold=d.hold;cooldown=d.cooldown;radius=d.radius;epochs=Math.floor(d.epochs);pulse=d.pulse;recordDelay=d.delay;recordInterval=d.interval;temporal=new Gesture.Temporal(hold,cooldown);persist();}
             else if(c.op==='enabled'||c.op==='clear'){
-                if(recording||trainer||backend.job)throw Error('Stop recording/training first');var label=String(c.label||selectedLabel()),idx=Gesture.keys(mode).indexOf(label);if(idx<0&&label!=='other')throw Error('Invalid gesture');stop();
+                if(recording||pendingRecord||autoRecord||trainer||backend.job)throw Error('Stop recording/training first');var label=String(c.label||selectedLabel()),idx=Gesture.keys(mode).indexOf(label);if(idx<0&&label!=='other')throw Error('Invalid gesture');stop();
                 if(c.op==='enabled'){if(label==='other')throw Error('Other class is always enabled');bank().enabled[idx]=!!c.value;}else bank().samples=bank().samples.filter(function(s){return s.label!==label;});bank().model=null;bank().loss=null;persist();
             }else throw Error('Unknown command');
         }
@@ -289,8 +339,8 @@ function writemodel(){
     try{var path=filePath(arrayfromargs(arguments));if(!/\.json$/i.test(path))path+='.json';var f=new File(path,'write');if(!f.isopen)throw Error('Cannot write model JSON');try{f.eof=0;var s=JSON.stringify(r,null,2);for(var i=0;i<s.length;i+=4096)f.writestring(s.substring(i,i+4096));}finally{f.close();}say('Exported '+r.name);}catch(e){say('Export: '+e.message);}emit();
 }
 function emit(){
-    if(!uiReady&&!mappingReady)return;var state={mode:mode,selections:selections,selectedLabel:selectedLabel(),classKeys:Gesture.keys(mode),learning:learning,ready:ready,engineReady:!!(backend&&backend.available&&!backend.fault),running:running,training:!!trainer,recording:recording?recording.label:null,counts:countSamples(),enabled:bank().enabled,trained:!!bank().model,loss:bank().loss,hold:hold,cooldown:cooldown,radius:radius,epochs:epochs,pulse:pulse,actions:actions,note:note,candidate:candidate,confirmed:temporal.confirmed,distance:distance,left:frames.left,right:frames.right,leftFresh:!!frames.left&&now()-frameTimes.left<=300,rightFresh:!!frames.right&&now()-frameTimes.right<=300,colors:colors,targets:mappings.map(function(p){return p?p.name:'';}),models:models.map(function(r){return {id:r.id,name:r.name,mode:r.mode};}),modelSelection:modelSelection};
+    if(!uiReady&&!mappingReady)return;var state={mode:mode,selections:selections,selectedLabel:selectedLabel(),classKeys:Gesture.keys(mode),learning:learning,ready:ready,engineReady:!!(backend&&backend.available&&!backend.fault),running:running,training:!!trainer,recording:recording?recording.label:null,pendingRecord:pendingRecord?pendingRecord.label:null,recordRemaining:pendingRecord?Math.max(0,Math.ceil((pendingRecord.due-now())/1000)):0,recordSeconds:recording?Math.max(0,Math.ceil((recording.end-now())/1000)):0,autoRecord:autoRecord,autoRecorded:autoRecorded,delay:recordDelay,interval:recordInterval,counts:countSamples(),enabled:bank().enabled,trained:!!bank().model,loss:bank().loss,hold:hold,cooldown:cooldown,radius:radius,epochs:epochs,pulse:pulse,actions:actions,note:note,candidate:candidate,confirmed:temporal.confirmed,distance:distance,left:frames.left,right:frames.right,leftFresh:!!frames.left&&now()-frameTimes.left<=300,rightFresh:!!frames.right&&now()-frameTimes.right<=300,colors:colors,targets:mappings.map(function(p){return p?p.name:'';}),models:models.map(function(r){return {id:r.id,name:r.name,mode:r.mode};}),modelSelection:modelSelection};
     state.allCounts={left:countSamples('left'),right:countSamples('right'),both:countSamples('both')};state.allEnabled={left:banks.left.enabled,right:banks.right.enabled,both:banks.both.enabled};
     var a=chunks(encodeURIComponent(JSON.stringify(state))),seq=++sequence;for(var i=0;i<a.length;i++){if(uiReady)outlet(0,'statepacket',seq,i,a.length,a[i]);if(mappingReady)mappingSurface().message('statepacket',seq,i,a.length,a[i]);}
 }
-function notifydeleted(){stop();if(clockTask)clockTask.cancel();cancelTrain();cancelMapping();if(backend)backend.dispose();}
+function notifydeleted(){stop();stopRecord();if(clockTask)clockTask.cancel();cancelTrain();cancelMapping();if(backend)backend.dispose();}

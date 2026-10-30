@@ -46,11 +46,15 @@ The Mapper follows Receiver filtering and adds no second smoothing. It keeps its
 
 Load Glove Gesture and choose **Left hand**, **Right hand** or **Both hands**. Select Open, Fist, Index, V, Middle or OK. Both has separate left/right menus; each chosen pair is trained as one combined class.
 
-1. Click **Record 2s** while holding the selected pose. Repeat with natural variations. Recorded classes become enabled; Include in training can exclude a class.
+1. Click **Record 2s**, prepare the selected pose during the countdown (Delay s defaults to 5), then hold during recording. Repeat with natural variations. Recorded classes become enabled; Include in training can exclude a class.
 2. Record **Other 2s** examples for relaxed poses and transitions. Every enabled class and Other need at least 20 examples.
 3. Click **Train**, then **Run**. The main image shows the detected pose or pair. Confirming waits for the stable-time guard; Confirmed is active; Other is unrecognized.
 4. Try new repetitions and transitions. Tune Hold, Gap and Radius if needed. Radius is a distance cutoff, not a probability.
 5. Open **Mapping**, choose a class/pair, click Map, then a two-state exposed device parameter. Choose Toggle, Pulse, Hold, On or Off. × clears a target.
+
+**Delay s** defaults to 5 (0–15). Press Record 2s or Other 2s, then put the mouse down and prepare the pose during the countdown. Recording lasts two seconds after the countdown; Stop cancels. Train uses stored examples, so holding the pose during model fitting is unnecessary.
+
+For repeated collection, select a gesture (or a left/right pair), set **Every s** (default 5, range 3–60), then enable **Auto**. The first two-second window starts after the interval; subsequent windows start one interval apart, for example 5–7 s and 10–12 s. Vary the same pose slightly between windows. Auto keeps the selected class/pair; turn it off before changing gestures. Use Other 2s separately for background examples. Auto off or Stop cancels the countdown/current window. Stop Auto before Train. Class/bank limits and missing/stale input stop collection. Delay/Every are saved with the Set; active timers always recall off.
 
 Gesture Toggle flips a button once on stable entry; Gesture Hold stays high while the pose is confirmed. These actions are distinct from MIDI Trigger's curl-held Toggle mode. A pose must exit/re-enter for another stable entry trigger. Track arm/mute/transport and arbitrary UI buttons are not targets of this mapping window.
 
@@ -66,7 +70,10 @@ Load Glove Neural Scope. This track / Selected track chooses the browsing contex
 4. Min / Max clamp each output in native units. Smooth controls output smoothing. **Stop** releases every mapping. Membership, input-mode or Scope changes stop control; browsing can continue during Run. A missing, moved or changed target also stops the whole set.
 5. Name and **Save** a model. MODEL → **Load** restores targets, examples, weights, Scope and bounds with Run off. Load validates saved paths and structures; hand mode must match. Export / Import transfers JSON. Save the Live Set to retain targets, models and banks.
 
-Earlier single-device models remain supported with one compatible target. Adding devices requires new joint examples and training. Review saved targets after rearranging or replacing devices. Neural Scope holds each hand's latest valid input without independent per-hand timeout/pair-skew checks; Stop before disconnecting a source.
+
+**Delay s** defaults to 5 (0–15). Set the sounds, click Capture, then prepare the glove pose during the countdown; exactly one example is taken at the deadline. Capture reads all scoped target values at that time. Use 0 for immediate capture. Stop cancels; target membership, input mode, Scope or output-bound changes also cancel. You may adjust sound values while waiting. Delayed capture requires fresh hand frames (within 300 ms, Both arrival skew within 80 ms); missing input cancels rather than storing held values. Repeat Capture for each distinct pose/sound pair. Train uses recorded examples, so neither hand needs to stay in position during fitting. Delay is saved with the Set; pending captures recall off.
+
+Earlier single-device models remain supported with one compatible target. Adding devices requires new joint examples and training. Review saved targets after rearranging or replacing devices. During Run and immediate capture, Neural Scope holds each hand's latest valid input without independent per-hand timeout/pair-skew checks. Delayed capture performs the freshness checks above. Stop before disconnecting a source.
 
 ## 7. Perform MIDI notes
 

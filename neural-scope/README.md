@@ -8,7 +8,7 @@ A FluCoMa Max for Live audio effect that learns Left, Right or Both hand poses t
 
 Install **FluidCorpusManipulation / FluCoMa** through Max Package Manager. Keep `Glove Neural Scope.amxd`, `neural_scope_control.js` and `neural_scope_ui.html` together in `Glove_Neural_Scope`. Load on an audio track or after an instrument. Reload an existing instance to use the installed controller and interface.
 
-Connect and calibrate [Glove Receiver Dual](../receiver-v2/README.md) in the same Set. Neural Scope reads `GLeft` / `GRight`. One hand has five inputs; Both concatenates Left then Right for ten. Within each hand the order is pinky, ring, middle, index, thumb. Both keeps each hand's latest valid frame without a per-hand timeout or pair-skew guard; Stop before disconnecting a source.
+Connect and calibrate [Glove Receiver Dual](../receiver-v2/README.md) in the same Set. Neural Scope reads `GLeft` / `GRight`. One hand has five inputs; Both concatenates Left then Right for ten. Within each hand the order is pinky, ring, middle, index, thumb. During Run and immediate capture, the device keeps each hand's latest valid frame without a per-hand timeout or pair-skew guard; delayed capture checks freshness as described below. Stop before disconnecting a source.
 
 ## Build the target set
 
@@ -25,6 +25,9 @@ The limits are **32 target devices and 256 scoped outputs in total**. The limit 
 2. Make a glove pose, adjust sounds on **all included devices**, then click **Capture** once. The example contains one glove vector and all combined parameter values. Start with 8–20 distinct pose/sound pairs; at least two are required and a bank holds up to 512. Near-identical poses are rejected.
 3. Click **Train**, then **Run**. Native `fluid.mlpregressor~` learns one joint output vector. Epochs defaults to 800; RMSE measures training error. Check new poses and transitions, add examples and retrain as needed.
 4. **Stop** releases every mapped parameter on every target. Target membership, input-mode or Scope changes stop control. Browsing another device or track retains the pinned set and can continue while Run is on.
+
+
+**Delay s** defaults to 5 (0–15). Set the sounds, click Capture, then prepare the glove pose during the countdown; exactly one example is taken at the deadline. Capture reads all scoped target values at that time. Use 0 for immediate capture. Stop cancels; target membership, input mode, Scope or output-bound changes also cancel. You may adjust sound values while waiting. Delayed capture requires fresh hand frames (within 300 ms, Both arrival skew within 80 ms); missing input cancels rather than storing held values. Repeat Capture for each distinct pose/sound pair. Train uses recorded examples, so neither hand needs to stay in position during fitting. Delay is saved with the Set; pending captures recall off.
 
 Each ordered target set, input mode and combined Scope has an independent bank. Returning to the same configuration recalls that bank. Adding/removing examples invalidates its trained model. A larger combined output set needs new training examples; an existing single-device model does not acquire additional learned outputs automatically.
 
